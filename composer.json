@@ -1,0 +1,25 @@
+{
+    "name": "simplecomplex/filter",
+    "type": "library",
+    "description": "Sanitize, validate, work on Unicode (UTF-8) string without caring if the mbstring PHP extension is available.",
+    "keywords": ["filter", "sanitize", "validate", "unicode"],
+    "homepage": "https://github.com/simplecomplex/filter",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jacob Friis Mathiasen",
+            "email": "jacob.friis@simplecomplex.net"
+        }
+    ],
+    "require": {
+        "php": ">=7.0"
+    },
+    "suggest": {
+        "ext-mbstring": "Lightweight UTF-8 support."
+    },
+    "autoload": {
+        "psr-4": {
+            "SimpleComplex\\Filter\\": "src/"
+        }
+    }
+}
