@@ -5,32 +5,33 @@ namespace SimpleComplex\Filter;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class Validate
- *
- *
- * SOME STRING METHODS RETURN TRUE ON EMPTY
+ * Some string methods return true on empty
+ * ----------------------------------------
  * Combine with the 'nonEmpty' rule if requiring non-empty.
  * They are:
  * - unicode, unicodePrintable, unicodeMultiLine
  * - ascii, asciiPrintable, asciiMultiLine, asciiLowerCase, asciiUpperCase
  * - plainText
  *
- * MAXIMUM NUMBER OF RULE METHOD PARAMETERS
+ *
+ * Maximum number of rule method parameters
+ * ----------------------------------------
  * A rule method is not allowed to have more than 5 parameters,
  * that is: 1 for the var to validate and max. 4 secondary
  * (specifying) parameters.
  * ValidateByRules::challenge() will err when given more than 4 secondary args.
  *
- * BAD RULE METHOD ARGS CHECK
+ *
+ * Bad rule method args check
+ * --------------------------
  * Rule methods that take more arguments than the $var to validate:
  * - must check those arguments for type (and emptyness, if required)
  * - must log meaningful error message (if logger) and return false, or throw exception
  * Reasons:
  * - type hints don't support someType|otherType&not-empty
- * - an exception thrown because of type hint conflict may not be simple to handle and comprehend
  * - we prefer to fail gracefully; a non-passed validation should stop the party
  *   in a well constructed application anyway
- *
+ * - an exception thrown because of type hint conflict may not be simple to handle and comprehend
  *
  *
  * @package SimpleComplex\Filter
@@ -151,6 +152,14 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
+     * Log (if logger) call to non-existent rule method.
+     *
+     * By design, ValidateByRules::challenge() should not be able to call a non-existent method
+     * of this class.
+     * But external call to Validate::noSuchRule() is somewhat expectable.
+     *
+     * @see ValidateByRules::challenge()
+     *
      * @throws \BadMethodCallException
      *
      * @param string $name
@@ -159,10 +168,13 @@ class Validate implements ValidationRuleProviderInterface {
     public function __call($name, $arguments) {
         if ($this->logger) {
             // Log warning instaed of error, because we also throw an exception.
-            $this->logger->warning('Class ' . get_called_class() . ' provides no rule \'{rule_method}\'.', [
-                'type' => static::LOG_TYPE,
-                'rule_method' => $name,
-            ]);
+            $this->logger->warning(
+                'Class ' . get_called_class() . ', and parents, provide no rule method \'{rule_method}\'.',
+                [
+                    'type' => static::LOG_TYPE,
+                    'rule_method' => $name,
+                ]
+            );
         }
         throw new \BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
@@ -173,7 +185,7 @@ class Validate implements ValidationRuleProviderInterface {
     // Type indifferent.--------------------------------------------------------
 
     /**
-     * Stringed zero - '0' - is not empty.
+     * NB: Stringed zero - '0' - is _not_ empty.
      *
      * @param mixed $var
      *
@@ -191,7 +203,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * Stringed zero - '0' - is not empty.
+     * NB: Stringed zero - '0' - _is_ non-empty.
      *
      * @param mixed $var
      *
@@ -372,28 +384,12 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * @param mixed $var
-     *
-     * @return bool
-     */
-    public function object($var) {
-        return is_object($var);
-    }
-
-    /**
-     * @param mixed $var
-     *
-     * @return bool
-     */
-    public function array($var) {
-        return is_array($var);
-    }
-
-    /**
      * Array or object.
      *
-     * NB: Not related to PHP>=7 \DS\Collection (Traversable, Countable,
-     * JsonSerializable).
+     * Superset of all other object and array type(ish) checkers; here:
+     * - object, class, array, numArray, assocArray
+     *
+     * Not related to PHP>=7 \DS\Collection (Traversable, Countable, JsonSerializable).
      *
      * @param mixed $var
      *
@@ -404,8 +400,53 @@ class Validate implements ValidationRuleProviderInterface {
         return is_array($var) ? 'array' : (is_object($var) ? 'object' : false);
     }
 
+    /**
+     * @param mixed $var
+     *
+     * @return bool
+     */
+    public function object($var) {
+        return is_object($var);
+    }
 
-    // Numerically indexed arrays versus associative arrays (hast tables).------
+    /**
+     * Is object and is of that class or has it as ancestor.
+     *
+     * @uses is_a()
+     *
+     * @param mixed $var
+     * @param string $className
+     *
+     * @return bool
+     */
+    public function class($var, $className) {
+        if (!$className || !is_string($className)) {
+            $msg = 'className is not a non-empty string.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => static::LOG_TYPE,
+                    'variable' => [
+                        'className' => $className,
+                    ],
+                ]);
+            } else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+            // Important.
+            return false;
+        }
+
+        return $var && is_object($var) && is_a($var, $className);
+    }
+
+    /**
+     * @param mixed $var
+     *
+     * @return bool
+     */
+    public function array($var) {
+        return is_array($var);
+    }
 
     /**
      * Does not check if the array's index is complete and correctly sequenced.
@@ -628,7 +669,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                     ],
                 ]);
@@ -669,7 +710,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'max' => $max,
                     ],
                 ]);
@@ -712,7 +753,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                         'max' => $max,
                     ],
@@ -728,7 +769,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                         'max' => $max,
                     ],
@@ -744,7 +785,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                         'max' => $max,
                     ],
@@ -849,7 +890,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                     ],
                 ]);
@@ -890,7 +931,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'max' => $max,
                     ],
                 ]);
@@ -932,7 +973,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'exact' => $exact,
                     ],
                 ]);
@@ -1080,7 +1121,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'min' => $min,
                     ],
                 ]);
@@ -1115,7 +1156,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'max' => $max,
                     ],
                 ]);
@@ -1150,7 +1191,7 @@ class Validate implements ValidationRuleProviderInterface {
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
-                    'variables' => [
+                    'variable' => [
                         'exact' => $exact,
                     ],
                 ]);

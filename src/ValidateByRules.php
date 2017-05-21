@@ -4,14 +4,66 @@ namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
 
+
+// @todo: provide a means for recording validation failure, perhaps a 'recorder' which looks like a logger but doesn't log.
+
 /**
- * When listing secondary rule method arguments
+ * What/how?
+ * ---------
+ * I. Define a list of rules, that a variable must comply with.
+ * Like a flat one:
+ * [ class: 'bicycle', nonEmpty: true ]
+ * Or a more comprehensive one:
+ * [
+ *   class: 'bicycle',
+ *   elements: [
+ *     wheels: [
+ *       'integer'
+ *       range: [1, 3]
+ *     ],
+ *     luggage-carrier: [
+ *       'optional'
+ *     ],
+ *     sound: [
+ *       enum: [
+ *         'silent',
+ *         'swooshy',
+ *         'clattering'
+ *       ]
+ *     ]
+ *   ]
+ * ]
  *
  *
- * WHEN A RULE TAKES/REDQUIRES SECONDARY ARGUMENTS
+ *
+ * II. Or define a deep list of rules for the variable and
+ *
+ *
+ * Purpose
+ * -------
+ * Provides means of:
+ * 1) calling more validation methods on a var _by configuration_
+ * 2) validating buckets (and sub buckets) of objects and arrays
+ *
+ *
+ * Sequence of secondary rule arg buckets
+ * --------------------------------------
+ * When a rule takes/requires secondary arguments:
  * The sequence of buckets is essential, keys - whether numeric or associative
  * - are ignored. They will be accessed/used via reset(), next()...
  *
+ *
+ * Design considerations
+ * ---------------------
+ * The methods and props of this class could in principle be integrated
+ * into the Validate class.
+ * But it would obscure the primary purpose of the Validate class:
+ * to provide simple, directly applicable, validation methods.
+ *
+ * Moving/keeping the rule set methods in a (this) separate class also has
+ * the added benefit that it's far simpler to determine which (Validate)
+ * methods are rule methods.
+ * And this class cannot 'see'/call protected methods of the Validate class.
  *
  *
  * @package SimpleComplex\Filter
@@ -52,11 +104,13 @@ class ValidateByRules {
     /**
      * Rules that the rules provider doesn't (and shan't) provide.
      *
+     * @todo: this var is not used, however the names are mentioned in ValidationRuleProviderInterface.
+     *
      * @var array
      */
     const NON_PROVIDER_RULES = [
         'optional',
-        'fallbackEnum',
+        'allowOtherTypeEmpty',
         'elements',
     ];
 
@@ -78,7 +132,7 @@ class ValidateByRules {
      *
      * @code
      * $logger = new JsonLog();
-     * $validate = Validate::getInstance('', $logger);
+     * $validate = Validate::getInstance('', [$logger]);
      * $validateByRules = ValidateByRules::getInstance('', [
      *   $validate
      * ]);
@@ -115,6 +169,10 @@ class ValidateByRules {
      * ]);
      * @endcode
      *
+     * @uses get_class_methods()
+     * @uses Validate::getNonRuleMethods()
+     * @uses Validate::getLogger()
+     *
      * @param mixed $var
      * @param array $rules
      *  A list of rules; either 'rule':[specs] or N:'rule'.
@@ -138,15 +196,17 @@ class ValidateByRules {
         // @todo: Use library specific exception types.
         try {
             //
+            return $this->internalChallenge(0, '', $var, $rules);
+
         } catch (\Exception $xc) {
             //
 
             // @todo: non-library exception type: log (as warning) and rethrow.
 
             // @todo: in-library exception type: don't catch, let propagate.
-        }
 
-        return $this->internalChallenge(0, '', $var, $rules);
+            return false;
+        }
     }
 
     /**
@@ -163,6 +223,8 @@ class ValidateByRules {
     
     /**
      * Internal method to accommodate an inaccessible depth argument, to control/limit recursion.
+     *
+     * @recursive
      *
      * @param int $depth
      * @param string $keyPath
@@ -192,7 +254,7 @@ class ValidateByRules {
             );
         }
 
-        $failed = $optional = $typeFailed = $fallbackEnum = $isCollection = $elements = false;
+        $rules_found = $elements = [];
         foreach ($ruleSet as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -206,24 +268,75 @@ class ValidateByRules {
             }
             switch ($rule) {
                 case 'optional':
-                    // Save for later.
-                    $optional = true;
+                    // Do nothing, ignore here. Only used when working on 'elements'.
                     break;
-                case 'fallbackEnum':
-                    if ($args) {
-                        // Save for later.
-                        $fallbackEnum = $args;
-                    }
-                    // Otherwise (falsy) ignore.
-                    break;
+                case 'allowOtherTypeEmpty':
                 case 'elements':
-                    if ($args) {
+                    // We know that these rules require non-empty array args.
+                    if (!$args || !is_array($args)) {
+                        $logger = $this->ruleProvider->getLogger();
+                        if ($logger) {
+                            $logger->warning(
+                                'Args for validation rule \'{rule_method}\' must be non-empty array, saw[{args_type}]'
+                                . ', at key path[{key_path}].',
+                                [
+                                    'type' => static::LOG_TYPE,
+                                    'rule_method' => $rule,
+                                    'args_type' => gettype($args),
+                                    'key_path' => $keyPath,
+                                ]
+                            );
+                            // Important.
+                            return false;
+                        }
+                        throw new \LogicException('Args for validation rule[' . $rule . '] must be non-empty array.');
+                    }
+                    // Good.
+                    if ($rule == 'allowOtherTypeEmpty') {
+                        // Use immediately: no reason to do other checks if the var is empty(ish).
+                        if ($this->ruleProvider->empty($var)) {
+                            return $this->ruleProvider->enum($var, $args);
+                        }
+                    } else {
                         // Save for later.
                         $elements = $args;
                     }
-                    // Otherwise (falsy) ignore.
                     break;
                 default:
+                    // Check for dupe; 'rule':args as well as N:'rule'.
+                    if ($rules_found && isset($rules_found[$rule])) {
+                        $logger = $this->ruleProvider->getLogger();
+                        if ($logger) {
+                            // Collapse 'elements'; don't want to log deep array.
+                            if (isset($ruleSet['elements'])) {
+                                if (is_array($ruleSet['elements'])) {
+                                    $ruleSet['elements'] = 'array(' . count($ruleSet['elements']) . ')';
+                                } elseif (is_object($ruleSet['elements'])) {
+                                    // Illegal, but anyway.
+                                    $ruleSet['elements'] = 'object('
+                                        . count(get_object_vars($ruleSet['elements'])) . ')';
+                                } else {
+                                    // Illegal, but anyway.
+                                    $ruleSet['elements'] = '(' . gettype($ruleSet['elements']) . ')';
+                                }
+                            }
+                            $logger->warning(
+                                'Duplicate validation rule \'{rule_method}\''
+                                . ',  declared as rule:args as well as N:rule,'
+                                . ' of rule provider {rule_provider}, at key path[{key_path}].',
+                                [
+                                    'type' => static::LOG_TYPE,
+                                    'rule_provider' => get_class($this->ruleProvider),
+                                    'rule_method' => $rule,
+                                    'key_path' => $keyPath,
+                                    'variable' => $ruleSet,
+                                ]
+                            );
+                            // Important.
+                            return false;
+                        }
+                        throw new \LogicException('Duplicate validation rule[' . $rule . '].');
+                    }
                     // Check rule method existance.
                     if (!in_array($rule, $this->$this->ruleMethods)) {
                         $logger = $this->ruleProvider->getLogger();
@@ -244,133 +357,111 @@ class ValidateByRules {
                         throw new \LogicException('Non-existent validation rule[' . $rule . '].');
                     }
 
-                    // Don't use call_user_func_array() when not needed; performance.
-                    // And we expect more boolean trues than arrays (few Validate methods take secondary args).
-                    if (!$args || $args === true || !is_array($args)) {
-                        if (!$this->ruleProvider->{$rule}($var)) {
-                            $failed = true;
-                        }
-                    } else {
-                        $n_args = count($args);
-                        switch ($n_args) {
-                            case 1:
-                                if (!$this->ruleProvider->{$rule}($var, reset($args))) {
-                                    $failed = true;
-                                }
-                                break;
-                            case 2:
-                                if (!$this->ruleProvider->{$rule}($var, reset($args), next($args))) {
-                                    $failed = true;
-                                }
-                                break;
-                            case 3:
-                                if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args))) {
-                                    $failed = true;
-                                }
-                                break;
-                            case 4:
-                                if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args), next($args))) {
-                                    $failed = true;
-                                }
-                                break;
-                            default:
-                                $logger = $this->ruleProvider->getLogger();
-                                if ($logger) {
-                                    $logger->warning(
-                                        'Too many arguments[{n_arguments}] for validation rule \'{rule_method}\''
-                                        . ' of rule provider {rule_provider}, at key path[{key_path}].',
-                                        [
-                                            'type' => static::LOG_TYPE,
-                                            'rule_provider' => get_class($this->ruleProvider),
-                                            'rule_method' => $rule,
-                                            'n_arguments' => $n_args,
-                                            'key_path' => $keyPath,
-                                        ]
-                                    );
-                                    // Important.
-                                    return false;
-                                }
-                                throw new \InvalidArgumentException(
-                                    'Too many arguments for validation rule[' . $rule . '].'
-                                );
-                        }
-                    }
-            }
-            if ($failed) {
-                // Break loop.
-                break;
+                    $rules_found[$rule] = $args;
             }
         }
 
-        if ($failed) {
-            // @todo: 'optional' belongs int the 'elements' method, not here.
-            if ($optional) {
-                return true;
-            }
-            // @todo: 'fallbackEnum is only relevant if the var is ::empty().
-            if ($fallbackEnum) {
-                return $this->ruleProvider->enum($var, $fallbackEnum);
-            }
-        } else {
-            // 'elements' is only relevant if (the object|array) didn't fail for other reason.
-            if ($elements) {
-                // Prevent convoluted try-catches; only one at the top.
-                if (!$depth) {
-                    try {
-                        return $this->elements(++$depth, $var, $elements);
-                    }
-                    catch (\Exception $xc) {
+        // Roll it.
+        foreach ($rules_found as $rule => $args) {
+            // Don't use call_user_func_array() when not needed; performance.
+            // And we expect more boolean trues than arrays (few Validate methods take secondary args).
+            if (!$args || $args === true || !is_array($args)) {
+                if (!$this->ruleProvider->{$rule}($var)) {
+                    return false;
+                }
+            } else {
+                $n_args = count($args);
+                switch ($n_args) {
+                    case 1:
+                        if (!$this->ruleProvider->{$rule}($var, reset($args))) {
+                            return false;
+                        }
+                        break;
+                    case 2:
+                        if (!$this->ruleProvider->{$rule}($var, reset($args), next($args))) {
+                            return false;
+                        }
+                        break;
+                    case 3:
+                        if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args))) {
+                            return false;
+                        }
+                        break;
+                    case 4:
+                        if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args), next($args))) {
+                            return false;
+                        }
+                        break;
+                    default:
+                        // Too many args.
                         $logger = $this->ruleProvider->getLogger();
                         if ($logger) {
-
+                            $logger->warning(
+                                'Too many arguments[{n_arguments}] for validation rule \'{rule_method}\''
+                                . ' of rule provider {rule_provider}, at key path[{key_path}].',
+                                [
+                                    'type' => static::LOG_TYPE,
+                                    'rule_provider' => get_class($this->ruleProvider),
+                                    'rule_method' => $rule,
+                                    'n_arguments' => $n_args,
+                                    'key_path' => $keyPath,
+                                ]
+                            );
+                            // Important.
+                            return false;
                         }
-                    }
-                } else {
-                    return $this->elements(++$depth, $var, $elements);
+                        throw new \InvalidArgumentException(
+                            'Too many arguments for validation rule[' . $rule . '].'
+                        );
                 }
             }
         }
 
-        return $failed;
-    }
+        // Didn't fail.
+        if (!$elements) {
+            return true;
+        }
 
+        // Do 'elements'.
+        $collection_type = $this->ruleProvider->collection($var);
+        if (!$collection_type) {
+            // A-OK: one should - for convenience - be allowed to use the 'elements' rule,
+            // without explicitly declaring/using a collection type checker.
+            return false;
+        }
 
-    /**
-     * Recursive.
-     *
-     * @recursive
-     *
-     * @param array|object $collection
-     * @param array $patterns
-     *
-     * @return bool
-     */
-    protected function elements($depth, $collection, array $patterns) {
-        if (is_array($collection)) {
-            foreach ($patterns as $key => $pattern) {
-                // @todo: use array_key_exists(); vs. null value.
-                if (isset($collection[$key])) {
-                    if (!$this->internalChallenge($depth, $collection[$key], $pattern)) {
+        // Iterate array|object separately, don't want to clone object to array; for performance reasons.
+        if ($collection_type == 'array') {
+            foreach ($elements as $key => $subRuleSet) {
+                if (!array_key_exists($key, $var)) {
+                    // An element is required, unless explicitly 'optional'.
+                    if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
                         return false;
                     }
-                } elseif (empty($pattern['optional'])) {
-                    return false;
-                }
-            }
-        } elseif (is_object($collection)) {
-            foreach ($patterns as $key => $pattern) {
-                // @todo: use property_exists(); vs. null value.
-                if (isset($collection->{$key})) {
-                    if (!$this->internalChallenge($depth, $collection->{$key}, $pattern)) {
+                } else {
+                    // Recursion.
+                    if (!$this->internalChallenge($depth + 1, $keyPath . '[' . $key . ']', $var[$key], $subRuleSet)) {
                         return false;
                     }
-                } elseif (empty($pattern['optional'])) {
-                    return false;
                 }
             }
         } else {
-            return false;
+            // Object.
+            foreach ($elements as $key => $subRuleSet) {
+                if (!property_exists($var, $key)) {
+                    // An element is required, unless explicitly 'optional'.
+                    if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                        return false;
+                    }
+                } else {
+                    // Recursion.
+                    if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $subRuleSet)) {
+                        return false;
+                    }
+                }
+            }
         }
+
         return true;
     }
 }
