@@ -2,6 +2,7 @@
 
 namespace SimpleComplex\Filter;
 
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -9,7 +10,7 @@ use Psr\Log\LoggerInterface;
  *
  * @package SimpleComplex\Filter
  */
-class Validate {
+class ValidationSet {
   /**
    * @see GetInstanceTrait
    *
@@ -37,24 +38,13 @@ class Validate {
   protected $logger;
 
   /**
-   * Validate constructor.
+   * ValidationSet constructor.
    *
-   * @param LoggerInterface|null
+   * @param LoggerInterface|null $logger
    *   PSR-3 logger, if any.
    */
   public function __construct($logger = null) {
     $this->logger = $logger;
-
-    $this->nonRuleMethods = self::NON_RULE_METHODS;
-    /* // Extending class must merge non-rule-methods class constants.
-     * $parent_class = get_parent_class();
-     * if (defined($parent_class . '::NON_RULE_METHODS')) {
-     *   $this->nonRuleMethods = array_merge(
-     *     $this->nonRuleMethods,
-     *     constant($parent_class . '::NON_RULE_METHODS')
-     *   );
-     * }
-     */
   }
 
   /**
@@ -64,7 +54,7 @@ class Validate {
    */
   public static function make($logger = null) {
     // Make IDE recognize child class.
-    /** @var Validate */
+    /** @var ValidationSet */
     return new static($logger);
   }
 
