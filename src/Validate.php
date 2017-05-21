@@ -95,7 +95,7 @@ class Validate {
      *    'range': [ 0, 2 ]
      *  ]
      *
-     * @return boolean
+     * @return bool
      */
     public function ruleSet($var, array $ruleSet) {
         return $this->internalRuleSet(0, $var, $ruleSet);
@@ -124,11 +124,11 @@ class Validate {
      * Internal method necessitated by the need of an inaccessible depth argument
      * to control recursion.
      *
-     * @param integer $depth
+     * @param int $depth
      * @param mixed $var
      * @param array $ruleSet
      *
-     * @return boolean
+     * @return bool
      */
     protected function internalRuleSet($depth, $var, array $ruleSet) {
         static $forbidden_methods;
@@ -187,7 +187,7 @@ class Validate {
      * @param array|object $collection
      * @param array $patterns
      *
-     * @return boolean
+     * @return bool
      */
     protected function internalElements($depth, $collection, array $patterns) {
         if (is_array($collection)) {
@@ -251,7 +251,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function empty($var) {
         if (!$var) {
@@ -275,7 +275,7 @@ class Validate {
      *    3: other scalar
      *  ]
      *
-     * @return boolean
+     * @return bool
      */
     public function enum($var, array $allowedValues) {
         foreach ($allowedValues as $allowed) {
@@ -294,7 +294,7 @@ class Validate {
      *    0|pattern: (str) /regular expression/
      *  ]
      *
-     * @return boolean
+     * @return bool
      */
     public function regex($var, array $specs) {
         if ($specs) {
@@ -309,7 +309,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function boolean($var) {
         return is_bool($var);
@@ -331,7 +331,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function number($var) {
         return is_int($var) || is_float($var);
@@ -351,7 +351,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function integer($var) {
         return is_int($var);
@@ -369,7 +369,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function float($var) {
         return is_float($var);
@@ -378,7 +378,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function string($var) {
         return is_string($var);
@@ -387,7 +387,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function null($var) {
         return $var === null;
@@ -396,7 +396,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function object($var) {
         return is_object($var);
@@ -405,7 +405,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function array($var) {
         return is_array($var);
@@ -419,7 +419,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return string|boolean
+     * @return string|bool
      *  String (array|object) on pass, boolean false on failure.
      */
     public function collection($var) {
@@ -434,7 +434,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      *  True: empty array, or all keys are integers.
      */
     public function numArray($var) {
@@ -450,7 +450,7 @@ class Validate {
     /**
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      *  True: empty array, or at least one key is not integer.
      */
     public function assocArray($var) {
@@ -482,7 +482,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function numeric($var) {
         $v = '' . $var;
@@ -512,7 +512,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function digit($var) {
         return ctype_digit('' . $var);
@@ -526,7 +526,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function hex($var) {
         return ctype_xdigit('' . $var);
@@ -546,7 +546,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function bit32($var) {
         return $var >= -2147483648 && $var <= 2147483647;
@@ -563,7 +563,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function bit64($var) {
         return $var >= -9223372036854775808 && $var <= 9223372036854775807;
@@ -580,7 +580,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function positive($var) {
         return $var > 0;
@@ -597,7 +597,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function negative($var) {
         return $var < 0;
@@ -614,7 +614,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function nonNegative($var) {
         return $var >= 0;
@@ -630,9 +630,9 @@ class Validate {
      * @see Validate::digit()
      *
      * @param mixed $var
-     * @param integer|float $min
+     * @param int|float $min
      *
-     * @return boolean
+     * @return bool
      */
     public function min($var, $min) {
         return $var >= $min;
@@ -648,9 +648,9 @@ class Validate {
      * @see Validate::digit()
      *
      * @param mixed $var
-     * @param integer|float $max
+     * @param int|float $max
      *
-     * @return boolean
+     * @return bool
      */
     public function max($var, $max) {
         return $var <= $max;
@@ -666,10 +666,10 @@ class Validate {
      * @see Validate::digit()
      *
      * @param mixed $var
-     * @param integer|float $min
-     * @param integer|float $max
+     * @param int|float $min
+     * @param int|float $max
      *
-     * @return boolean
+     * @return bool
      */
     public function range($var, $min, $max) {
         return $var >= $min && $var <= $max;
@@ -686,7 +686,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function unicode($var) {
         $v = '' . $var;
@@ -709,7 +709,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function unicodePrintable($var) {
         $v = '' . $var;
@@ -727,7 +727,7 @@ class Validate {
      *
      * @param mixed $var
      *
-     * @return boolean
+     * @return bool
      */
     public function unicodeMultiLine($var) {
         // Remove newline chars before checking if printable.
@@ -743,9 +743,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $min
+     * @param int $min
      *
-     * @return boolean
+     * @return bool
      */
     public function unicodeMinLength($var, $min) {
         return Unicode::getInstance()->strlen('' . $var) >= $min;
@@ -761,9 +761,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $max
+     * @param int $max
      *
-     * @return boolean
+     * @return bool
      */
     public function unicodeMaxLength($var, $max) {
         return Unicode::getInstance()->strlen('' . $var) <= $max;
@@ -779,9 +779,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $exact
+     * @param int $exact
      *
-     * @return boolean
+     * @return bool
      */
     public function unicodeExactLength($var, $exact) {
         return Unicode::getInstance()->strlen('' . $var) == $exact;
@@ -801,7 +801,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function ascii($var) {
         return preg_match('/^[[:ascii:]]+$/', '' . $var);
@@ -818,7 +818,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function asciiPrintable($var) {
         $v = '' . $var;
@@ -837,7 +837,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function asciiMultiLine($var) {
         // Remove newline chars before checking if printable.
@@ -854,7 +854,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function asciiLowerCase($var) {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
@@ -872,7 +872,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function asciiUpperCase($var) {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
@@ -887,9 +887,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $min
+     * @param int $min
      *
-     * @return boolean
+     * @return bool
      */
     public function minLength($var, $min) {
         return strlen('' . $var) >= $min;
@@ -902,9 +902,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $max
+     * @param int $max
      *
-     * @return boolean
+     * @return bool
      */
     public function maxLength($var, $max) {
         return strlen('' . $var) <= $max;
@@ -917,9 +917,9 @@ class Validate {
      *
      * @param mixed $var
      *  Gets stringified.
-     * @param integer $exact
+     * @param int $exact
      *
-     * @return boolean
+     * @return bool
      */
     public function exactLength($var, $exact) {
         return strlen('' . $var) == $exact;
@@ -939,7 +939,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function alphaNum($var) {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
@@ -958,7 +958,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function name($var) {
         return preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
@@ -975,7 +975,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function dashName($var) {
         return preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
@@ -990,7 +990,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function uuid($var) {
         $v = '' . $var;
@@ -1010,7 +1010,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function base64($var) {
         return preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $var);
@@ -1033,7 +1033,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function dateTimeIso8601($var) {
         $v = '' . $var;
@@ -1057,7 +1057,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function dateIso8601Local($var) {
         $v = '' . $var;
@@ -1073,7 +1073,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function plainText($var) {
         $v = '' . $var;
@@ -1084,7 +1084,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function ipAddress($var) {
         return !!filter_var('' . $var, FILTER_VALIDATE_IP);
@@ -1094,7 +1094,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function url($var) {
         return !!filter_var('' . $var, FILTER_VALIDATE_URL);
@@ -1104,7 +1104,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function httpUrl($var) {
         $v = '' . $var;
@@ -1115,7 +1115,7 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function email($var) {
         $v = '' . $var;

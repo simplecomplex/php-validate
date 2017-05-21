@@ -84,7 +84,7 @@ trait GetInstanceTrait
      *
      * @param string $name
      *  Unrefer instance by that name, if exists.
-     * @param boolean $last
+     * @param bool $last
      *  Kill reference to last instantiated object.
      * @return void
      */

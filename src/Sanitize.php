@@ -66,7 +66,7 @@ class Sanitize {
      * @param mixed $str
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function ascii($str) {
         return preg_replace('/[^[:ascii:]]/', '', '' . $str);
@@ -95,7 +95,7 @@ class Sanitize {
      * @param mixed $str
      *  Gets stringified.
      *
-     * @return boolean
+     * @return bool
      */
     public function asciiMultiLine($str) {
         // Remove lower ASCII except newline \x0A and CR \x0D,

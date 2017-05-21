@@ -49,12 +49,12 @@ class Unicode {
     }
 
     /**
-     * @var integer
+     * @var int
      */
     protected static $mbString = -1;
 
     /**
-     * @return integer
+     * @return int
      *  0|1.
      */
     public static function nativeSupport() {
@@ -70,7 +70,7 @@ class Unicode {
      *
      * @param string $str
      *
-     * @return integer
+     * @return int
      */
     public function strlen($str) {
         if ($str === '') {
@@ -109,8 +109,8 @@ class Unicode {
      * Multibyte-safe sub string.
      *
      * @param string $str
-     * @param integer $start
-     * @param integer|null $length
+     * @param int $start
+     * @param int|null $length
      *  Default: null; until end of arg str.
      *
      * @return string
@@ -170,7 +170,7 @@ class Unicode {
      * Does not check if arg $str is valid UTF-8.
      *
      * @param string $str
-     * @param integer $length
+     * @param int $length
      *  Byte length (~ ASCII char length).
      *
      * @return string
@@ -224,7 +224,7 @@ class Unicode {
      * @param string $haystack
      * @param string $needle
      *
-     * @return boolean|integer
+     * @return bool|int
      */
     public function strpos($haystack, $needle) {
         if ($haystack === '' || $needle === '') {
