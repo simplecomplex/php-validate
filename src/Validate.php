@@ -7,6 +7,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Class Validate
  *
+ *
+ * SOME STRING METHODS RETURN TRUE ON EMPTY
+ * Combine with the 'nonEmpty' rule if requiring non-empty.
+ * They are:
+ * - unicode, unicodePrintable, unicodeMultiLine
+ * - ascii, asciiPrintable, asciiMultiLine, asciiLowerCase, asciiUpperCase
+ * - plainText
+ *
  * MAXIMUM NUMBER OF RULE METHOD PARAMETERS
  * A rule method is not allowed to have more than 5 parameters,
  * that is: 1 for the var to validate and max. 4 secondary
@@ -71,9 +79,11 @@ class Validate implements ValidationRuleProviderInterface {
     const NON_RULE_METHODS = [
         'getInstance',
         'flushInstance',
+        '__construct',
         'make',
-        'getNonRuleMethods',
         'getLogger',
+        'getNonRuleMethods',
+        '__call',
     ];
 
     /**
@@ -178,6 +188,17 @@ class Validate implements ValidationRuleProviderInterface {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Stringed zero - '0' - is not empty.
+     *
+     * @param mixed $var
+     *
+     * @return bool
+     */
+    public function nonEmpty($var) {
+        return !$this->empty($var);
     }
 
     /**
@@ -346,6 +367,15 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
+    public function resource($var) {
+        return is_resource($var);
+    }
+
+    /**
+     * @param mixed $var
+     *
+     * @return bool
+     */
     public function object($var) {
         return is_object($var);
     }
@@ -434,13 +464,14 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function numeric($var) {
         $v = '' . $var;
-        if (strpos($v, '.') !== FALSE) {
+        if (strpos($v, '.') !== false) {
             $count = 0;
             $v = str_replace('.', '', $v, $count);
             if ($count != 1) {
                 return false;
             }
         }
+        // Yes, ctype_... returns fals on ''.
         return ctype_digit($v);
     }
 
@@ -463,6 +494,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function digit($var) {
+        // Yes, ctype_... returns fals on ''.
         return ctype_digit('' . $var);
     }
 
@@ -477,6 +509,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function hex($var) {
+        // Yes, ctype_... returns fals on ''.
         return ctype_xdigit('' . $var);
     }
 
@@ -571,6 +604,9 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Numeric minimum.
      *
+     * May produce false negative if args var and min both are float;
+     * comparing floats is inherently imprecise.
+     *
      * @see Validate::number()
      * @see Validate::integer()
      * @see Validate::float()
@@ -608,6 +644,9 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * Numeric maximum.
+     *
+     * May produce false negative if args var and max both are float;
+     * comparing floats is inherently imprecise.
      *
      * @see Validate::number()
      * @see Validate::integer()
@@ -647,6 +686,9 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Numeric range.
      *
+     * May produce false negative if (at least) two of the args are float;
+     * comparing floats is inherently imprecise.
+     *
      * @see Validate::number()
      * @see Validate::integer()
      * @see Validate::float()
@@ -672,6 +714,7 @@ class Validate implements ValidationRuleProviderInterface {
                     'type' => static::LOG_TYPE,
                     'variables' => [
                         'min' => $min,
+                        'max' => $max,
                     ],
                 ]);
             } else {
@@ -686,6 +729,23 @@ class Validate implements ValidationRuleProviderInterface {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variables' => [
+                        'min' => $min,
+                        'max' => $max,
+                    ],
+                ]);
+            } else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+            // Important.
+            return false;
+        }
+        if ($max < $min) {
+            $msg = 'max cannot be less than arg min.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => static::LOG_TYPE,
+                    'variables' => [
+                        'min' => $min,
                         'max' => $max,
                     ],
                 ]);
@@ -705,6 +765,8 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Valid UTF-8.
      *
+     * NB: Returns true on empty ('') string.
+     *
      * @see Validate::string()
      *
      * @param mixed $var
@@ -714,7 +776,7 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function unicode($var) {
         $v = '' . $var;
-        return $v === '' ? TRUE :
+        return $v === '' ? true :
             // The PHP regex u modifier forces the whole subject to be evaluated
             // as UTF-8. And if any byte sequence isn't valid UTF-8 preg_match()
             // will return zero for no-match.
@@ -728,6 +790,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
+     * NB: Returns true on empty ('') string.
+     *
      * @see Validate::unicode()
      *
      * @param mixed $var
@@ -736,14 +800,20 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function unicodePrintable($var) {
         $v = '' . $var;
-        return !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW))
-            && !strpos(' ' . $var, chr(127));
+        return $v === '' ? true :
+            (
+                !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW))
+                // Prefix space to avoid expensive type check (boolean false).
+                && !strpos(' ' . $v, chr(127))
+            );
     }
 
     /**
      * Unicode printable that allows carriage return and newline.
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
+     *
+     * NB: Returns true on empty ('') string.
      *
      * @see Validate::unicode()
      *
@@ -774,8 +844,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function unicodeMinLength($var, $min) {
-        if (!is_int($min)) {
-            $msg = 'min is not integer.';
+        if (!is_int($min) || $min < 0) {
+            $msg = 'min is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -790,7 +860,11 @@ class Validate implements ValidationRuleProviderInterface {
             return false;
         }
 
-        return Unicode::getInstance()->strlen('' . $var) >= $min;
+        $v = '' . $var;
+        if ($v === '') {
+            return $min == 0;
+        }
+        return Unicode::getInstance()->strlen($v) >= $min;
     }
 
     /**
@@ -811,8 +885,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function unicodeMaxLength($var, $max) {
-        if (!is_int($max)) {
-            $msg = 'max is not integer.';
+        if (!is_int($max) || $max < 0) {
+            $msg = 'max is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -827,7 +901,12 @@ class Validate implements ValidationRuleProviderInterface {
             return false;
         }
 
-        return Unicode::getInstance()->strlen('' . $var) <= $max;
+        $v = '' . $var;
+        if ($v === '') {
+            // Unlikely, but correct.
+            return $max == 0;
+        }
+        return Unicode::getInstance()->strlen($v) <= $max;
     }
 
     /**
@@ -848,8 +927,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function unicodeExactLength($var, $exact) {
-        if (!is_int($exact)) {
-            $msg = 'exact is not integer.';
+        if (!is_int($exact) || $exact < 0) {
+            $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -864,7 +943,11 @@ class Validate implements ValidationRuleProviderInterface {
             return false;
         }
 
-        return Unicode::getInstance()->strlen('' . $var) == $exact;
+        $v = '' . $var;
+        if ($v === '') {
+            return $exact == 0;
+        }
+        return Unicode::getInstance()->strlen($v) == $exact;
     }
 
 
@@ -872,6 +955,8 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * Full ASCII; 0-127.
+     *
+     * NB: Returns true on empty ('') string.
      *
      * @see Validate::string()
      *
@@ -884,11 +969,14 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function ascii($var) {
-        return preg_match('/^[[:ascii:]]+$/', '' . $var);
+        $v = '' . $var;
+        return $v === '' ? true : preg_match('/^[[:ascii:]]+$/', $v);
     }
 
     /**
      * Allows ASCII except lower ASCII and DEL.
+     *
+     * NB: Returns true on empty ('') string.
      *
      * @see Validate::string()
      *
@@ -902,12 +990,17 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function asciiPrintable($var) {
         $v = '' . $var;
-        return !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
-            && !strpos(' ' . $v, chr(127));
+        return $v === '' ? true : (
+            !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
+            // Prefix space to avoid expensive type check (boolean false).
+            && !strpos(' ' . $v, chr(127))
+        );
     }
 
     /**
      * ASCII printable that allows carriage return and newline.
+     *
+     * NB: Returns true on empty ('') string.
      *
      * @see Validate::string()
      *
@@ -929,6 +1022,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if ASCII; use 'ascii' (or stricter) rule before this.
      *
+     * NB: Returns true on empty ('') string.
+     *
      * @see Validate::ascii()
      *
      * @param mixed $var
@@ -939,13 +1034,16 @@ class Validate implements ValidationRuleProviderInterface {
     public function asciiLowerCase($var) {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
-        return ctype_lower('' . $var);
+        $v = '' . $var;
+        return $v === '' ? true : ctype_lower($v);
     }
 
     /**
      * ASCII uppercase.
      *
      * NB: Does not check if ASCII; use 'ascii' (or stricter) rule before this.
+     *
+     * NB: Returns true on empty ('') string.
      *
      * @see Validate::ascii()
      *
@@ -957,7 +1055,8 @@ class Validate implements ValidationRuleProviderInterface {
     public function asciiUpperCase($var) {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
-        return ctype_upper('' . $var);
+        $v = '' . $var;
+        return $v === '' ? true : ctype_upper($v);
     }
 
     /**
@@ -976,8 +1075,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function minLength($var, $min) {
-        if (!is_int($min)) {
-            $msg = 'min is not integer.';
+        if (!is_int($min) || $min < 0) {
+            $msg = 'min is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -1011,8 +1110,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function maxLength($var, $max) {
-        if (!is_int($max)) {
-            $msg = 'max is not integer.';
+        if (!is_int($max) || $max < 0) {
+            $msg = 'max is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -1046,8 +1145,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function exactLength($var, $exact) {
-        if (!is_int($exact)) {
-            $msg = 'exact is not integer.';
+        if (!is_int($exact) || $exact < 0) {
+            $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -1210,6 +1309,8 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Doesn't contain tags.
      *
+     * NB: Returns true on empty ('') string.
+     *
      * @param mixed $var
      *  Gets stringified.
      *
@@ -1217,7 +1318,7 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function plainText($var) {
         $v = '' . $var;
-        return !strcmp($v, strip_tags($v));
+        return $v === '' ? true : !strcmp($v, strip_tags($v));
     }
 
     /**
@@ -1227,7 +1328,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function ipAddress($var) {
-        return !!filter_var('' . $var, FILTER_VALIDATE_IP);
+        $v = '' . $var;
+        return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
     }
 
     /**
@@ -1237,7 +1339,8 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function url($var) {
-        return !!filter_var('' . $var, FILTER_VALIDATE_URL);
+        $v = '' . $var;
+        return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
     }
 
     /**
@@ -1248,7 +1351,10 @@ class Validate implements ValidationRuleProviderInterface {
      */
     public function httpUrl($var) {
         $v = '' . $var;
-        return strpos($v, 'http') === 0 && !!filter_var('' . $v, FILTER_VALIDATE_URL);
+        return $v === '' ? false : (
+            strpos($v, 'http') === 0
+            && !!filter_var('' . $v, FILTER_VALIDATE_URL)
+        );
     }
 
     /**
@@ -1258,8 +1364,11 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function email($var) {
-        $v = '' . $var;
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
-        return !!filter_var($v, FILTER_VALIDATE_EMAIL) && preg_match('/\.[a-zA-Z\d]+$/', $v);
+        $v = '' . $var;
+        return $v === '' ? false : (
+            !!filter_var($v, FILTER_VALIDATE_EMAIL)
+            && preg_match('/\.[a-zA-Z\d]+$/', $v)
+        );
     }
 }

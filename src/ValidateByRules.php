@@ -70,12 +70,7 @@ class ValidateByRules {
     /**
      * @var array
      */
-    protected $providerNonRuleMethods = [];
-
-    /**
-     * @var array
-     */
-    protected $checkedProviderRuleMethods = [];
+    protected $ruleMethods = [];
 
     /**
      * Uses the logger (if any) of the rules provider.
@@ -94,7 +89,6 @@ class ValidateByRules {
      */
     public function __construct(ValidationRuleProviderInterface $ruleProvider) {
         $this->ruleProvider = $ruleProvider;
-        $this->providerNonRuleMethods = $ruleProvider->getNonRuleMethods();
     }
 
     /**
@@ -132,6 +126,14 @@ class ValidateByRules {
      * @return bool
      */
     public function challenge($var, array $rules) {
+        // Init, really.
+        if (!$this->ruleMethods) {
+            $this->ruleMethods = array_diff(
+                get_class_methods(get_class($this->ruleProvider)),
+                $this->ruleProvider->getNonRuleMethods()
+            );
+        }
+
 
         // @todo: Use library specific exception types.
         try {
@@ -190,7 +192,7 @@ class ValidateByRules {
             );
         }
 
-        $failed = $optional = $fallbackEnum = $elements = false;
+        $failed = $optional = $typeFailed = $fallbackEnum = $isCollection = $elements = false;
         foreach ($ruleSet as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -222,47 +224,25 @@ class ValidateByRules {
                     // Otherwise (falsy) ignore.
                     break;
                 default:
-                    // Check rule method.
-                    if (!in_array($rule, $this->checkedProviderRuleMethods)) {
-                        if (in_array($rule, $this->providerNonRuleMethods)) {
-                            $logger = $this->ruleProvider->getLogger();
-                            if ($logger) {
-                                $logger->warning(
-                                    'Invalid validation rule \'{rule_method}\''
-                                    . ' of rule provider {rule_provider}, at key path[{key_path}].',
-                                    [
-                                        'type' => static::LOG_TYPE,
-                                        'rule_provider' => get_class($this->ruleProvider),
-                                        'rule_method' => $rule,
-                                        'key_path' => $keyPath,
-                                    ]
-                                );
-                                // Important.
-                                return false;
-                            }
-                            throw new \LogicException('Invalid validation rule[' . $rule . '].');
+                    // Check rule method existance.
+                    if (!in_array($rule, $this->$this->ruleMethods)) {
+                        $logger = $this->ruleProvider->getLogger();
+                        if ($logger) {
+                            $logger->warning(
+                                'Non-existent validation rule \'{rule_method}\''
+                                . ' of rule provider {rule_provider}, at key path[{key_path}].',
+                                [
+                                    'type' => static::LOG_TYPE,
+                                    'rule_provider' => get_class($this->ruleProvider),
+                                    'rule_method' => $rule,
+                                    'key_path' => $keyPath,
+                                ]
+                            );
+                            // Important.
+                            return false;
                         }
-                        if (!method_exists($this->ruleProvider, $rule)) {
-                            $logger = $this->ruleProvider->getLogger();
-                            if ($logger) {
-                                $logger->warning(
-                                    'Non-existent validation rule \'{rule_method}\''
-                                    . ' of rule provider {rule_provider}, at key path[{key_path}].',
-                                    [
-                                        'type' => static::LOG_TYPE,
-                                        'rule_provider' => get_class($this->ruleProvider),
-                                        'rule_method' => $rule,
-                                        'key_path' => $keyPath,
-                                    ]
-                                );
-                                // Important.
-                                return false;
-                            }
-                            throw new \LogicException('Non-existent validation rule[' . $rule . '].');
-                        }
+                        throw new \LogicException('Non-existent validation rule[' . $rule . '].');
                     }
-                    $this->checkedProviderRuleMethods[] = $rule;
-
 
                     // Don't use call_user_func_array() when not needed; performance.
                     // And we expect more boolean trues than arrays (few Validate methods take secondary args).
@@ -327,7 +307,7 @@ class ValidateByRules {
             if ($optional) {
                 return true;
             }
-            // @todo: 'fallbackEnum is only relevant if the var failed a type check.
+            // @todo: 'fallbackEnum is only relevant if the var is ::empty().
             if ($fallbackEnum) {
                 return $this->ruleProvider->enum($var, $fallbackEnum);
             }
