@@ -28,6 +28,11 @@ class Validate {
      * @static
      * @function getInstance()
      * @see GetInstanceTrait::getInstance()
+     *
+     * Kill class reference(s) to instance(s).
+     * @public
+     * @static
+     * @see GetInstanceTrait::flushInstance()
      */
     use GetInstanceTrait;
 
@@ -68,39 +73,6 @@ class Validate {
         return new static($logger);
     }
 
-    // @todo: rename 'pattern' to 'rules'.
-
-    // @todo: move all rules to a parent class.
-
-    // @todo: handle non-rule flags; 'optional', 'buckets' ('children'?), 'exceptValue'|'or'|'orEnum'(?)
-
-    /**
-     *
-     * @code
-     * // Validate a value which should be an integer zero thru two.
-     * $validate->ruleSet($some_input, [
-     *   'integer',
-     *   'range' => [
-     *     0,
-     *     2
-     *   ]
-     * ]);
-     * @endcode
-     *
-     * @param mixed $var
-     * @param array $ruleSet
-     *  A list of rules; either 'rule':[specs] or N:rule.
-     *  [
-     *    'integer'
-     *    'range': [ 0, 2 ]
-     *  ]
-     *
-     * @return bool
-     */
-    public function ruleSet($var, array $ruleSet) {
-        return $this->internalRuleSet(0, $var, $ruleSet);
-    }
-
     const NON_RULE_METHODS = array(
         '__construct',
         'make',
@@ -120,109 +92,8 @@ class Validate {
         return $this->nonRuleMethods;
     }
 
-    /**
-     * Internal method necessitated by the need of an inaccessible depth argument
-     * to control recursion.
-     *
-     * @param int $depth
-     * @param mixed $var
-     * @param array $ruleSet
-     *
-     * @return bool
-     */
-    protected function internalRuleSet($depth, $var, array $ruleSet) {
-        static $forbidden_methods;
-        if (!$forbidden_methods) {
 
-        }
-
-
-
-        $elements = NULL;
-        foreach ($ruleSet as $k => $v) {
-            // Bucket is simply the name of a rule; key is int, value is the rule.
-            if (ctype_digit('' . $k)) {
-                if (!$this->{$v}($var, array())) {
-                    return false;
-                }
-            }
-            // Bucket key is name of the rule,
-            // value is options or specifications for the rule.
-            else {
-                if ($k == 'elements') {
-                    $elements = $v;
-                    continue;
-                }
-                elseif ($k == 'optional') {
-                    continue;
-                }
-                if (!$this->{$k}($var, $v)) {
-                    return false;
-                }
-            }
-        }
-        if ($elements) {
-            // Prevent convoluted try-catches; only one at the top.
-            if (!$depth) {
-                try {
-                    return $this->internalElements(++$depth, $var, $elements);
-                }
-                catch (\Exception $xc) {
-                    //
-                }
-            }
-            else {
-                return $this->internalElements(++$depth, $var, $elements);
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * Recursive.
-     *
-     * @recursive
-     *
-     * @param array|object $collection
-     * @param array $patterns
-     *
-     * @return bool
-     */
-    protected function internalElements($depth, $collection, array $patterns) {
-        if (is_array($collection)) {
-            foreach ($patterns as $key => $pattern) {
-                // @todo: use array_key_exists(); vs. null value.
-                if (isset($collection[$key])) {
-                    if (!$this->internalPattern($depth, $collection[$key], $pattern)) {
-                        return false;
-                    }
-                }
-                elseif (empty($pattern['optional'])) {
-                    return false;
-                }
-            }
-        }
-        elseif (is_object($collection)) {
-            foreach ($patterns as $key => $pattern) {
-                // @todo: use property_exists(); vs. null value.
-                if (isset($collection->{$key})) {
-                    if (!$this->internalPattern($depth, $collection->{$key}, $pattern)) {
-                        return false;
-                    }
-                }
-                elseif (empty($pattern['optional'])) {
-                    return false;
-                }
-            }
-        }
-        else {
-            return false;
-        }
-        return true;
-    }
-
-    // Catch-all.-----------------------------------------------------------------
+    // Catch-all.---------------------------------------------------------------
 
     /**
      * @throws \LogicException
@@ -244,7 +115,7 @@ class Validate {
     }
 
 
-    // Type indifferent.----------------------------------------------------------
+    // Type indifferent.--------------------------------------------------------
 
     /**
      * Stringed zero - '0' - is not empty.
@@ -304,7 +175,7 @@ class Validate {
     }
 
 
-    // Type checkers.-------------------------------------------------------------
+    // Type checkers.-----------------------------------------------------------
 
     /**
      * @param mixed $var
@@ -427,7 +298,7 @@ class Validate {
     }
 
 
-    // Numerically indexed arrays versus associative arrays (hast tables).--------
+    // Numerically indexed arrays versus associative arrays (hast tables).------
 
     /**
      * Does not check if the array's index is complete and correctly sequenced.
@@ -464,7 +335,7 @@ class Validate {
     }
 
 
-    // Numbers or stringed numbers.-----------------------------------------------
+    // Numbers or stringed numbers.---------------------------------------------
 
     /**
      * Integer, float or stringed integer/float (not empty string).
@@ -533,7 +404,7 @@ class Validate {
     }
 
 
-    // Numeric secondaries.-------------------------------------------------------
+    // Numeric secondaries.-----------------------------------------------------
 
     /**
      * 32-bit integer.
@@ -676,7 +547,7 @@ class Validate {
     }
 
 
-    // UTF-8 string secondaries.--------------------------------------------------
+    // UTF-8 string secondaries.------------------------------------------------
 
     /**
      * Valid UTF-8.
@@ -788,7 +659,7 @@ class Validate {
     }
 
 
-    // ASCII string secondaries.--------------------------------------------------
+    // ASCII string secondaries.------------------------------------------------
 
     /**
      * Full ASCII; 0-127.
@@ -926,7 +797,7 @@ class Validate {
     }
 
 
-    // ASCII specials.------------------------------------------------------------
+    // ASCII specials.----------------------------------------------------------
 
     /**
      * ASCII alphanumeric.
@@ -1065,7 +936,7 @@ class Validate {
     }
 
 
-    // Character set indifferent specials.----------------------------------------
+    // Character set indifferent specials.--------------------------------------
 
     /**
      * Doesn't contain tags.

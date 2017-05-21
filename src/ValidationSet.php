@@ -90,7 +90,7 @@ class ValidationSet {
      *
      * @return bool
      */
-    public function ruleSet($var, array $ruleSet) {
+    public function challenge($var, array $ruleSet) {
         return $this->internalRuleSet(0, $var, $ruleSet);
     }
 
@@ -215,7 +215,7 @@ class ValidationSet {
         return true;
     }
 
-    // Catch-all.-----------------------------------------------------------------
+    // Catch-all.---------------------------------------------------------------
 
     /**
      * @throws \LogicException
