@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
  *
  * @package SimpleComplex\Filter
  */
-class Validate {
+class Validate implements ValidationRuleProviderInterface {
     /**
      * @see GetInstanceTrait
      *
@@ -37,9 +37,27 @@ class Validate {
     use GetInstanceTrait;
 
     /**
+     * Methods of this class that a ValidateByRules instance should never call.
+     *
+     * @var array
+     */
+    const NON_RULE_METHODS = [
+        'getInstance',
+        'flushInstance',
+        '__construct',
+        'make',
+        'getNonRuleMethods',
+    ];
+
+    /**
      * @var LoggerInterface|null
      */
     protected $logger;
+
+    /**
+     * @var array
+     */
+    protected $nonRuleMethods = [];
 
     /**
      * Validate constructor.
@@ -73,27 +91,24 @@ class Validate {
         return new static($logger);
     }
 
-    const NON_RULE_METHODS = array(
-        '__construct',
-        'make',
-        'getInstance',
-        'ruleSet',
-    );
-
-    protected $nonRuleMethods = array();
+    /**
+     * Makes our logger available for a ValidateByRules instance.
+     *
+     * @return LoggerInterface|null
+     */
+    public function getLogger() {
+        return $this->logger;
+    }
 
     /**
      * @return array
      */
-    public function getNonRuleMethods() {
+    public function getNonRuleMethods() : array {
         if (!$this->nonRuleMethods) {
             $this->nonRuleMethods = self::NON_RULE_METHODS;
         }
         return $this->nonRuleMethods;
     }
-
-
-    // Catch-all.---------------------------------------------------------------
 
     /**
      * @throws \LogicException
@@ -102,18 +117,18 @@ class Validate {
      * @param array $arguments
      */
     public function __call($name, $arguments) {
-        // @todo
-        switch ($name) {
-            case 'elements':
-                // elements is a ...?
-                break;
-            case 'optional':
-                // optional is a flag.
-                break;
+        if ($this->logger) {
+            // Log warning instaed of error, because we also throw an exception.
+            $this->logger->warning('Class ' . get_called_class() . ' provides no rule \'{no_such_rule}\'.', [
+                'type' => 'validation',
+                'no_such_rule' => $name,
+            ]);
         }
         throw new \LogicException('Undefined validation rule[' . $name . '].');
     }
 
+
+    // Rules.-----------------------------------------------------------------------------------------------------------
 
     // Type indifferent.--------------------------------------------------------
 
@@ -148,7 +163,23 @@ class Validate {
      *
      * @return bool
      */
-    public function enum($var, array $allowedValues) {
+    public function enum($var, $allowedValues) {
+        if (!$allowedValues || !is_array($allowedValues)) {
+            $msg = 'allowedValues is not non-empty array.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'allowedValues' => $allowedValues,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         foreach ($allowedValues as $allowed) {
             if ($var === $allowed) {
                 return true;
@@ -160,20 +191,30 @@ class Validate {
     /**
      * @param mixed $var
      *  Gets stringified.
-     * @param array $specs
-     *  [
-     *    0|pattern: (str) /regular expression/
-     *  ]
+     * @param string $pattern
+     *  /regular expression/
      *
      * @return bool
      */
-    public function regex($var, array $specs) {
-        if ($specs) {
-            return preg_match(reset($specs), '' . $var);
+    public function regex($var, $pattern) {
+        if (!$pattern || !is_string($pattern)) {
+            $msg = 'pattern is not non-empty string.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'pattern' => $pattern,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
         }
-        throw new \InvalidArgumentException('Missing args 0|pattern bucket.');
-    }
 
+        return preg_match($pattern, '' . $var);
+    }
 
     // Type checkers.-----------------------------------------------------------
 
@@ -502,10 +543,27 @@ class Validate {
      *
      * @param mixed $var
      * @param int|float $min
+     *  Stringed number is not accepted.
      *
      * @return bool
      */
     public function min($var, $min) {
+        if (!is_int($min) && !is_float($min)) {
+            $msg = 'min is not integer or float.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'min' => $min,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return $var >= $min;
     }
 
@@ -520,10 +578,27 @@ class Validate {
      *
      * @param mixed $var
      * @param int|float $max
+     *  Stringed number is not accepted.
      *
      * @return bool
      */
     public function max($var, $max) {
+        if (!is_int($max) && !is_float($max)) {
+            $msg = 'max is not integer or float.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'max' => $max,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return $var <= $max;
     }
 
@@ -538,11 +613,44 @@ class Validate {
      *
      * @param mixed $var
      * @param int|float $min
+     *  Stringed number is not accepted.
      * @param int|float $max
+     *  Stringed number is not accepted.
      *
      * @return bool
      */
     public function range($var, $min, $max) {
+        if (!is_int($min) && !is_float($min)) {
+            $msg = 'min is not integer or float.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'min' => $min,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+        if (!is_int($max) && !is_float($max)) {
+            $msg = 'max is not integer or float.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'max' => $max,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return $var >= $min && $var <= $max;
     }
 
@@ -602,7 +710,7 @@ class Validate {
      */
     public function unicodeMultiLine($var) {
         // Remove newline chars before checking if printable.
-        return $this->unicodePrintable(str_replace(array("\r", "\n"), '', '' . $var));
+        return $this->unicodePrintable(str_replace(["\r", "\n"], '', '' . $var));
     }
 
     /**
@@ -615,10 +723,27 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $min
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function unicodeMinLength($var, $min) {
+        if (!is_int($min)) {
+            $msg = 'min is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'min' => $min,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return Unicode::getInstance()->strlen('' . $var) >= $min;
     }
 
@@ -633,10 +758,27 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $max
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function unicodeMaxLength($var, $max) {
+        if (!is_int($max)) {
+            $msg = 'max is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'max' => $max,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return Unicode::getInstance()->strlen('' . $var) <= $max;
     }
 
@@ -651,10 +793,27 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $exact
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function unicodeExactLength($var, $exact) {
+        if (!is_int($exact)) {
+            $msg = 'exact is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'exact' => $exact,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return Unicode::getInstance()->strlen('' . $var) == $exact;
     }
 
@@ -712,7 +871,7 @@ class Validate {
      */
     public function asciiMultiLine($var) {
         // Remove newline chars before checking if printable.
-        return $this->asciiPrintable(str_replace(array("\r", "\n"), '', '' . $var));
+        return $this->asciiPrintable(str_replace(["\r", "\n"], '', '' . $var));
     }
 
     /**
@@ -759,10 +918,26 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $min
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function minLength($var, $min) {
+        if (!is_int($min)) {
+            $msg = 'min is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'min' => $min,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
         return strlen('' . $var) >= $min;
     }
 
@@ -774,10 +949,27 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $max
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function maxLength($var, $max) {
+        if (!is_int($max)) {
+            $msg = 'max is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'max' => $max,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return strlen('' . $var) <= $max;
     }
 
@@ -789,10 +981,27 @@ class Validate {
      * @param mixed $var
      *  Gets stringified.
      * @param int $exact
+     *  Stringed integer is not accepted.
      *
      * @return bool
      */
     public function exactLength($var, $exact) {
+        if (!is_int($exact)) {
+            $msg = 'exact is not integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => 'validation',
+                    'variables' => [
+                        'exact' => $exact,
+                    ],
+                ]);
+                return false;
+            }
+            else {
+                throw new \InvalidArgumentException('Arg ' . $msg);
+            }
+        }
+
         return strlen('' . $var) == $exact;
     }
 
