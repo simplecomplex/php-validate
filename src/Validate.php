@@ -79,7 +79,7 @@ class Validate {
    * ]);
    * @endcode
    *
-   * @param mixed $value
+   * @param mixed $var
    * @param array $pattern
    *   A list of rules; either 'rule':[specs] or N:rule.
    *   [
@@ -89,23 +89,23 @@ class Validate {
    *
    * @return boolean
    */
-  public function pattern($value, array $pattern) {
-    return $this->internalPattern(0, $value, $pattern);
+  public function pattern($var, array $pattern) {
+    return $this->internalPattern(0, $var, $pattern);
   }
 
   /**
    * @param integer $depth
-   * @param mixed $value
+   * @param mixed $var
    * @param array $pattern
    *
    * @return boolean
    */
-  protected function internalPattern($depth, $value, array $pattern) {
+  protected function internalPattern($depth, $var, array $pattern) {
     $buckets = NULL;
     foreach ($pattern as $k => $v) {
       // Bucket is simply the name of a rule; key is int, value is the rule.
       if (ctype_digit('' . $k)) {
-        if (!$this->{$v}($value, array())) {
+        if (!$this->{$v}($var, array())) {
           return false;
         }
       }
@@ -119,7 +119,7 @@ class Validate {
         elseif ($k == 'optional') {
           continue;
         }
-        if (!$this->{$k}($value, $v)) {
+        if (!$this->{$k}($var, $v)) {
           return false;
         }
       }
@@ -128,14 +128,14 @@ class Validate {
       // Prevent convoluted try-catches; only one at the top.
       if (!$depth) {
         try {
-          return $this->internalBuckets(++$depth, $value, $buckets);
+          return $this->internalBuckets(++$depth, $var, $buckets);
         }
         catch (\Exception $xc) {
           //
         }
       }
       else {
-        return $this->internalBuckets(++$depth, $value, $buckets);
+        return $this->internalBuckets(++$depth, $var, $buckets);
       }
     }
     return true;
@@ -209,16 +209,16 @@ class Validate {
   /**
    * Stringed zero - '0' - is not empty.
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function empty($value) {
-    if (!$value) {
+  public function empty($var) {
+    if (!$var) {
       // Stringed zero - '0' - is not empty.
-      return $value !== '0';
+      return $var !== '0';
     }
-    if (is_object($value) && !get_object_vars($value)) {
+    if (is_object($var) && !get_object_vars($var)) {
       return true;
     }
     return false;
@@ -227,7 +227,7 @@ class Validate {
   /**
    * Compares type strict, and allowed values must be scalar or null.
    *
-   * @param mixed $value
+   * @param mixed $var
    * @param array $allowedScalarsNull
    *   [
    *     0: some scalar
@@ -237,10 +237,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function enum($value, array $allowedScalarsNull) {
+  public function enum($var, array $allowedScalarsNull) {
     if ($allowedScalarsNull) {
       foreach ($allowedScalarsNull as $allowed) {
-        if ($value === $allowed) {
+        if ($var === $allowed) {
           return true;
         }
       }
@@ -249,7 +249,7 @@ class Validate {
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -258,9 +258,9 @@ class Validate {
    *
    * @return boolean
    */
-  public function regex($value, array $specs) {
+  public function regex($var, array $specs) {
     if ($specs) {
-      return preg_match(reset($specs), '' . $value);
+      return preg_match(reset($specs), '' . $var);
     }
     throw new \InvalidArgumentException('Missing args 0|pattern bucket.');
   }
@@ -269,12 +269,12 @@ class Validate {
   // Type checkers.-------------------------------------------------------------
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function boolean($value) {
-    return is_bool($value);
+  public function boolean($var) {
+    return is_bool($var);
   }
 
   /**
@@ -291,12 +291,12 @@ class Validate {
    * @see Validate::max()
    * @see Validate::range()
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function number($value) {
-    return is_int($value) || is_float($value);
+  public function number($var) {
+    return is_int($var) || is_float($var);
   }
 
   /**
@@ -311,12 +311,12 @@ class Validate {
    * @see Validate::max()
    * @see Validate::range()
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function integer($value) {
-    return is_int($value);
+  public function integer($var) {
+    return is_int($var);
   }
 
   /**
@@ -329,48 +329,48 @@ class Validate {
    * @see Validate::max()
    * @see Validate::range()
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function float($value) {
-    return is_float($value);
+  public function float($var) {
+    return is_float($var);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function string($value) {
-    return is_string($value);
+  public function string($var) {
+    return is_string($var);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function null($value) {
-    return $value === null;
+  public function null($var) {
+    return $var === null;
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function object($value) {
-    return is_object($value);
+  public function object($var) {
+    return is_object($var);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function array($value) {
-    return is_array($value);
+  public function array($var) {
+    return is_array($var);
   }
 
   /**
@@ -379,13 +379,13 @@ class Validate {
    * NB: Not related to PHP>=7 \DS\Collection (Traversable, Countable,
    * JsonSerializable).
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return string|boolean
    *   String (array|object) on pass, boolean false on failure.
    */
-  public function collection($value) {
-    return is_array($value) ? 'array' : (is_object($value) ? 'object' : false);
+  public function collection($var) {
+    return is_array($var) ? 'array' : (is_object($var) ? 'object' : false);
   }
 
 
@@ -394,35 +394,35 @@ class Validate {
   /**
    * Does not check if the array's index is complete and correctly sequenced.
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    *   True: empty array, or all keys are integers.
    */
-  public function numArray($value) {
-    if (!is_array($value)) {
+  public function numArray($var) {
+    if (!is_array($var)) {
       return false;
     }
-    if (!$value) {
+    if (!$var) {
       return true;
     }
-    return ctype_digit(join('', array_keys($value)));
+    return ctype_digit(join('', array_keys($var)));
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    *   True: empty array, or at least one key is not integer.
    */
-  public function assocArray($value) {
-    if (!is_array($value)) {
+  public function assocArray($var) {
+    if (!is_array($var)) {
       return false;
     }
-    if (!$value) {
+    if (!$var) {
       return true;
     }
-    return !ctype_digit(join('', array_keys($value)));
+    return !ctype_digit(join('', array_keys($var)));
   }
 
 
@@ -442,13 +442,13 @@ class Validate {
    * @see Validate::max()
    * @see Validate::range()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function numeric($value) {
-    $v = '' . $value;
+  public function numeric($var) {
+    $v = '' . $var;
     if (strpos($v, '.') !== FALSE) {
       $count = 0;
       $v = str_replace('.', '', $v, $count);
@@ -473,13 +473,13 @@ class Validate {
    * @see Validate::max()
    * @see Validate::range()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function digit($value) {
-    return ctype_digit('' . $value);
+  public function digit($var) {
+    return ctype_digit('' . $var);
   }
 
   /**
@@ -488,13 +488,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function hex($value) {
-    return ctype_xdigit('' . $value);
+  public function hex($var) {
+    return ctype_xdigit('' . $var);
   }
 
 
@@ -509,14 +509,14 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function bit32($value) {
+  public function bit32($var) {
     // Stringify for compatibility with numeric() and digit().
-    $v = '' . $value;
+    $v = '' . $var;
     return $v >= -2147483648 && $v <= 2147483647;
   }
 
@@ -529,14 +529,14 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function bit64($value) {
+  public function bit64($var) {
     // Stringify for compatibility with numeric() and digit().
-    $v = '' . $value;
+    $v = '' . $var;
     return $v >= -9223372036854775808 && $v <= 9223372036854775807;
   }
 
@@ -549,14 +549,14 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function positive($value) {
+  public function positive($var) {
     // Stringify for compatibility with numeric() and digit().
-    return '' . $value > 0;
+    return '' . $var > 0;
   }
 
   /**
@@ -568,14 +568,14 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function negative($value) {
+  public function negative($var) {
     // Stringify for compatibility with numeric() and digit().
-    return '' . $value < 0;
+    return '' . $var < 0;
   }
 
   /**
@@ -587,14 +587,14 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function nonNegative($value) {
+  public function nonNegative($var) {
     // Stringify for compatibility with numeric() and digit().
-    return '' . $value >= 0;
+    return '' . $var >= 0;
   }
 
   /**
@@ -606,7 +606,7 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -615,10 +615,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function min($value, array $specs) {
+  public function min($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return ('' . $value) >= reset($specs);
+      return ('' . $var) >= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|min bucket.');
   }
@@ -632,7 +632,7 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -641,10 +641,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function max($value, array $specs) {
+  public function max($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return ('' . $value) <= reset($specs);
+      return ('' . $var) <= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|max bucket.');
   }
@@ -658,7 +658,7 @@ class Validate {
    * @see Validate::numeric()
    * @see Validate::digit()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -668,9 +668,9 @@ class Validate {
    *
    * @return boolean
    */
-  public function range($value, array $specs) {
+  public function range($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
-    $v = '' . $value;
+    $v = '' . $var;
     if (count($specs) > 1) {
       return $v >= reset($specs) && $v <= next($specs);
     }
@@ -685,13 +685,13 @@ class Validate {
    *
    * @see Validate::string()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function unicode($value) {
-    $v = '' . $value;
+  public function unicode($var) {
+    $v = '' . $var;
     return $v === '' ? TRUE :
       // The PHP regex u modifier forces the whole subject to be evaluated
       // as UTF-8. And if any byte sequence isn't valid UTF-8 preg_match()
@@ -709,14 +709,14 @@ class Validate {
    * @see Validate::string()
    * @see Validate::unicode()
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function unicodePrintable($value) {
-    $v = '' . $value;
+  public function unicodePrintable($var) {
+    $v = '' . $var;
     return !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW))
-      && !strpos(' ' . $value, chr(127));
+      && !strpos(' ' . $var, chr(127));
   }
 
   /**
@@ -727,13 +727,13 @@ class Validate {
    * @see Validate::string()
    * @see Validate::unicode()
    *
-   * @param mixed $value
+   * @param mixed $var
    *
    * @return boolean
    */
-  public function unicodeMultiLine($value) {
+  public function unicodeMultiLine($var) {
     // Remove newline chars before checking if printable.
-    return $this->unicodePrintable(str_replace(array("\r", "\n"), '', '' . $value));
+    return $this->unicodePrintable(str_replace(array("\r", "\n"), '', '' . $var));
   }
 
   /**
@@ -743,7 +743,7 @@ class Validate {
    *
    * @see Validate::string()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -752,10 +752,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function unicodeMinLength($value, array $specs) {
+  public function unicodeMinLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return Unicode::getInstance()->strlen('' . $value) >= reset($specs);
+      return Unicode::getInstance()->strlen('' . $var) >= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|min bucket.');
   }
@@ -768,7 +768,7 @@ class Validate {
    * @see Validate::string()
    * @see Validate::unicode()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -777,10 +777,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function unicodeMaxLength($value, array $specs) {
+  public function unicodeMaxLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return Unicode::getInstance()->strlen('' . $value) <= reset($specs);
+      return Unicode::getInstance()->strlen('' . $var) <= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|max bucket.');
   }
@@ -793,7 +793,7 @@ class Validate {
    * @see Validate::string()
    * @see Validate::unicode()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -802,10 +802,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function unicodeExactLength($value, array $specs) {
+  public function unicodeExactLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return Unicode::getInstance()->strlen('' . $value) == reset($specs);
+      return Unicode::getInstance()->strlen('' . $var) == reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|length bucket.');
   }
@@ -821,13 +821,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function ascii($value) {
-    return preg_match('/^[[:ascii:]]+$/', '' . $value);
+  public function ascii($var) {
+    return preg_match('/^[[:ascii:]]+$/', '' . $var);
   }
 
   /**
@@ -838,13 +838,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function asciiPrintable($value) {
-    $v = '' . $value;
+  public function asciiPrintable($var) {
+    $v = '' . $var;
     return !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
       && !strpos(' ' . $v, chr(127));
   }
@@ -857,14 +857,14 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function asciiMultiLine($value) {
+  public function asciiMultiLine($var) {
     // Remove newline chars before checking if printable.
-    return $this->asciiPrintable(str_replace(array("\r", "\n"), '', '' . $value));
+    return $this->asciiPrintable(str_replace(array("\r", "\n"), '', '' . $var));
   }
 
   /**
@@ -874,15 +874,15 @@ class Validate {
    *
    * @see Validate::ascii()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function asciiLowerCase($value) {
+  public function asciiLowerCase($var) {
     // ctype_... is no good for ASCII-only check, if PHP and server locale
     // is set to something non-English.
-    return ctype_lower('' . $value);
+    return ctype_lower('' . $var);
   }
 
   /**
@@ -892,15 +892,15 @@ class Validate {
    *
    * @see Validate::ascii()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function asciiUpperCase($value) {
+  public function asciiUpperCase($var) {
     // ctype_... is no good for ASCII-only check, if PHP and server locale
     // is set to something non-English.
-    return ctype_upper('' . $value);
+    return ctype_upper('' . $var);
   }
 
   /**
@@ -908,7 +908,7 @@ class Validate {
    *
    * @see Validate::string()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -917,10 +917,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function minLength($value, array $specs) {
+  public function minLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return strlen('' . $value) >= reset($specs);
+      return strlen('' . $var) >= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|min bucket.');
   }
@@ -930,7 +930,7 @@ class Validate {
    *
    * @see Validate::string()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -939,10 +939,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function maxLength($value, array $specs) {
+  public function maxLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return strlen('' . $value) <= reset($specs);
+      return strlen('' . $var) <= reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|max bucket.');
   }
@@ -952,7 +952,7 @@ class Validate {
    *
    * @see Validate::string()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    * @param array $specs
    *   [
@@ -961,10 +961,10 @@ class Validate {
    *
    * @return boolean
    */
-  public function exactLength($value, array $specs) {
+  public function exactLength($var, array $specs) {
     // Stringify for compatibility with numeric() and digit().
     if ($specs) {
-      return strlen('' . $value) == reset($specs);
+      return strlen('' . $var) == reset($specs);
     }
     throw new \InvalidArgumentException('Missing args 0|length bucket.');
   }
@@ -980,15 +980,15 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function alphaNum($value) {
+  public function alphaNum($var) {
     // ctype_... is no good for ASCII-only check, if PHP and server locale
     // is set to something non-English.
-    return preg_match('/^[a-zA-Z\d]+$/', '' . $value);
+    return preg_match('/^[a-zA-Z\d]+$/', '' . $var);
   }
 
   /**
@@ -999,13 +999,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function name($value) {
-    return preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $value);
+  public function name($var) {
+    return preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
   }
 
   /**
@@ -1016,13 +1016,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function dashName($value) {
-    return preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $value);
+  public function dashName($var) {
+    return preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
   }
 
   /**
@@ -1031,13 +1031,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function uuid($value) {
-    $v = '' . $value;
+  public function uuid($var) {
+    $v = '' . $var;
     return strlen($v) == 36
       && preg_match(
         '/^[\da-fA-F]{8}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{12}$/',
@@ -1051,13 +1051,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function base64($value) {
-    return preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $value);
+  public function base64($var) {
+    return preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $var);
   }
 
   /**
@@ -1074,13 +1074,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function dateTimeIso8601($value) {
-    $v = '' . $value;
+  public function dateTimeIso8601($var) {
+    $v = '' . $var;
     return strlen($v) <= 35
       && preg_match(
         '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[ \+\-]\d{2}:?\d{0,2})$/',
@@ -1098,13 +1098,13 @@ class Validate {
    * @see Validate::asciiLowerCase()
    * @see Validate::asciiUpperCase()
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function dateIso8601Local($value) {
-    $v = '' . $value;
+  public function dateIso8601Local($var) {
+    $v = '' . $var;
     return strlen($v) == 10 && preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
   }
 
@@ -1114,55 +1114,55 @@ class Validate {
   /**
    * Doesn't contain tags.
    *
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function plainText($value) {
-    $v = '' . $value;
+  public function plainText($var) {
+    $v = '' . $var;
     return !strcmp($v, strip_tags($v));
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function ipAddress($value) {
-    return !!filter_var('' . $value, FILTER_VALIDATE_IP);
+  public function ipAddress($var) {
+    return !!filter_var('' . $var, FILTER_VALIDATE_IP);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function url($value) {
-    return !!filter_var('' . $value, FILTER_VALIDATE_URL);
+  public function url($var) {
+    return !!filter_var('' . $var, FILTER_VALIDATE_URL);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function httpUrl($value) {
-    $v = '' . $value;
+  public function httpUrl($var) {
+    $v = '' . $var;
     return strpos($v, 'http') === 0 && !!filter_var('' . $v, FILTER_VALIDATE_URL);
   }
 
   /**
-   * @param mixed $value
+   * @param mixed $var
    *   Gets stringified.
    *
    * @return boolean
    */
-  public function email($value) {
-    $v = '' . $value;
+  public function email($var) {
+    $v = '' . $var;
     // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
     return !!filter_var($v, FILTER_VALIDATE_EMAIL) && preg_match('/\.[a-zA-Z\d]+$/', $v);
   }
