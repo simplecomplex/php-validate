@@ -7,6 +7,24 @@ use Psr\Log\LoggerInterface;
 /**
  * Class Validate
  *
+ * MAXIMUM NUMBER OF RULE METHOD PARAMETERS
+ * A rule method is not allowed to have more than 5 parameters,
+ * that is: 1 for the var to validate and max. 4 secondary
+ * (specifying) parameters.
+ * ValidateByRules::challenge() will err when given more than 4 secondary args.
+ *
+ * BAD RULE METHOD ARGS CHECK
+ * Rule methods that take more arguments than the $var to validate:
+ * - must check those arguments for type (and emptyness, if required)
+ * - must log meaningful error message (if logger) and return false, or throw exception
+ * Reasons:
+ * - type hints don't support someType|otherType&not-empty
+ * - an exception thrown because of type hint conflict may not be simple to handle and comprehend
+ * - we prefer to fail gracefully; a non-passed validation should stop the party
+ *   in a well constructed application anyway
+ *
+ *
+ *
  * @package SimpleComplex\Filter
  */
 class Validate implements ValidationRuleProviderInterface {
@@ -37,16 +55,25 @@ class Validate implements ValidationRuleProviderInterface {
     use GetInstanceTrait;
 
     /**
+     * For logger 'type' context; like syslog RFC 5424 'facility code'.
+     *
+     * @var string
+     */
+    const LOG_TYPE = 'validation';
+
+    /**
      * Methods of this class that a ValidateByRules instance should never call.
+     *
+     * Does not contain __construct nor __call; would be slightly paranoid.
      *
      * @var array
      */
     const NON_RULE_METHODS = [
         'getInstance',
         'flushInstance',
-        '__construct',
         'make',
         'getNonRuleMethods',
+        'getLogger',
     ];
 
     /**
@@ -61,6 +88,9 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * Validate constructor.
+     *
+     * When provided with a logger, rule methods will fail gracefully
+     * when given wrong secondary argument(s) - otherwise they throw exception.
      *
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
@@ -111,7 +141,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * @throws \LogicException
+     * @throws \BadMethodCallException
      *
      * @param string $name
      * @param array $arguments
@@ -119,12 +149,12 @@ class Validate implements ValidationRuleProviderInterface {
     public function __call($name, $arguments) {
         if ($this->logger) {
             // Log warning instaed of error, because we also throw an exception.
-            $this->logger->warning('Class ' . get_called_class() . ' provides no rule \'{no_such_rule}\'.', [
-                'type' => 'validation',
-                'no_such_rule' => $name,
+            $this->logger->warning('Class ' . get_called_class() . ' provides no rule \'{rule_method}\'.', [
+                'type' => static::LOG_TYPE,
+                'rule_method' => $name,
             ]);
         }
-        throw new \LogicException('Undefined validation rule[' . $name . '].');
+        throw new \BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
 
 
@@ -153,6 +183,9 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Compares type strict, and allowed values must be scalar or null.
      *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      * @param array $allowedValues
      *  [
@@ -168,16 +201,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'allowedValues is not non-empty array.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'allowedValues' => $allowedValues,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         foreach ($allowedValues as $allowed) {
@@ -189,6 +222,9 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      *  Gets stringified.
      * @param string $pattern
@@ -201,16 +237,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'pattern is not non-empty string.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'pattern' => $pattern,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return preg_match($pattern, '' . $var);
@@ -541,6 +577,9 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      * @param int|float $min
      *  Stringed number is not accepted.
@@ -552,16 +591,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'min' => $min,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return $var >= $min;
@@ -576,6 +615,9 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      * @param int|float $max
      *  Stringed number is not accepted.
@@ -587,16 +629,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'max is not integer or float.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'max' => $max,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return $var <= $max;
@@ -611,6 +653,9 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      * @param int|float $min
      *  Stringed number is not accepted.
@@ -624,31 +669,31 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'min' => $min,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'max' => $max,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return $var >= $min && $var <= $max;
@@ -683,7 +728,6 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
-     * @see Validate::string()
      * @see Validate::unicode()
      *
      * @param mixed $var
@@ -701,7 +745,6 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
-     * @see Validate::string()
      * @see Validate::unicode()
      *
      * @param mixed $var
@@ -718,7 +761,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
-     * @see Validate::string()
+     * @see Validate::unicode()
+     *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
      *
      * @param mixed $var
      *  Gets stringified.
@@ -732,16 +778,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'min is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'min' => $min,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return Unicode::getInstance()->strlen('' . $var) >= $min;
@@ -752,8 +798,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
-     * @see Validate::string()
      * @see Validate::unicode()
+     *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
      *
      * @param mixed $var
      *  Gets stringified.
@@ -767,16 +815,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'max is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'max' => $max,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return Unicode::getInstance()->strlen('' . $var) <= $max;
@@ -787,8 +835,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
-     * @see Validate::string()
      * @see Validate::unicode()
+     *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
      *
      * @param mixed $var
      *  Gets stringified.
@@ -802,16 +852,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'exact is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'exact' => $exact,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return Unicode::getInstance()->strlen('' . $var) == $exact;
@@ -915,6 +965,9 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::string()
      *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
+     *
      * @param mixed $var
      *  Gets stringified.
      * @param int $min
@@ -927,17 +980,18 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'min is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'min' => $min,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
+
         return strlen('' . $var) >= $min;
     }
 
@@ -945,6 +999,9 @@ class Validate implements ValidationRuleProviderInterface {
      * String maximum byte/ASCII length.
      *
      * @see Validate::string()
+     *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
      *
      * @param mixed $var
      *  Gets stringified.
@@ -958,16 +1015,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'max is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'max' => $max,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return strlen('' . $var) <= $max;
@@ -977,6 +1034,9 @@ class Validate implements ValidationRuleProviderInterface {
      * String exact byte/ASCII length.
      *
      * @see Validate::string()
+     *
+     * @throws \InvalidArgumentException
+     *  Unless logger.
      *
      * @param mixed $var
      *  Gets stringified.
@@ -990,16 +1050,16 @@ class Validate implements ValidationRuleProviderInterface {
             $msg = 'exact is not integer.';
             if ($this->logger) {
                 $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => 'validation',
+                    'type' => static::LOG_TYPE,
                     'variables' => [
                         'exact' => $exact,
                     ],
                 ]);
-                return false;
-            }
-            else {
+            } else {
                 throw new \InvalidArgumentException('Arg ' . $msg);
             }
+            // Important.
+            return false;
         }
 
         return strlen('' . $var) == $exact;
