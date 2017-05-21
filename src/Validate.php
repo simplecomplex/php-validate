@@ -62,15 +62,13 @@ class Validate {
 
   // @todo: move all rules to a parent class.
 
-  // @todo: get rid of $specs args, make list in parent class which tells how many arguments each rule method take.
-
   // @todo: handle non-rule flags; 'optional', 'buckets' ('children'?), 'exceptValue'|'or'|'orEnum'(?)
 
   /**
    *
    * @code
    * // Validate a value which should be an integer zero thru two.
-   * $validate->pattern($some_input, [
+   * $validate->ruleSet($some_input, [
    *   'integer',
    *   'range' => [
    *     0,
@@ -80,7 +78,7 @@ class Validate {
    * @endcode
    *
    * @param mixed $var
-   * @param array $pattern
+   * @param array $ruleSet
    *   A list of rules; either 'rule':[specs] or N:rule.
    *   [
    *     'integer'
@@ -89,20 +87,32 @@ class Validate {
    *
    * @return boolean
    */
-  public function pattern($var, array $pattern) {
-    return $this->internalPattern(0, $var, $pattern);
+  public function ruleSet($var, array $ruleSet) {
+    return $this->internalRuleSet(0, $var, $ruleSet);
   }
 
+  const NON_RULE_METHODS = array(
+
+  );
+
   /**
+   * Internal method necessitated by the need of an inaccessible depth argument
+   * to control recursion.
+   *
    * @param integer $depth
    * @param mixed $var
-   * @param array $pattern
+   * @param array $ruleSet
    *
    * @return boolean
    */
-  protected function internalPattern($depth, $var, array $pattern) {
-    $buckets = NULL;
-    foreach ($pattern as $k => $v) {
+  protected function internalRuleSet($depth, $var, array $ruleSet) {
+    static $forbidden_methods;
+    if (!$forbidden_methods) {
+
+    }
+
+    $elements = NULL;
+    foreach ($ruleSet as $k => $v) {
       // Bucket is simply the name of a rule; key is int, value is the rule.
       if (ctype_digit('' . $k)) {
         if (!$this->{$v}($var, array())) {
@@ -112,8 +122,8 @@ class Validate {
       // Bucket key is name of the rule,
       // value is options or specifications for the rule.
       else {
-        if ($k == 'buckets') {
-          $buckets = $v;
+        if ($k == 'elements') {
+          $elements = $v;
           continue;
         }
         elseif ($k == 'optional') {
@@ -124,32 +134,35 @@ class Validate {
         }
       }
     }
-    if ($buckets) {
+    if ($elements) {
       // Prevent convoluted try-catches; only one at the top.
       if (!$depth) {
         try {
-          return $this->internalBuckets(++$depth, $var, $buckets);
+          return $this->internalElements(++$depth, $var, $elements);
         }
         catch (\Exception $xc) {
           //
         }
       }
       else {
-        return $this->internalBuckets(++$depth, $var, $buckets);
+        return $this->internalElements(++$depth, $var, $elements);
       }
     }
     return true;
   }
 
+
   /**
    * Recursive.
+   *
+   * @recursive
    *
    * @param array|object $collection
    * @param array $patterns
    *
    * @return boolean
    */
-  protected function internalBuckets($depth, $collection, array $patterns) {
+  protected function internalElements($depth, $collection, array $patterns) {
     if (is_array($collection)) {
       foreach ($patterns as $key => $pattern) {
         // @todo: use array_key_exists(); vs. null value.
@@ -193,8 +206,8 @@ class Validate {
   public function __call($name, $arguments) {
     // @todo
     switch ($name) {
-      case 'buckets':
-        // buckets is a ...?
+      case 'elements':
+        // elements is a ...?
         break;
       case 'optional':
         // optional is a flag.
@@ -228,7 +241,7 @@ class Validate {
    * Compares type strict, and allowed values must be scalar or null.
    *
    * @param mixed $var
-   * @param array $allowedScalarsNull
+   * @param array $allowedValues
    *   [
    *     0: some scalar
    *     1: null
@@ -237,15 +250,13 @@ class Validate {
    *
    * @return boolean
    */
-  public function enum($var, array $allowedScalarsNull) {
-    if ($allowedScalarsNull) {
-      foreach ($allowedScalarsNull as $allowed) {
-        if ($var === $allowed) {
-          return true;
-        }
+  public function enum($var, array $allowedValues) {
+    foreach ($allowedValues as $allowed) {
+      if ($var === $allowed) {
+        return true;
       }
-      return false;
     }
+    return false;
   }
 
   /**
@@ -443,7 +454,6 @@ class Validate {
    * @see Validate::range()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
@@ -474,7 +484,6 @@ class Validate {
    * @see Validate::range()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
@@ -489,7 +498,6 @@ class Validate {
    * @see Validate::asciiUpperCase()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
@@ -510,14 +518,11 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
   public function bit32($var) {
-    // Stringify for compatibility with numeric() and digit().
-    $v = '' . $var;
-    return $v >= -2147483648 && $v <= 2147483647;
+    return $var >= -2147483648 && $var <= 2147483647;
   }
 
   /**
@@ -530,14 +535,11 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
   public function bit64($var) {
-    // Stringify for compatibility with numeric() and digit().
-    $v = '' . $var;
-    return $v >= -9223372036854775808 && $v <= 9223372036854775807;
+    return $var >= -9223372036854775808 && $var <= 9223372036854775807;
   }
 
   /**
@@ -550,13 +552,11 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
   public function positive($var) {
-    // Stringify for compatibility with numeric() and digit().
-    return '' . $var > 0;
+    return $var > 0;
   }
 
   /**
@@ -569,13 +569,11 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
   public function negative($var) {
-    // Stringify for compatibility with numeric() and digit().
-    return '' . $var < 0;
+    return $var < 0;
   }
 
   /**
@@ -588,13 +586,11 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
    *
    * @return boolean
    */
   public function nonNegative($var) {
-    // Stringify for compatibility with numeric() and digit().
-    return '' . $var >= 0;
+    return $var >= 0;
   }
 
   /**
@@ -607,20 +603,12 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) minimum
-   *   ]
+   * @param integer|float $min
    *
    * @return boolean
    */
-  public function min($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return ('' . $var) >= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|min bucket.');
+  public function min($var, $min) {
+    return $var >= $min;
   }
 
   /**
@@ -633,20 +621,12 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|max: (int) maximum
-   *   ]
+   * @param integer|float $max
    *
    * @return boolean
    */
-  public function max($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return ('' . $var) <= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|max bucket.');
+  public function max($var, $max) {
+    return $var <= $max;
   }
 
   /**
@@ -659,22 +639,13 @@ class Validate {
    * @see Validate::digit()
    *
    * @param mixed $var
-   *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) minimum
-   *     1|max: (int) maximum
-   *   ]
+   * @param integer|float $min
+   * @param integer|float $max
    *
    * @return boolean
    */
-  public function range($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    $v = '' . $var;
-    if (count($specs) > 1) {
-      return $v >= reset($specs) && $v <= next($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|min and/or 1|max bucket.');
+  public function range($var, $min, $max) {
+    return $var >= $min && $var <= $max;
   }
 
 
@@ -745,19 +716,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) minimum length
-   *   ]
+   * @param integer $min
    *
    * @return boolean
    */
-  public function unicodeMinLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return Unicode::getInstance()->strlen('' . $var) >= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|min bucket.');
+  public function unicodeMinLength($var, $min) {
+    return Unicode::getInstance()->strlen('' . $var) >= $min;
   }
 
   /**
@@ -770,19 +734,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) maximum length
-   *   ]
+   * @param integer $max
    *
    * @return boolean
    */
-  public function unicodeMaxLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return Unicode::getInstance()->strlen('' . $var) <= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|max bucket.');
+  public function unicodeMaxLength($var, $max) {
+    return Unicode::getInstance()->strlen('' . $var) <= $max;
   }
 
   /**
@@ -795,19 +752,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) length
-   *   ]
+   * @param integer $exact
    *
    * @return boolean
    */
-  public function unicodeExactLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return Unicode::getInstance()->strlen('' . $var) == reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|length bucket.');
+  public function unicodeExactLength($var, $exact) {
+    return Unicode::getInstance()->strlen('' . $var) == $exact;
   }
 
 
@@ -910,19 +860,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) minimum length
-   *   ]
+   * @param integer $min
    *
    * @return boolean
    */
-  public function minLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return strlen('' . $var) >= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|min bucket.');
+  public function minLength($var, $min) {
+    return strlen('' . $var) >= $min;
   }
 
   /**
@@ -932,19 +875,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) maximum length
-   *   ]
+   * @param integer $max
    *
    * @return boolean
    */
-  public function maxLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return strlen('' . $var) <= reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|max bucket.');
+  public function maxLength($var, $max) {
+    return strlen('' . $var) <= $max;
   }
 
   /**
@@ -954,19 +890,12 @@ class Validate {
    *
    * @param mixed $var
    *   Gets stringified.
-   * @param array $specs
-   *   [
-   *     0|min: (int) length
-   *   ]
+   * @param integer $exact
    *
    * @return boolean
    */
-  public function exactLength($var, array $specs) {
-    // Stringify for compatibility with numeric() and digit().
-    if ($specs) {
-      return strlen('' . $var) == reset($specs);
-    }
-    throw new \InvalidArgumentException('Missing args 0|length bucket.');
+  public function exactLength($var, $exact) {
+    return strlen('' . $var) == $exact;
   }
 
 
