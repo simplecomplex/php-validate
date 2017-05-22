@@ -259,7 +259,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param string $pattern
      *  /regular expression/
      *
@@ -384,10 +384,10 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * Array or object.
+     * Object or array.
      *
      * Superset of all other object and array type(ish) checkers; here:
-     * - object, class, array, numArray, assocArray
+     * - hashTable, object, class, array, numArray, assocArray
      *
      * Not related to PHP>=7 \DS\Collection (Traversable, Countable, JsonSerializable).
      *
@@ -397,7 +397,28 @@ class Validate implements ValidationRuleProviderInterface {
      *  String (array|object) on pass, boolean false on failure.
      */
     public function collection($var) {
-        return is_array($var) ? 'array' : (is_object($var) ? 'object' : false);
+        if (is_array($var)) {
+            return 'array';
+        }
+        return $var && is_object($var) ? 'object' : false;
+    }
+
+    /**
+     * Object or empty array or associative array.
+     *
+     * @param $var
+     *
+     * @return string|bool
+     *  String (array|object) on pass, boolean false on failure.
+     */
+    public function hashTable($var) {
+        if (is_array($var)) {
+            if (!$var || !ctype_digit(join('', array_keys($var)))) {
+                return 'array';
+            }
+            return false;
+        }
+        return is_object($var) ? 'object' : false;
     }
 
     /**
@@ -406,7 +427,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      */
     public function object($var) {
-        return is_object($var);
+        return $var && is_object($var);
     }
 
     /**
@@ -449,6 +470,8 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
+     * Empty array or numerically indexed array.
+     *
      * Does not check if the array's index is complete and correctly sequenced.
      *
      * @param mixed $var
@@ -467,6 +490,8 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
+     * Empty array or keyed array.
+     *
      * @param mixed $var
      *
      * @return bool
@@ -517,7 +542,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * Stringed integer.
+     * Integer or stringed integer.
      *
      * @see Validate::integer()
      *
@@ -534,10 +559,21 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function digit($var) {
+    public function digital($var) {
         // Yes, ctype_... returns fals on ''.
         return ctype_digit('' . $var);
     }
+
+    /**
+     * @param $mixed $var
+     * @param string $decimalMarker
+     * @param string $thousandSep
+     * @return bool
+     *
+    public function decimal($var, $decimalMarker, $thousandSep = '') {
+        // Should integer|'integer' count as decimal?
+        return false;
+    }*/
 
     /**
      * Hexadeximal number (string).
@@ -811,7 +847,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::string()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -878,7 +914,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $min
      *  Stringed integer is not accepted.
      *
@@ -919,7 +955,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $max
      *  Stringed integer is not accepted.
      *
@@ -961,7 +997,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $exact
      *  Stringed integer is not accepted.
      *
@@ -1005,7 +1041,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1025,7 +1061,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1049,7 +1085,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1068,7 +1104,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::ascii()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1089,7 +1125,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::ascii()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1109,7 +1145,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $min
      *  Stringed integer is not accepted.
      *
@@ -1144,7 +1180,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $max
      *  Stringed integer is not accepted.
      *
@@ -1179,7 +1215,7 @@ class Validate implements ValidationRuleProviderInterface {
      *  Unless logger.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      * @param int $exact
      *  Stringed integer is not accepted.
      *
@@ -1217,7 +1253,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1236,7 +1272,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1253,7 +1289,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1268,7 +1304,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1288,7 +1324,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1311,7 +1347,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1335,7 +1371,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1353,7 +1389,7 @@ class Validate implements ValidationRuleProviderInterface {
      * NB: Returns true on empty ('') string.
      *
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1364,7 +1400,7 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1375,7 +1411,7 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1386,7 +1422,7 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -1400,7 +1436,7 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * @param mixed $var
-     *  Gets stringified.
+     *  Checked stringified.
      *
      * @return bool
      */
