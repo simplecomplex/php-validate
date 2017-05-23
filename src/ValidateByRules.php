@@ -1,8 +1,13 @@
 <?php
 
-namespace SimpleComplex\Filter;
+declare(strict_types=1);
+/*
+ * Forwards compatility really; everybody will to this once.
+ * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ */
+// @todo: check/declare parameter/return types.
 
-use Psr\Log\LoggerInterface;
+namespace SimpleComplex\Filter;
 
 
 // @todo: provide a means for recording validation failure, perhaps a 'recorder' which looks like a logger but doesn't log.
@@ -110,7 +115,7 @@ class ValidateByRules {
      */
     const NON_PROVIDER_RULES = [
         'optional',
-        'allowOtherTypeEmpty',
+        'alternativeEnum',
         'elements',
     ];
 
@@ -199,12 +204,11 @@ class ValidateByRules {
         try {
             return $this->internalChallenge(0, '', $var, $rules);
         }
-        catch (\Exception $xc) {
+        catch (\Throwable $xc) {
             // Out-library exception: log before propagating.
             if (strpos($xc, __NAMESPACE__) !== 0) {
-                $logger = $this->ruleProvider->getLogger();
-                if (!empty($this->ruleProvider) && $this->ruleProvider->getLogger()) {
-
+                if ($this->ruleProvider->getLogger()) {
+                    // @todo
                 }
             }
             throw $xc;
@@ -256,7 +260,7 @@ class ValidateByRules {
             );
         }
 
-        $rules_found = $elements = [];
+        $rules_found = $alternativeEnum = $elements = [];
         foreach ($ruleSet as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -272,7 +276,7 @@ class ValidateByRules {
                 case 'optional':
                     // Do nothing, ignore here. Only used when working on 'elements'.
                     break;
-                case 'allowOtherTypeEmpty':
+                case 'alternativeEnum':
                 case 'elements':
                     // We know that these rules require non-empty array args.
                     if (!$args || !is_array($args)) {
@@ -293,14 +297,10 @@ class ValidateByRules {
                         }
                         throw new \LogicException('Args for validation rule[' . $rule . '] must be non-empty array.');
                     }
-                    // Good.
-                    if ($rule == 'allowOtherTypeEmpty') {
-                        // Use immediately: no reason to do other checks if the var is empty(ish).
-                        if ($this->ruleProvider->empty($var)) {
-                            return $this->ruleProvider->enum($var, $args);
-                        }
+                    // Good, save for later.
+                    if ($rule == 'alternativeEnum') {
+                        $alternativeEnum = $args;
                     } else {
-                        // Save for later.
                         $elements = $args;
                     }
                     break;
@@ -364,34 +364,35 @@ class ValidateByRules {
         }
 
         // Roll it.
+        $failed = false;
         foreach ($rules_found as $rule => $args) {
             // Don't use call_user_func_array() when not needed; performance.
             // And we expect more boolean trues than arrays (few Validate methods take secondary args).
             if (!$args || $args === true || !is_array($args)) {
                 if (!$this->ruleProvider->{$rule}($var)) {
-                    return false;
+                    $failed = true;
                 }
             } else {
                 $n_args = count($args);
                 switch ($n_args) {
                     case 1:
                         if (!$this->ruleProvider->{$rule}($var, reset($args))) {
-                            return false;
+                            $failed = true;
                         }
                         break;
                     case 2:
                         if (!$this->ruleProvider->{$rule}($var, reset($args), next($args))) {
-                            return false;
+                            $failed = true;
                         }
                         break;
                     case 3:
                         if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args))) {
-                            return false;
+                            $failed = true;
                         }
                         break;
                     case 4:
                         if (!$this->ruleProvider->{$rule}($var, reset($args), next($args), next($args), next($args))) {
-                            return false;
+                            $failed = true;
                         }
                         break;
                     default:
@@ -417,6 +418,17 @@ class ValidateByRules {
                         );
                 }
             }
+            if ($failed) {
+                break;
+            }
+        }
+
+        if ($failed) {
+            // Matches one of a list of alternative (scalar|null) values?
+            if ($alternativeEnum && $this->ruleProvider->enum($var, $alternativeEnum)) {
+                return true;
+            }
+            return false;
         }
 
         // Didn't fail.
@@ -425,6 +437,7 @@ class ValidateByRules {
         }
 
         // Do 'elements'.
+        // Check that it's an object or array, and get which type.
         $collection_type = $this->ruleProvider->collection($var);
         if (!$collection_type) {
             // A-OK: one should - for convenience - be allowed to use the 'elements' rule,

@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/*
+ * Forwards compatility really; everybody will to this once.
+ * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ */
+
 namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
@@ -12,6 +18,12 @@ use Psr\Log\LoggerInterface;
  * - unicode, unicodePrintable, unicodeMultiLine
  * - ascii, asciiPrintable, asciiMultiLine, asciiLowerCase, asciiUpperCase
  * - plainText
+ *
+ *
+ * Some methods return string on pass
+ * ----------------------------------
+ * Composite type checkers like:
+ * - numeric, collection, hashTable
  *
  *
  * Maximum number of rule method parameters
@@ -28,10 +40,9 @@ use Psr\Log\LoggerInterface;
  * - must check those arguments for type (and emptyness, if required)
  * - must log meaningful error message (if logger) and return false, or throw exception
  * Reasons:
- * - type hints don't support someType|otherType&not-empty (PHP 7.1 nullables improves things)
- * - we prefer to fail gracefully; a non-passed validation should stop the party
+ * - parameter type declarations don't support someType|otherType&not-empty
+ * - it should be possible to fail gracefully; a non-passed validation should stop the party
  *   in a well constructed application anyway
- * - an exception thrown because of type hint conflict may not be simple to handle and comprehend
  *
  *
  * @package SimpleComplex\Filter
@@ -96,6 +107,9 @@ class Validate implements ValidationRuleProviderInterface {
      * @var array
      */
     protected $nonRuleMethods = [];
+
+
+    // @todo: make throwing InvalidArgumentException - even when logger - an (constructor) option.
 
     /**
      * Validate constructor.
@@ -191,7 +205,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function empty($var) {
+    public function empty($var) : boolean {
         if (!$var) {
             // Stringed zero - '0' - is not empty.
             return $var !== '0';
@@ -209,7 +223,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function nonEmpty($var) {
+    public function nonEmpty($var) : boolean {
         return !$this->empty($var);
     }
 
@@ -229,7 +243,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function enum($var, $allowedValues) {
+    public function enum($var, $allowedValues) : boolean {
         if (!$allowedValues || !is_array($allowedValues)) {
             $msg = 'allowedValues is not non-empty array.';
             if ($this->logger) {
@@ -246,7 +260,25 @@ class Validate implements ValidationRuleProviderInterface {
             return false;
         }
 
+        $i = -1;
         foreach ($allowedValues as $allowed) {
+            ++$i;
+            if ($allowed !== null && !is_scalar($allowed)) {
+                $msg = 'allowedValues bucket ' . $i . ' is not scalar or null.';
+                if ($this->logger) {
+                    $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                        'type' => static::LOG_TYPE,
+                        'variables' => [
+                            'allowedValues' => $allowedValues,
+                        ],
+                    ]);
+                } else {
+                    throw new InvalidArgumentException('Arg ' . $msg);
+                }
+                // Important.
+                return false;
+            }
+
             if ($var === $allowed) {
                 return true;
             }
@@ -265,7 +297,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function regex($var, $pattern) {
+    public function regex($var, $pattern) : boolean {
         if (!$pattern || !is_string($pattern)) {
             $msg = 'pattern is not non-empty string.';
             if ($this->logger) {
@@ -282,7 +314,7 @@ class Validate implements ValidationRuleProviderInterface {
             return false;
         }
 
-        return preg_match($pattern, '' . $var);
+        return !!preg_match($pattern, '' . $var);
     }
 
     // Type checkers.-----------------------------------------------------------
@@ -292,7 +324,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function boolean($var) {
+    public function boolean($var) : boolean {
         return is_bool($var);
     }
 
@@ -341,7 +373,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function integer($var) {
+    public function integer($var) : boolean {
         return is_int($var);
     }
 
@@ -359,7 +391,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function float($var) {
+    public function float($var) : boolean {
         return is_float($var);
     }
 
@@ -368,7 +400,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function string($var) {
+    public function string($var) : boolean {
         return is_string($var);
     }
 
@@ -377,7 +409,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function null($var) {
+    public function null($var) : boolean {
         return $var === null;
     }
 
@@ -386,7 +418,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function resource($var) {
+    public function resource($var) : boolean {
         return is_resource($var);
     }
 
@@ -433,7 +465,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function object($var) {
+    public function object($var) : boolean {
         return $var && is_object($var);
     }
 
@@ -447,7 +479,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function class($var, $className) {
+    public function class($var, $className) : boolean {
         if (!$className || !is_string($className)) {
             $msg = 'className is not a non-empty string.';
             if ($this->logger) {
@@ -472,7 +504,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function array($var) {
+    public function array($var) : boolean {
         return is_array($var);
     }
 
@@ -486,7 +518,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      *  True: empty array, or all keys are integers.
      */
-    public function numArray($var) {
+    public function numArray($var) : boolean {
         if (!is_array($var)) {
             return false;
         }
@@ -504,7 +536,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @return bool
      *  True: empty array, or at least one key is not integer.
      */
-    public function assocArray($var) {
+    public function assocArray($var) : boolean {
         if (!is_array($var)) {
             return false;
         }
@@ -561,10 +593,13 @@ class Validate implements ValidationRuleProviderInterface {
             if ($count != 1) {
                 return false;
             }
-            $float = 'true';
+            $float = true;
         }
         // Yes, ctype_... returns false on ''.
-        return ctype_digit($v) ? ($float ? 'float' : 'integer') : false;
+        if (ctype_digit($v)) {
+            return $float ? 'float' : 'integer';
+        }
+        return false;
     }
 
     /**
@@ -588,7 +623,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function digital($var) {
+    public function digital($var) : boolean {
         // Yes, ctype_... returns fals on ''.
         return ctype_digit('' . $var);
     }
@@ -615,7 +650,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function hex($var) {
+    public function hex($var) : boolean {
         // Yes, ctype_... returns fals on ''.
         return ctype_xdigit('' . $var);
     }
@@ -636,7 +671,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function bit32($var) {
+    public function bit32($var) : boolean {
         return $var >= -2147483648 && $var <= 2147483647;
     }
 
@@ -653,7 +688,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function bit64($var) {
+    public function bit64($var) : boolean {
         return $var >= -9223372036854775808 && $var <= 9223372036854775807;
     }
 
@@ -670,25 +705,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function positive($var) {
+    public function positive($var) : boolean {
         return $var > 0;
-    }
-
-    /**
-     * Negative number; not zero and not positive.
-     *
-     * @see Validate::number()
-     * @see Validate::integer()
-     * @see Validate::float()
-     * @see Validate::numeric()
-     * @see Validate::digit()
-     *
-     * @param mixed $var
-     *
-     * @return bool
-     */
-    public function negative($var) {
-        return $var < 0;
     }
 
     /**
@@ -704,8 +722,25 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function nonNegative($var) {
+    public function nonNegative($var) : boolean {
         return $var >= 0;
+    }
+
+    /**
+     * Negative number; not zero and not positive.
+     *
+     * @see Validate::number()
+     * @see Validate::integer()
+     * @see Validate::float()
+     * @see Validate::numeric()
+     * @see Validate::digit()
+     *
+     * @param mixed $var
+     *
+     * @return bool
+     */
+    public function negative($var) : boolean {
+        return $var < 0;
     }
 
     /**
@@ -729,7 +764,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function min($var, $min) {
+    public function min($var, $min) : boolean {
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
@@ -770,7 +805,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function max($var, $max) {
+    public function max($var, $max) : boolean {
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
             if ($this->logger) {
@@ -813,7 +848,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function range($var, $min, $max) {
+    public function range($var, $min, $max) : boolean {
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
@@ -881,7 +916,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicode($var) {
+    public function unicode($var) : boolean {
         $v = '' . $var;
         return $v === '' ? true :
             // The PHP regex u modifier forces the whole subject to be evaluated
@@ -889,7 +924,7 @@ class Validate implements ValidationRuleProviderInterface {
             // will return zero for no-match.
             // The s modifier makes dot match newline; without it a string consisting
             // of a newline solely would result in a false negative.
-            preg_match('/./us', $v);
+            !!preg_match('/./us', $v);
     }
 
     /**
@@ -905,7 +940,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicodePrintable($var) {
+    public function unicodePrintable($var) : boolean {
         $v = '' . $var;
         return $v === '' ? true :
             (
@@ -928,7 +963,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicodeMultiLine($var) {
+    public function unicodeMultiLine($var) : boolean {
         // Remove newline chars before checking if printable.
         return $this->unicodePrintable(str_replace(["\r", "\n"], '', '' . $var));
     }
@@ -950,7 +985,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicodeMinLength($var, $min) {
+    public function unicodeMinLength($var, $min) : boolean {
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
@@ -991,7 +1026,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicodeMaxLength($var, $max) {
+    public function unicodeMaxLength($var, $max) : boolean {
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
@@ -1033,7 +1068,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function unicodeExactLength($var, $exact) {
+    public function unicodeExactLength($var, $exact) : boolean {
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
@@ -1075,9 +1110,9 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function ascii($var) {
+    public function ascii($var) : boolean {
         $v = '' . $var;
-        return $v === '' ? true : preg_match('/^[[:ascii:]]+$/', $v);
+        return $v === '' ? true : !!preg_match('/^[[:ascii:]]+$/', $v);
     }
 
     /**
@@ -1095,7 +1130,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function asciiPrintable($var) {
+    public function asciiPrintable($var) : boolean {
         $v = '' . $var;
         return $v === '' ? true : (
             !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
@@ -1119,7 +1154,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function asciiMultiLine($var) {
+    public function asciiMultiLine($var) : boolean {
         // Remove newline chars before checking if printable.
         return $this->asciiPrintable(str_replace(["\r", "\n"], '', '' . $var));
     }
@@ -1138,7 +1173,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function asciiLowerCase($var) {
+    public function asciiLowerCase($var) : boolean {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
         $v = '' . $var;
@@ -1159,7 +1194,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function asciiUpperCase($var) {
+    public function asciiUpperCase($var) : boolean {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
         $v = '' . $var;
@@ -1181,7 +1216,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function minLength($var, $min) {
+    public function minLength($var, $min) : boolean {
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
@@ -1216,7 +1251,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function maxLength($var, $max) {
+    public function maxLength($var, $max) : boolean {
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
@@ -1251,7 +1286,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function exactLength($var, $exact) {
+    public function exactLength($var, $exact) : boolean {
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
@@ -1287,10 +1322,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function alphaNum($var) {
+    public function alphaNum($var) : boolean {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
-        return preg_match('/^[a-zA-Z\d]+$/', '' . $var);
+        return !!preg_match('/^[a-zA-Z\d]+$/', '' . $var);
     }
 
     /**
@@ -1306,8 +1341,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function name($var) {
-        return preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
+    public function name($var) : boolean {
+        return !!preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
     }
 
     /**
@@ -1323,8 +1358,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function dashName($var) {
-        return preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
+    public function dashName($var) : boolean {
+        return !!preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
     }
 
     /**
@@ -1338,10 +1373,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function uuid($var) {
+    public function uuid($var) : boolean {
         $v = '' . $var;
         return strlen($v) == 36
-            && preg_match(
+            && !!preg_match(
                 '/^[\da-fA-F]{8}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{12}$/',
                 $v
             );
@@ -1358,8 +1393,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function base64($var) {
-        return preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $var);
+    public function base64($var) : boolean {
+        return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $var);
     }
 
     /**
@@ -1381,10 +1416,10 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function dateTimeIso8601($var) {
+    public function dateTimeIso8601($var) : boolean {
         $v = '' . $var;
         return strlen($v) <= 35
-            && preg_match(
+            && !!preg_match(
                 '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[ \+\-]\d{2}:?\d{0,2})$/',
                 $v
             );
@@ -1405,9 +1440,9 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function dateIso8601Local($var) {
+    public function dateIso8601Local($var) : boolean {
         $v = '' . $var;
-        return strlen($v) == 10 && preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
+        return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
     }
 
 
@@ -1423,7 +1458,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function plainText($var) {
+    public function plainText($var) : boolean {
         $v = '' . $var;
         return $v === '' ? true : !strcmp($v, strip_tags($v));
     }
@@ -1434,7 +1469,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function ipAddress($var) {
+    public function ipAddress($var) : boolean {
         $v = '' . $var;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
     }
@@ -1445,7 +1480,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function url($var) {
+    public function url($var) : boolean {
         $v = '' . $var;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
     }
@@ -1456,7 +1491,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function httpUrl($var) {
+    public function httpUrl($var) : boolean {
         $v = '' . $var;
         return $v === '' ? false : (
             strpos($v, 'http') === 0
@@ -1470,12 +1505,12 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return bool
      */
-    public function email($var) {
+    public function email($var) : boolean {
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
         $v = '' . $var;
         return $v === '' ? false : (
             !!filter_var($v, FILTER_VALIDATE_EMAIL)
-            && preg_match('/\.[a-zA-Z\d]+$/', $v)
+            && !!preg_match('/\.[a-zA-Z\d]+$/', $v)
         );
     }
 }

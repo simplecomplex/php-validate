@@ -1,5 +1,12 @@
 <?php
 
+declare(strict_types=1);
+/*
+ * Forwards compatility really; everybody will to this once.
+ * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ */
+// @todo: check/declare parameter/return types.
+
 namespace SimpleComplex\Filter;
 
 /**
