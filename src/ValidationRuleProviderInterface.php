@@ -26,7 +26,8 @@ interface ValidationRuleProviderInterface
      *
      * @return LoggerInterface|null
      */
-    public function getLogger();
+    // PHP >7.1
+    // public function getLogger() : ?LoggerInterface;
 
     /**
      * Methods of the class that a ValidateByRules instance should never call.

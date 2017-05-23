@@ -80,7 +80,7 @@ class ValidateByRules {
      * Reference to last instantiated instance.
      * @protected
      * @static
-     * @var static|null $lastInstance
+     * @var static $lastInstance
      *
      * Get previously instantiated object or create new.
      * @public
@@ -117,7 +117,7 @@ class ValidateByRules {
     /**
      * The (most of the) methods of the Validate instance will be the rules available.
      *
-     * @var ValidationRuleProviderInterface|null
+     * @var ValidationRuleProviderInterface
      */
     protected $ruleProvider;
 
@@ -169,6 +169,9 @@ class ValidateByRules {
      * ]);
      * @endcode
      *
+     * @throws \Exception
+     *  Propagated.
+     *
      * @uses get_class_methods()
      * @uses Validate::getNonRuleMethods()
      * @uses Validate::getLogger()
@@ -185,6 +188,7 @@ class ValidateByRules {
      */
     public function challenge($var, array $rules) {
         // Init, really.
+        // List rule methods made available by the rule provider.
         if (!$this->ruleMethods) {
             $this->ruleMethods = array_diff(
                 get_class_methods(get_class($this->ruleProvider)),
@@ -192,20 +196,18 @@ class ValidateByRules {
             );
         }
 
-
-        // @todo: Use library specific exception types.
         try {
-            //
             return $this->internalChallenge(0, '', $var, $rules);
+        }
+        catch (\Exception $xc) {
+            // Out-library exception: log before propagating.
+            if (strpos($xc, __NAMESPACE__) !== 0) {
+                $logger = $this->ruleProvider->getLogger();
+                if (!empty($this->ruleProvider) && $this->ruleProvider->getLogger()) {
 
-        } catch (\Exception $xc) {
-            //
-
-            // @todo: non-library exception type: log (as warning) and rethrow.
-
-            // @todo: in-library exception type: don't catch, let propagate.
-
-            return false;
+                }
+            }
+            throw $xc;
         }
     }
 
@@ -410,7 +412,7 @@ class ValidateByRules {
                             // Important.
                             return false;
                         }
-                        throw new \InvalidArgumentException(
+                        throw new InvalidArgumentException(
                             'Too many arguments for validation rule[' . $rule . '].'
                         );
                 }

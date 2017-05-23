@@ -19,7 +19,7 @@ class Unicode {
      * Reference to last instantiated instance.
      * @protected
      * @static
-     * @var static|null $lastInstance
+     * @var static $lastInstance
      *
      * Get previously instantiated object or create new.
      * @public

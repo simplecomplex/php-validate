@@ -29,7 +29,7 @@ trait GetInstanceTrait
      * current dependency injection pattern doesn't support calling getInstance(),
      * then constructor _should_ set/update this var.
      *
-     * @var static|null
+     * @var static
      */
     protected static $lastInstance;
 

@@ -22,13 +22,13 @@ use Psr\Log\LoggerInterface;
  * ValidateByRules::challenge() will err when given more than 4 secondary args.
  *
  *
- * Bad rule method args check
- * --------------------------
+ * Rule methods invalid arg checks
+ * -------------------------------
  * Rule methods that take more arguments than the $var to validate:
  * - must check those arguments for type (and emptyness, if required)
  * - must log meaningful error message (if logger) and return false, or throw exception
  * Reasons:
- * - type hints don't support someType|otherType&not-empty
+ * - type hints don't support someType|otherType&not-empty (PHP 7.1 nullables improves things)
  * - we prefer to fail gracefully; a non-passed validation should stop the party
  *   in a well constructed application anyway
  * - an exception thrown because of type hint conflict may not be simple to handle and comprehend
@@ -48,7 +48,7 @@ class Validate implements ValidationRuleProviderInterface {
      * Reference to last instantiated instance.
      * @protected
      * @static
-     * @var static|null $lastInstance
+     * @var static $lastInstance
      *
      * Get previously instantiated object or create new.
      * @public
@@ -160,7 +160,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see ValidateByRules::challenge()
      *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
      *
      * @param string $name
      * @param array $arguments
@@ -176,7 +176,7 @@ class Validate implements ValidationRuleProviderInterface {
                 ]
             );
         }
-        throw new \BadMethodCallException('Undefined validation rule[' . $name . '].');
+        throw new BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
 
 
@@ -216,7 +216,7 @@ class Validate implements ValidationRuleProviderInterface {
     /**
      * Compares type strict, and allowed values must be scalar or null.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -240,7 +240,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -255,7 +255,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -276,7 +276,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -312,10 +312,17 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @param mixed $var
      *
-     * @return bool
+     * @return string|bool
+     *  String (integer|float) on pass, boolean false on failure.
      */
     public function number($var) {
-        return is_int($var) || is_float($var);
+        if (is_int($var)) {
+            return 'integer';
+        }
+        if (is_float($var)) {
+            return 'float';
+        }
+        return false;
     }
 
     /**
@@ -451,7 +458,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -511,7 +518,22 @@ class Validate implements ValidationRuleProviderInterface {
     // Numbers or stringed numbers.---------------------------------------------
 
     /**
-     * Integer, float or stringed integer/float (not empty string).
+     * Integer, float or stringed integer/float (but not e-notation).
+     *
+     * @code
+     * $numeric = $validate->numeric($weakly_typed_input);
+     * switch('' . $numeric) {
+     *   case 'integer':
+     *     work_with_integer((int) $weakly_typed_input);
+     *     break;
+     *   case 'float':
+     *     work_with_float((float) $weakly_typed_input);
+     *     break;
+     *   default:
+     *     return go_away();
+     * }
+     * if ($numeric
+     * @endcode
      *
      * @see Validate::number()
      *
@@ -525,24 +547,30 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::range()
      *
      * @param mixed $var
+     *  Checked stringified.
      *
-     * @return bool
+     * @return string|bool
+     *  String (integer|float) on pass, boolean false on failure.
      */
     public function numeric($var) {
         $v = '' . $var;
+        $float = false;
         if (strpos($v, '.') !== false) {
             $count = 0;
             $v = str_replace('.', '', $v, $count);
             if ($count != 1) {
                 return false;
             }
+            $float = 'true';
         }
-        // Yes, ctype_... returns fals on ''.
-        return ctype_digit($v);
+        // Yes, ctype_... returns false on ''.
+        return ctype_digit($v) ? ($float ? 'float' : 'integer') : false;
     }
 
     /**
-     * Integer or stringed integer.
+     * Non-negative integer or stringed integer.
+     *
+     * If negative integer should pass, use numeric() and then check it's return value.
      *
      * @see Validate::integer()
      *
@@ -556,6 +584,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::range()
      *
      * @param mixed $var
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -582,6 +611,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
+     *  Checked stringified.
      *
      * @return bool
      */
@@ -690,7 +720,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -710,7 +740,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -731,7 +761,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -751,7 +781,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -772,7 +802,7 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -795,7 +825,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -811,7 +841,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -827,7 +857,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -910,7 +940,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::unicode()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -931,7 +961,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -951,7 +981,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::unicode()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -972,7 +1002,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -993,7 +1023,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::unicode()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -1014,7 +1044,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -1141,7 +1171,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::string()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -1162,7 +1192,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -1176,7 +1206,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::string()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -1197,7 +1227,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
@@ -1211,7 +1241,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @see Validate::string()
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *  Unless logger.
      *
      * @param mixed $var
@@ -1232,7 +1262,7 @@ class Validate implements ValidationRuleProviderInterface {
                     ],
                 ]);
             } else {
-                throw new \InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
             // Important.
             return false;
