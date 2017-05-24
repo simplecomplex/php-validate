@@ -79,7 +79,7 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @var string
      */
-    const LOG_TYPE = 'validation';
+    const LOG_TYPE = 'validate';
 
     /**
      * Methods of this class that a ValidateByRules instance should never call.
@@ -112,10 +112,8 @@ class Validate implements ValidationRuleProviderInterface {
     // @todo: make throwing InvalidArgumentException - even when logger - an (constructor) option.
 
     /**
-     * Validate constructor.
-     *
      * When provided with a logger, rule methods will fail gracefully
-     * when given wrong secondary argument(s) - otherwise they throw exception.
+     * when given wrong argument(s) - otherwise they throw exception.
      *
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
@@ -137,6 +135,7 @@ class Validate implements ValidationRuleProviderInterface {
 
     /**
      * @param LoggerInterface|null
+     *  PSR-3 logger, if any.
      *
      * @return static
      */
@@ -439,7 +438,7 @@ class Validate implements ValidationRuleProviderInterface {
         if (is_array($var)) {
             return 'array';
         }
-        return $var && is_object($var) ? 'object' : false;
+        return ($var && is_object($var)) ? 'object' : false;
     }
 
     /**
@@ -951,7 +950,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * Unicode printable that allows carriage return and newline.
+     * Unicode printable that allows newline and (default) carriage return.
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
@@ -960,12 +959,19 @@ class Validate implements ValidationRuleProviderInterface {
      * @see Validate::unicode()
      *
      * @param mixed $var
+     * @param boolean $noCarriageReturn
      *
      * @return bool
      */
-    public function unicodeMultiLine($var) : boolean {
+    public function unicodeMultiLine($var, $noCarriageReturn = false) : boolean {
         // Remove newline chars before checking if printable.
-        return $this->unicodePrintable(str_replace(["\r", "\n"], '', '' . $var));
+        return $this->unicodePrintable(
+            str_replace(
+                !$noCarriageReturn ? ["\r", "\n"] : "\n",
+                '',
+                '' . $var
+            )
+        );
     }
 
     /**
@@ -1140,7 +1146,7 @@ class Validate implements ValidationRuleProviderInterface {
     }
 
     /**
-     * ASCII printable that allows carriage return and newline.
+     * ASCII printable that allows newline and (default) carriage return.
      *
      * NB: Returns true on empty ('') string.
      *
@@ -1151,12 +1157,19 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @param mixed $var
      *  Checked stringified.
+     * @param boolean $noCarriageReturn
      *
      * @return bool
      */
-    public function asciiMultiLine($var) : boolean {
+    public function asciiMultiLine($var, $noCarriageReturn = false) : boolean {
         // Remove newline chars before checking if printable.
-        return $this->asciiPrintable(str_replace(["\r", "\n"], '', '' . $var));
+        return $this->asciiPrintable(
+            str_replace(
+                !$noCarriageReturn ? ["\r", "\n"] : "\n",
+                '',
+                '' . $var
+            )
+        );
     }
 
     /**

@@ -1,3 +1,9 @@
+SimpleComplex/Filter 1.x, 2017-05-24
+------------------------------------
+- Unicode and Sanitize methods now (optionally) log and err on bad args.
+- Unicode now (also) coerces subject arg to string.
+- New sanitizer numberToString().
+
 SimpleComplex/Filter 1.x, 2017-05-23
 ------------------------------------
 - Parameter/return type declarations (Validate only, so far).

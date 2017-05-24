@@ -38,10 +38,7 @@ namespace SimpleComplex\Filter;
  *     ]
  *   ]
  * ]
- *
- *
- *
- * II. Or define a deep list of rules for the variable and
+ * @todo: and then what?
  *
  *
  * Purpose
@@ -104,7 +101,7 @@ class ValidateByRules {
      *
      * @var string
      */
-    const LOG_TYPE = 'validation';
+    const LOG_TYPE = 'validate';
 
     /**
      * Rules that the rules provider doesn't (and shan't) provide.
@@ -148,6 +145,9 @@ class ValidateByRules {
      */
     public function __construct(ValidationRuleProviderInterface $ruleProvider) {
         $this->ruleProvider = $ruleProvider;
+
+        // @todo: don't refer ruleProvider, allow Validate to refer this instead.
+        // @todo: validate must have a challengeRules method; user shan't bother with instantiating this class directly (too complicated).
     }
 
     /**

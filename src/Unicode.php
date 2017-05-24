@@ -5,9 +5,10 @@ declare(strict_types=1);
  * Forwards compatility really; everybody will to this once.
  * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
  */
-// @todo: check/declare parameter/return types.
 
 namespace SimpleComplex\Filter;
+
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Unicode
@@ -41,18 +42,38 @@ class Unicode {
     use GetInstanceTrait;
 
     /**
+     * For logger 'type' context; like syslog RFC 5424 'facility code'.
+     *
+     * @var string
+     */
+    const LOG_TYPE = 'unicode';
+
+
+    /**
+     * @var LoggerInterface|null
+     */
+    protected $logger;
+
+    /**
+     * @param LoggerInterface|null
+     *  PSR-3 logger, if any.
+     *
      * Unicode constructor.
      */
-    public function __construct() {
+    public function __construct($logger = null) {
+        $this->logger = $logger;
     }
 
     /**
+     * @param LoggerInterface|null
+     *  PSR-3 logger, if any.
+     *
      * @return static
      */
-    public static function make() {
+    public static function make($logger = null) {
         // Make IDE recognize child class.
         /** @var Unicode */
-        return new static();
+        return new static($logger);
     }
 
     /**
@@ -64,10 +85,10 @@ class Unicode {
      * @return int
      *  0|1.
      */
-    public static function nativeSupport() {
+    public static function nativeSupport() : int {
         $support = static::$mbString;
         if ($support == -1) {
-            static::$mbString = $support = function_exists('mb_strlen');
+            static::$mbString = $support = (int) function_exists('mb_strlen');
         }
         return $support;
     }
@@ -75,24 +96,26 @@ class Unicode {
     /**
      * Multibyte-safe string length.
      *
-     * @param string $str
+     * @param mixed $var
+     *  Gets stringified.
      *
      * @return int
      */
-    public function strlen($str) {
-        if ($str === '') {
+    public function strlen($var) : integer {
+        $v = '' . $var;
+        if ($v === '') {
             return 0;
         }
         if (static::nativeSupport()) {
-            return mb_strlen($str);
+            return mb_strlen($v);
         }
 
         $n = 0;
-        $le = strlen($str);
+        $le = strlen($v);
         $leading = false;
         for ($i = 0; $i < $le; $i++) {
             // ASCII.
-            if (($ord = ord($str{$i})) < 128) {
+            if (($ord = ord($v{$i})) < 128) {
                 ++$n;
                 $leading = false;
             }
@@ -115,40 +138,77 @@ class Unicode {
     /**
      * Multibyte-safe sub string.
      *
-     * @param string $str
+     * Does not check if arg $v is valid UTF-8.
+     *
+     * @throws InvalidArgumentException
+     *  Bad arg start or length.
+     *
+     * @param mixed $var
+     *  Gets stringified.
      * @param int $start
      * @param int|null $length
      *  Default: null; until end of arg str.
      *
      * @return string
      */
-    public function substr($str, $start, $length = null) {
-        // Interprete non-null falsy length as zero.
-        if ($str === '' || (!$length && $length !== null)) {
+    public function substr($var, $start, $length = null) : string {
+        if (!is_int($start) || $start < 0) {
+            $msg = 'start is not non-negative integer.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => static::LOG_TYPE,
+                    'variable' => [
+                        'start' => $start,
+                        'length' => $length,
+                    ],
+                ]);
+            }
+            throw new InvalidArgumentException('Arg ' . $msg);
+        }
+        if ($length !== null && !is_int($length) || $length < 0) {
+            $msg = 'length is not non-negative integer or null.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => static::LOG_TYPE,
+                    'variable' => [
+                        'start' => $start,
+                        'length' => $length,
+                    ],
+                ]);
+            }
+            throw new InvalidArgumentException('Arg ' . $msg);
+        }
+        $v = '' . $var;
+        if (!$length || $v === '') {
             return '';
         }
         if (static::nativeSupport()) {
-            return !$length ? mb_substr($str, $start) : mb_substr($str, $start, $length);
+            return !$length ? mb_substr($v, $start) : mb_substr($v, $start, $length);
         }
 
         // The actual algo (further down) only works when start is zero.
         if ($start > 0) {
             // Trim off chars before start.
-            $str = substr($str, strlen($this->substr($str, 0, $start)));
+            $v = substr($v,
+                strlen(
+                    // Offsets multibyte string length.
+                    $this->substr($v, 0, $start)
+                )
+            );
         }
         // And the algo needs a length.
         if (!$length) {
-            $length = $this->strlen($str);
+            $length = $this->strlen($v);
         }
 
         $n = 0;
-        $le = strlen($str);
+        $le = strlen($v);
         $leading = false;
         for ($i = 0; $i < $le; $i++) {
             // ASCII.
-            if (($ord = ord($str{$i})) < 128) {
+            if (($ord = ord($v{$i})) < 128) {
                 if ((++$n) > $length) {
-                    return substr($str, 0, $i);
+                    return substr($v, 0, $i);
                 }
                 $leading = false;
             }
@@ -161,37 +221,55 @@ class Unicode {
                 // A sequence of leadings only counts as a single.
                 if (!$leading) {
                     if ((++$n) > $length) {
-                        return substr($str, 0, $i);
+                        return substr($v, 0, $i);
                     }
                 }
                 $leading = true;
             }
         }
-        return $str;
+        return $v;
     }
 
     /**
      * Truncate multibyte safe until ASCII length is equal to/less than arg
      * length.
      *
-     * Does not check if arg $str is valid UTF-8.
+     * Does not check if arg $v is valid UTF-8.
      *
-     * @param string $str
+     * @throws InvalidArgumentException
+     *  Bad arg length.
+     *
+     * @param mixed $var
+     *  Gets stringified.
      * @param int $length
      *  Byte length (~ ASCII char length).
      *
      * @return string
      */
-    public function truncateBytes($str, $length) {
-        if (strlen($str) <= $length) {
-            return $str;
+    public function truncateBytes($var, $length) {
+        if (!is_int($length) || $length < 0) {
+            $msg = 'length is not non-negative integer or null.';
+            if ($this->logger) {
+                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    'type' => static::LOG_TYPE,
+                    'variable' => [
+                        'length' => $length,
+                    ],
+                ]);
+            }
+            throw new InvalidArgumentException('Arg ' . $msg);
+        }
+
+        $v = '' . $var;
+        if (strlen($v) <= $length) {
+            return $v;
         }
 
         // Truncate to UTF-8 char length (>= byte length).
-        $str = $this->substr($str, 0, $length);
+        $v = $this->substr($v, 0, $length);
         // If all ASCII.
-        if (($le = strlen($str)) == $length) {
-            return $str;
+        if (($le = strlen($v)) == $length) {
+            return $v;
         }
 
         // This algo will truncate one UTF-8 char too many,
@@ -207,7 +285,7 @@ class Unicode {
                 return '';
             }
             // An ASCII byte.
-            elseif (($ord = ord($str{$le})) < 128) {
+            elseif (($ord = ord($v{$le})) < 128) {
                 // We can break before an ASCII byte.
                 $ascii = true;
                 $leading = false;
@@ -224,29 +302,34 @@ class Unicode {
             }
         } while($le > $length || (!$ascii && !$leading));
 
-        return substr($str, 0, $le);
+        return substr($v, 0, $le);
     }
 
     /**
      * @param string $haystack
+     *  Gets stringified.
      * @param string $needle
+     *  Gets stringified.
      *
      * @return bool|int
+     *  False: if needle not found, or if either arg evaluates to empty string.
      */
     public function strpos($haystack, $needle) {
-        if ($haystack === '' || $needle === '') {
+        $hstck = '' . $haystack;
+        $ndl = '' . $needle;
+        if ($hstck === '' || $ndl === '') {
             return false;
         }
         if (static::nativeSupport()) {
-            return mb_strpos($haystack, $needle);
+            return mb_strpos($hstck, $ndl);
         }
 
-        $pos = strpos($haystack, $needle);
+        $pos = strpos($hstck, $ndl);
         if (!$pos) {
             return $pos;
         }
         return count(
-            preg_split('//u', substr($haystack, 0, $pos), null, PREG_SPLIT_NO_EMPTY)
+            preg_split('//u', substr($hstck, 0, $pos), null, PREG_SPLIT_NO_EMPTY)
         );
     }
 
