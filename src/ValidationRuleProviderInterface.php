@@ -11,8 +11,8 @@ namespace SimpleComplex\Filter;
 use Psr\Log\LoggerInterface;
 
 /**
- * Describes required properties of a class that can provide validation rules
- * for a ValidateByRules instance.
+ * Describes required properties of a class - a 'rule provider' - that can
+ * provide validation rules for a ValidateByRules instance.
  *
  * Rule method directives
  * ----------------------
@@ -24,6 +24,13 @@ use Psr\Log\LoggerInterface;
  * - 1 for the var to validate and max. 4 secondary (specifying) parameters
  * III  Illegal rule method names:
  * - optional, alternativeEnum, elements
+ *
+ *
+ * Referring a ValidateByRules instance is forbidden
+ * -------------------------------------------------
+ * Neither class nor instance can refer a ValidateByRules instance
+ * because a ValidateByRules instance refers this (the rule provider);
+ * circular referencing is unhealthy.
  *
  *
  * @package SimpleComplex\Filter

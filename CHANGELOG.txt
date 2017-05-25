@@ -1,3 +1,8 @@
+SimpleComplex/Filter 1.x, 2017-05-25
+------------------------------------
+- Use ValidateByRules via Validate::challengeRules()
+- Option errUnconditionally.
+
 SimpleComplex/Filter 1.x, 2017-05-24
 ------------------------------------
 - Unicode and Sanitize methods now (optionally) log and err on bad args.

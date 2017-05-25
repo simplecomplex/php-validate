@@ -96,6 +96,7 @@ class Validate implements ValidationRuleProviderInterface {
         'getLogger',
         'getNonRuleMethods',
         '__call',
+        'challengeRules',
     ];
 
     /**
@@ -108,8 +109,13 @@ class Validate implements ValidationRuleProviderInterface {
      */
     protected $nonRuleMethods = [];
 
-
-    // @todo: make throwing InvalidArgumentException - even when logger - an (constructor) option.
+    /**
+     * Do always throw exception on logical/runtime error, even when logger
+     * available (default not).
+     *
+     * @var bool
+     */
+    protected $errUnconditionally;
 
     /**
      * When provided with a logger, rule methods will fail gracefully
@@ -117,8 +123,15 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
+     * @param array $options
+     *  (bool) errUnconditionally; default false.
      */
-    public function __construct($logger = null) {
+    public function __construct(
+        $logger = null,
+        array $options = array(
+            'errUnconditionally' => false,
+        )
+    ) {
         $this->logger = $logger;
 
         $this->nonRuleMethods = self::NON_RULE_METHODS;
@@ -131,6 +144,8 @@ class Validate implements ValidationRuleProviderInterface {
          *   );
          * }
          */
+
+        $this->errUnconditionally = !empty($options['errUnconditionally']);
     }
 
     /**
@@ -139,7 +154,8 @@ class Validate implements ValidationRuleProviderInterface {
      *
      * @return static
      */
-    public static function make($logger = null) {
+    public static function make($logger = null)
+    {
         // Make IDE recognize child class.
         /** @var Validate */
         return new static($logger);
@@ -190,6 +206,30 @@ class Validate implements ValidationRuleProviderInterface {
             );
         }
         throw new BadMethodCallException('Undefined validation rule[' . $name . '].');
+    }
+
+
+    // Validate by list of rules.---------------------------------------------------------------------------------------
+
+    /**
+     * Validate by a list of rules.
+     *
+     * @param mixed $var
+     * @param array $rules
+     *  A list of rules; either 'rule':[specs] or N:'rule'.
+     *  [
+     *    'integer'
+     *    'range': [ 0, 2 ]
+     *  ]
+     *
+     * @return bool
+     */
+    public function challengeRules($var, array $rules) {
+        // Extending class do not have to override this method;
+        // the class name used as name arg will be the sub class' name.
+        return ValidateByRules::getInstance(get_class($this), [
+            $this,
+        ])->challenge($var, $rules);
     }
 
 
@@ -252,11 +292,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'allowedValues' => $allowedValues,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         $i = -1;
@@ -271,11 +311,11 @@ class Validate implements ValidationRuleProviderInterface {
                             'allowedValues' => $allowedValues,
                         ],
                     ]);
-                } else {
-                    throw new InvalidArgumentException('Arg ' . $msg);
+                    if (!$this->errUnconditionally) {
+                        return false;
+                    }
                 }
-                // Important.
-                return false;
+                throw new InvalidArgumentException('Arg ' . $msg);
             }
 
             if ($var === $allowed) {
@@ -306,11 +346,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'pattern' => $pattern,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return !!preg_match($pattern, '' . $var);
@@ -488,11 +528,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'className' => $className,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return $var && is_object($var) && is_a($var, $className);
@@ -773,11 +813,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'min' => $min,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return $var >= $min;
@@ -814,11 +854,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return $var <= $max;
@@ -858,11 +898,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
@@ -874,11 +914,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
         if ($max < $min) {
             $msg = 'max cannot be less than arg min.';
@@ -890,11 +930,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return $var >= $min && $var <= $max;
@@ -1001,11 +1041,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'min' => $min,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         $v = '' . $var;
@@ -1042,11 +1082,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         $v = '' . $var;
@@ -1084,11 +1124,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'exact' => $exact,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         $v = '' . $var;
@@ -1239,11 +1279,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'min' => $min,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return strlen('' . $var) >= $min;
@@ -1274,11 +1314,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'max' => $max,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return strlen('' . $var) <= $max;
@@ -1309,11 +1349,11 @@ class Validate implements ValidationRuleProviderInterface {
                         'exact' => $exact,
                     ],
                 ]);
-            } else {
-                throw new InvalidArgumentException('Arg ' . $msg);
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // Important.
-            return false;
+            throw new InvalidArgumentException('Arg ' . $msg);
         }
 
         return strlen('' . $var) == $exact;

@@ -5,7 +5,6 @@ declare(strict_types=1);
  * Forwards compatility really; everybody will to this once.
  * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
  */
-// @todo: check/declare parameter/return types.
 
 namespace SimpleComplex\Filter;
 
@@ -61,10 +60,9 @@ namespace SimpleComplex\Filter;
  * into the Validate class.
  * But it would obscure the primary purpose of the Validate class:
  * to provide simple, directly applicable, validation methods.
- *
- * Moving/keeping the rule set methods in a (this) separate class also has
- * the added benefit that it's far simpler to determine which (Validate)
- * methods are rule methods.
+ * Having the rule methods in a class separate from this also has the added
+ * benefit that it's far simpler to determine which (Validate) methods are
+ * rule methods.
  * And this class cannot 'see'/call protected methods of the Validate class.
  *
  *
@@ -129,7 +127,17 @@ class ValidateByRules {
     protected $ruleMethods = [];
 
     /**
-     * Uses the logger (if any) of the rules provider.
+     * Do always throw exception on logical/runtime error, even when logger
+     * available (default not).
+     *
+     * @var bool
+     */
+    protected $errUnconditionally;
+
+    /**
+     * Use Validate::challengeRules() instead of using this directly.
+     *
+     * Uses the logger (if any) of the rule provider.
      * But only on demand; doesn't refer it.
      *
      * @code
@@ -140,28 +148,26 @@ class ValidateByRules {
      * ]);
      * @endcode
      *
+     * @see Validate::challengeRules()
+     *
      * @param ValidationRuleProviderInterface $ruleProvider
      *  The (most of the) methods of the Validate instance will be the rules available.
+     * @param array $options
+     *  (bool) errUnconditionally; default false.
      */
-    public function __construct(ValidationRuleProviderInterface $ruleProvider) {
+    public function __construct(
+        ValidationRuleProviderInterface $ruleProvider,
+        array $options = array(
+            'errUnconditionally' => false,
+        )
+    ) {
         $this->ruleProvider = $ruleProvider;
 
-        // @todo: don't refer ruleProvider, allow Validate to refer this instead.
-        // @todo: validate must have a challengeRules method; user shan't bother with instantiating this class directly (too complicated).
+        $this->errUnconditionally = !empty($options['errUnconditionally']);
     }
 
     /**
-     * @param ValidationRuleProviderInterface $ruleProvider
-     *
-     * @return static
-     */
-    public static function make(ValidationRuleProviderInterface $ruleProvider) {
-        // Make IDE recognize child class.
-        /** @var ValidateByRules */
-        return new static($ruleProvider);
-    }
-
-    /**
+     * Do not call
      *
      * @code
      * // Validate a value which should be an integer zero thru two.
@@ -174,12 +180,11 @@ class ValidateByRules {
      * ]);
      * @endcode
      *
-     * @throws \Exception
+     * @throws \Throwable
      *  Propagated.
      *
      * @uses get_class_methods()
      * @uses Validate::getNonRuleMethods()
-     * @uses Validate::getLogger()
      *
      * @param mixed $var
      * @param array $rules
@@ -251,11 +256,11 @@ class ValidateByRules {
                         'key_path' => $keyPath,
                     ]
                 );
-                // Important.
-                return false;
+                if (!$this->errUnconditionally) {
+                    return false;
+                }
             }
-            // @todo: SimpleComplex\Filter\RecursionException.
-            throw new \OutOfRangeException(
+            throw new OutOfRangeException(
                 'Stopped recursive validation by rule-set at limit[' . static::RECURSION_LIMIT . '].'
             );
         }
@@ -334,8 +339,9 @@ class ValidateByRules {
                                     'variable' => $ruleSet,
                                 ]
                             );
-                            // Important.
-                            return false;
+                            if (!$this->errUnconditionally) {
+                                return false;
+                            }
                         }
                         throw new \LogicException('Duplicate validation rule[' . $rule . '].');
                     }
@@ -353,8 +359,9 @@ class ValidateByRules {
                                     'key_path' => $keyPath,
                                 ]
                             );
-                            // Important.
-                            return false;
+                            if (!$this->errUnconditionally) {
+                                return false;
+                            }
                         }
                         throw new \LogicException('Non-existent validation rule[' . $rule . '].');
                     }
@@ -410,8 +417,9 @@ class ValidateByRules {
                                     'key_path' => $keyPath,
                                 ]
                             );
-                            // Important.
-                            return false;
+                            if (!$this->errUnconditionally) {
+                                return false;
+                            }
                         }
                         throw new InvalidArgumentException(
                             'Too many arguments for validation rule[' . $rule . '].'
