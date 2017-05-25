@@ -106,7 +106,7 @@ class Unicode
      *
      * @return int
      */
-    public function strlen($var) : integer
+    public function strlen($var) : int
     {
         $v = '' . $var;
         if ($v === '') {

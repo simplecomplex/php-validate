@@ -221,13 +221,86 @@ class Validate implements ValidationRuleProviderInterface
     /**
      * Validate by a list of rules.
      *
+     * @code
+     * // A little helper class.
+     * class Bicycle
+     * {
+     *     public $wheels = 0;
+     *     public $saddles;
+     *     public $sound = '';
+     *     public $accessories = [];
+     *     public function __construct($wheels, $saddles, $sound, $accessories)
+     *     {
+     *         $this->wheels = $wheels;
+     *         $this->saddles = $saddles;
+     *         $this->sound = $sound;
+     *         $this->accessories = $accessories;
+     *     }
+     * }
+     * // Declare validation rules for a Bicycle of your taste.
+     * $rules = [
+     *     // (str) rule => (arr) arguments
+     *     'class' => [
+     *         'Bicycle'
+     *     ],
+     *     // A bike has properties.
+     *     '_elements_' => [
+     *         'wheels' => [
+     *             // You don't have to give an arguments array, when no arguments.
+     *             'integer',
+     *             // Zero makes no bike, 4 makes a waggon.
+     *             'range' => [
+     *                 1,
+     *                 3
+     *             ]
+     *         ],
+     *         'saddles' => [
+     *             'integer',
+     *             // We prefer number of saddles, but any will also do.
+     *             'alternativeEnum' => [
+     *                 true,
+     *             ]
+     *         ],
+     *         'sound' => [
+     *             // When no arguments, true will do just a well as no array and empty array.
+     *             'string' => true,
+     *             // Beware that actual argument(s) must always be array.
+     *             'enum' => [
+     *                 // First, and only, argument.
+     *                 [
+     *                     'silent',
+     *                     'swooshy',
+     *                     'clattering',
+     *                 ]
+     *             ]
+     *         ],
+     *         'accessories' => [
+     *             'array',
+     *             '_elements_' => [
+     *                 'luggageCarrier' => [
+     *                     'boolean',
+     *                     // We don't really care if there's a luggage carrier or not.
+     *                     'optional'
+     *                 ]
+     *             ]
+     *         ],
+     *     ]
+     * ];
+     * // Create a bike.
+     * $bike = new Bicycle(
+     *     2,
+     *     true,
+     *     'swooshy',
+     *     [
+     *         'luggageCarrier' => false,
+     *     ]
+     * );
+     * // Validate it.
+     * $appropriate_bike = Validate::make()->challengeRules($bike, $rules);
+     * @endcode
+     *
      * @param mixed $var
      * @param array $rules
-     *  A list of rules; either 'rule':[specs] or N:'rule'.
-     *  [
-     *    'integer'
-     *    'range': [ 0, 2 ]
-     *  ]
      *
      * @return bool
      */
@@ -252,7 +325,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function empty($var) : boolean
+    public function empty($var) : bool
     {
         if (!$var) {
             // Stringed zero - '0' - is not empty.
@@ -271,7 +344,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function nonEmpty($var) : boolean
+    public function nonEmpty($var) : bool
     {
         return !$this->empty($var);
     }
@@ -292,7 +365,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function enum($var, $allowedValues) : boolean
+    public function enum($var, $allowedValues) : bool
     {
         if (!$allowedValues || !is_array($allowedValues)) {
             $msg = 'allowedValues is not non-empty array.';
@@ -347,7 +420,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function regex($var, $pattern) : boolean
+    public function regex($var, $pattern) : bool
     {
         if (!$pattern || !is_string($pattern)) {
             $msg = 'pattern is not non-empty string.';
@@ -375,7 +448,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function boolean($var) : boolean
+    public function boolean($var) : bool
     {
         return is_bool($var);
     }
@@ -426,7 +499,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function integer($var) : boolean
+    public function integer($var) : bool
     {
         return is_int($var);
     }
@@ -445,7 +518,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function float($var) : boolean
+    public function float($var) : bool
     {
         return is_float($var);
     }
@@ -455,7 +528,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function string($var) : boolean
+    public function string($var) : bool
     {
         return is_string($var);
     }
@@ -465,7 +538,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function null($var) : boolean
+    public function null($var) : bool
     {
         return $var === null;
     }
@@ -475,7 +548,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function resource($var) : boolean
+    public function resource($var) : bool
     {
         return is_resource($var);
     }
@@ -525,7 +598,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function object($var) : boolean
+    public function object($var) : bool
     {
         return $var && is_object($var);
     }
@@ -540,7 +613,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function class($var, $className) : boolean
+    public function class($var, $className) : bool
     {
         if (!$className || !is_string($className)) {
             $msg = 'className is not a non-empty string.';
@@ -566,7 +639,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function array($var) : boolean
+    public function array($var) : bool
     {
         return is_array($var);
     }
@@ -581,7 +654,7 @@ class Validate implements ValidationRuleProviderInterface
      * @return bool
      *  True: empty array, or all keys are integers.
      */
-    public function numArray($var) : boolean
+    public function numArray($var) : bool
     {
         if (!is_array($var)) {
             return false;
@@ -600,7 +673,7 @@ class Validate implements ValidationRuleProviderInterface
      * @return bool
      *  True: empty array, or at least one key is not integer.
      */
-    public function assocArray($var) : boolean
+    public function assocArray($var) : bool
     {
         if (!is_array($var)) {
             return false;
@@ -689,7 +762,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function digital($var) : boolean
+    public function digital($var) : bool
     {
         // Yes, ctype_... returns fals on ''.
         return ctype_digit('' . $var);
@@ -718,7 +791,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function hex($var) : boolean
+    public function hex($var) : bool
     {
         // Yes, ctype_... returns fals on ''.
         return ctype_xdigit('' . $var);
@@ -740,7 +813,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function bit32($var) : boolean
+    public function bit32($var) : bool
     {
         return $var >= -2147483648 && $var <= 2147483647;
     }
@@ -758,7 +831,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function bit64($var) : boolean
+    public function bit64($var) : bool
     {
         return $var >= -9223372036854775808 && $var <= 9223372036854775807;
     }
@@ -776,7 +849,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function positive($var) : boolean
+    public function positive($var) : bool
     {
         return $var > 0;
     }
@@ -794,7 +867,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function nonNegative($var) : boolean
+    public function nonNegative($var) : bool
     {
         return $var >= 0;
     }
@@ -812,7 +885,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function negative($var) : boolean
+    public function negative($var) : bool
     {
         return $var < 0;
     }
@@ -838,7 +911,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function min($var, $min) : boolean
+    public function min($var, $min) : bool
     {
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
@@ -880,7 +953,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function max($var, $max) : boolean
+    public function max($var, $max) : bool
     {
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
@@ -924,7 +997,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function range($var, $min, $max) : boolean
+    public function range($var, $min, $max) : bool
     {
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
@@ -993,7 +1066,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicode($var) : boolean
+    public function unicode($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? true :
@@ -1018,7 +1091,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicodePrintable($var) : boolean
+    public function unicodePrintable($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? true :
@@ -1043,7 +1116,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeMultiLine($var, $noCarriageReturn = false) : boolean
+    public function unicodeMultiLine($var, $noCarriageReturn = false) : bool
     {
         // Remove newline chars before checking if printable.
         return $this->unicodePrintable(
@@ -1072,7 +1145,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeMinLength($var, $min) : boolean
+    public function unicodeMinLength($var, $min) : bool
     {
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
@@ -1114,7 +1187,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeMaxLength($var, $max) : boolean
+    public function unicodeMaxLength($var, $max) : bool
     {
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
@@ -1157,7 +1230,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeExactLength($var, $exact) : boolean
+    public function unicodeExactLength($var, $exact) : bool
     {
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
@@ -1200,7 +1273,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function ascii($var) : boolean
+    public function ascii($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? true : !!preg_match('/^[[:ascii:]]+$/', $v);
@@ -1221,7 +1294,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function asciiPrintable($var) : boolean
+    public function asciiPrintable($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? true : (
@@ -1247,7 +1320,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function asciiMultiLine($var, $noCarriageReturn = false) : boolean
+    public function asciiMultiLine($var, $noCarriageReturn = false) : bool
     {
         // Remove newline chars before checking if printable.
         return $this->asciiPrintable(
@@ -1273,7 +1346,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function asciiLowerCase($var) : boolean
+    public function asciiLowerCase($var) : bool
     {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
@@ -1295,7 +1368,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function asciiUpperCase($var) : boolean
+    public function asciiUpperCase($var) : bool
     {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
@@ -1318,7 +1391,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function minLength($var, $min) : boolean
+    public function minLength($var, $min) : bool
     {
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
@@ -1354,7 +1427,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function maxLength($var, $max) : boolean
+    public function maxLength($var, $max) : bool
     {
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
@@ -1390,7 +1463,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function exactLength($var, $exact) : boolean
+    public function exactLength($var, $exact) : bool
     {
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
@@ -1427,7 +1500,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function alphaNum($var) : boolean
+    public function alphaNum($var) : bool
     {
         // ctype_... is no good for ASCII-only check, if PHP and server locale
         // is set to something non-English.
@@ -1447,7 +1520,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function name($var) : boolean
+    public function name($var) : bool
     {
         return !!preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
     }
@@ -1465,7 +1538,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function dashName($var) : boolean
+    public function dashName($var) : bool
     {
         return !!preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
     }
@@ -1481,7 +1554,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function uuid($var) : boolean
+    public function uuid($var) : bool
     {
         $v = '' . $var;
         return strlen($v) == 36
@@ -1502,7 +1575,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function base64($var) : boolean
+    public function base64($var) : bool
     {
         return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $var);
     }
@@ -1526,7 +1599,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIso8601($var) : boolean
+    public function dateTimeIso8601($var) : bool
     {
         $v = '' . $var;
         return strlen($v) <= 35
@@ -1551,7 +1624,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function dateIso8601Local($var) : boolean
+    public function dateIso8601Local($var) : bool
     {
         $v = '' . $var;
         return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
@@ -1570,7 +1643,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function plainText($var) : boolean
+    public function plainText($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? true : !strcmp($v, strip_tags($v));
@@ -1582,7 +1655,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function ipAddress($var) : boolean
+    public function ipAddress($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
@@ -1594,7 +1667,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function url($var) : boolean
+    public function url($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
@@ -1606,7 +1679,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function httpUrl($var) : boolean
+    public function httpUrl($var) : bool
     {
         $v = '' . $var;
         return $v === '' ? false : (
@@ -1621,7 +1694,7 @@ class Validate implements ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function email($var) : boolean
+    public function email($var) : bool
     {
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
         $v = '' . $var;

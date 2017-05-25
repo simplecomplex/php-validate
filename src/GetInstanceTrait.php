@@ -66,12 +66,7 @@ trait GetInstanceTrait
             return static::$lastInstance;
         }
 
-        // Same as:
-        // $nstnc = static::make(...constructor arguments...);
-        static::$lastInstance = $nstnc = forward_static_call_array(
-            [get_called_class(), 'make'],
-            $constructorArgs
-        );
+        static::$lastInstance = $nstnc = new static(...$constructorArgs);
 
         if ($name) {
             static::$instances[$name] = $nstnc;

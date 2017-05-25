@@ -20,11 +20,9 @@ use Psr\Log\LoggerInterface;
  * Because until everybody uses strict type mode, the outcome of passing an
  * argument of other type to a type declared parameter is ambiguous; coercion
  * or TypeError(?).
- * II  A rule method must not have more than 5 parameters, that is:
- * - 1 for the var to validate and max. 4 secondary (specifying) parameters
- * III  Illegal rule method names:
- * - optional, alternativeEnum, elements
- *
+ * II  Illegal rule method names:
+ * - optional, alternativeEnum, _elements_
+ * @see ValidateByRules::NON_PROVIDER_RULES
  *
  * Referring a ValidateByRules instance is forbidden
  * -------------------------------------------------
@@ -65,7 +63,7 @@ interface ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function empty($var) : boolean;
+    public function empty($var) : bool;
 
     /**
      * There must be a 'nonEmpty' method, because ValidateByRules may need it.
@@ -76,7 +74,7 @@ interface ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function nonEmpty($var) : boolean;
+    public function nonEmpty($var) : bool;
 
     /**
      * There must be an 'enum' method, because ValidateByRules may need it.
@@ -95,7 +93,7 @@ interface ValidationRuleProviderInterface
      *
      * @return bool
      */
-    public function enum($var, $allowedValues) : boolean;
+    public function enum($var, $allowedValues) : bool;
 
     /**
      * Object or array.
