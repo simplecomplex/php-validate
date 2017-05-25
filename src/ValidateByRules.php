@@ -215,7 +215,7 @@ class ValidateByRules
             return $this->internalChallenge(0, '', $var, $rules);
         }
         catch (\Throwable $xc) {
-            // Out-library Exception: log before propagating.
+            // Out-library exception: log before propagating.
             if (strpos($xc, __NAMESPACE__ . '\\Exception') !== 0) {
                 if ($this->ruleProvider->getLogger()) {
                     // @todo
