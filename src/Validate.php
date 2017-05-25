@@ -100,6 +100,7 @@ class Validate implements ValidationRuleProviderInterface
         'getNonRuleMethods',
         '__call',
         'challengeRules',
+        'challengeRulesRecording',
     ];
 
     /**
@@ -205,7 +206,7 @@ class Validate implements ValidationRuleProviderInterface
         if ($this->logger) {
             // Log warning instaed of error, because we also throw exception.
             $this->logger->warning(
-                'Class ' . get_called_class() . ', and parents, provide no rule method \'{rule_method}\'.',
+                'Class ' . get_class($this) . ', and parents, provide no rule method \'{rule_method}\'.',
                 [
                     'type' => static::LOG_TYPE,
                     'rule_method' => $name,
@@ -220,6 +221,9 @@ class Validate implements ValidationRuleProviderInterface
 
     /**
      * Validate by a list of rules.
+     *
+     * Reuses the same ValidateByRules instance on every call.
+     * Instance saved on ValidateByRules class, not here.
      *
      * @code
      * // A little helper class.
@@ -296,7 +300,7 @@ class Validate implements ValidationRuleProviderInterface
      *     ]
      * );
      * // Validate it.
-     * $appropriate_bike = Validate::make()->challengeRules($bike, $rules);
+     * $good_bike = Validate::make()->challengeRules($bike, $rules);
      * @endcode
      *
      * @param mixed $var
@@ -310,7 +314,47 @@ class Validate implements ValidationRuleProviderInterface
         // the class name used as name arg will be the sub class' name.
         return ValidateByRules::getInstance(get_class($this), [
             $this,
+            [
+                'errUnconditionally' => $this->errUnconditionally,
+            ]
         ])->challenge($var, $rules);
+    }
+
+    /**
+     * Validate by a list of rules,
+     *
+     * Creates a new ValidateByRules instance on every call.
+     *
+     * @code
+     * $good_bike = Validate::make()->challengeRulesRecording($bike, $rules);
+     * if (empty($good_bike['passed'])) {
+     *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
+     * }
+     * @endcode
+     *
+     * @param mixed $var
+     * @param array $rules
+     *
+     * @return array
+     *  [
+     *    'passed': boolean,
+     *    'record': array
+     *  ]
+     */
+    public function challengeRulesRecording($var, array $rules)
+    {
+        $validateByRules = new ValidateByRules($this, [
+            'errUnconditionally' => $this->errUnconditionally,
+            'recordFailure' => true,
+        ]);
+
+        $validateByRules->challenge($var, $rules);
+        $record = $validateByRules->getRecord();
+
+        return [
+            'passed' => !$record,
+            'record' => $record,
+        ];
     }
 
 
@@ -370,7 +414,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!$allowedValues || !is_array($allowedValues)) {
             $msg = 'allowedValues is not non-empty array.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variables' => [
                         'allowedValues' => $allowedValues,
@@ -389,7 +433,7 @@ class Validate implements ValidationRuleProviderInterface
             if ($allowed !== null && !is_scalar($allowed)) {
                 $msg = 'allowedValues bucket ' . $i . ' is not scalar or null.';
                 if ($this->logger) {
-                    $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                    $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                         'type' => static::LOG_TYPE,
                         'variables' => [
                             'allowedValues' => $allowedValues,
@@ -425,7 +469,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!$pattern || !is_string($pattern)) {
             $msg = 'pattern is not non-empty string.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variables' => [
                         'pattern' => $pattern,
@@ -618,7 +662,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!$className || !is_string($className)) {
             $msg = 'className is not a non-empty string.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'className' => $className,
@@ -916,7 +960,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -958,7 +1002,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'max' => $max,
@@ -1002,7 +1046,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($min) && !is_float($min)) {
             $msg = 'min is not integer or float.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -1018,7 +1062,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($max) && !is_float($max)) {
             $msg = 'max is not integer or float.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -1034,7 +1078,7 @@ class Validate implements ValidationRuleProviderInterface
         if ($max < $min) {
             $msg = 'max cannot be less than arg min.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -1150,7 +1194,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -1192,7 +1236,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'max' => $max,
@@ -1235,7 +1279,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'exact' => $exact,
@@ -1396,7 +1440,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($min) || $min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'min' => $min,
@@ -1432,7 +1476,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($max) || $max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'max' => $max,
@@ -1468,7 +1512,7 @@ class Validate implements ValidationRuleProviderInterface
         if (!is_int($exact) || $exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'exact' => $exact,

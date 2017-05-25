@@ -162,7 +162,7 @@ class Unicode
         if (!is_int($start) || $start < 0) {
             $msg = 'start is not non-negative integer.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'start' => $start,
@@ -175,7 +175,7 @@ class Unicode
         if ($length !== null && !is_int($length) || $length < 0) {
             $msg = 'length is not non-negative integer or null.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'start' => $start,
@@ -258,7 +258,7 @@ class Unicode
         if (!is_int($length) || $length < 0) {
             $msg = 'length is not non-negative integer or null.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'length' => $length,

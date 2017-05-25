@@ -11,9 +11,6 @@ namespace SimpleComplex\Filter;
 use SimpleComplex\Filter\Exception\InvalidArgumentException;
 use SimpleComplex\Filter\Exception\OutOfRangeException;
 
-
-// @todo: provide a means for recording validation failure, perhaps a 'recorder' which looks like a logger but doesn't log.
-
 /**
  * Example
  * -------
@@ -82,6 +79,18 @@ class ValidateByRules
     const LOG_TYPE = 'validate';
 
     /**
+     * Recursion emergency brake.
+     *
+     * Ideally the depth of a rule set describing objects/arrays having nested objects/arrays
+     * should limit recursion, naturally/orderly.
+     * But circular references within the rule set - or a programmatic error in this library
+     * - could (without this hardcoded limit) result in perpetual recursion.
+     *
+     * @var int
+     */
+    const RECURSION_LIMIT = 10;
+
+    /**
      * Rules that the rules provider doesn't (and shan't) provide.
      *
      * @var array
@@ -107,10 +116,21 @@ class ValidateByRules
     /**
      * Do always throw Exception on logical/runtime error, even when logger
      * available (default not).
+     * Ignored for recursion limit excess.
      *
      * @var bool
      */
-    protected $errUnconditionally;
+    protected $errUnconditionally = false;
+
+    /**
+     * @var bool
+     */
+    protected $recordFailure = false;
+
+    /**
+     * @var array
+     */
+    protected $record = [];
 
     /**
      * Use Validate::challengeRules() instead of this.
@@ -132,16 +152,19 @@ class ValidateByRules
      *  The (most of the) methods of the Validate instance will be the rules available.
      * @param array $options
      *  (bool) errUnconditionally; default false.
+     *  (bool) recordFailure; default false.
      */
     public function __construct(
         ValidationRuleProviderInterface $ruleProvider,
         array $options = array(
             'errUnconditionally' => false,
+            'recordFailure' => false,
         )
     ) {
         $this->ruleProvider = $ruleProvider;
 
         $this->errUnconditionally = !empty($options['errUnconditionally']);
+        $this->recordFailure = !empty($options['recordFailure']);
     }
 
     /**
@@ -191,25 +214,17 @@ class ValidateByRules
         catch (\Throwable $xc) {
             // Out-library exception: log before propagating.
             if (strpos(get_class($xc), __NAMESPACE__ . '\\Exception') !== 0) {
-                if ($this->ruleProvider->getLogger()) {
-                    // @todo
+                $logger = $this->ruleProvider->getLogger();
+                if ($logger) {
+                    $logger->warning('Validation by rule list failed due to an external error.', [
+                        'type' => static::LOG_TYPE,
+                        'exception' => $xc,
+                    ]);
                 }
             }
             throw $xc;
         }
     }
-
-    /**
-     * Recursion emergency brake.
-     *
-     * Ideally the depth of a rule set describing objects/arrays having nested objects/arrays
-     * should limit recursion, naturally/orderly.
-     * But circular references within the rule set - or a programmatic error in this library
-     * - could (without this hardcoded limit) result in perpetual recursion.
-     *
-     * @var int
-     */
-    const RECURSION_LIMIT = 10;
 
     /**
      * Internal method to accommodate an inaccessible depth argument, to control/limit recursion.
@@ -239,9 +254,9 @@ class ValidateByRules
                         'key_path' => $keyPath,
                     ]
                 );
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
+                // No 'errUnconditionally' here.
+                // Recursion can be dangerous, and exceeding the limit may only
+                // happen with an erratical rule list (too deep, or circular reference).
             }
             throw new OutOfRangeException(
                 'Stopped recursive validation by rule-set at limit[' . static::RECURSION_LIMIT . '].'
@@ -280,8 +295,12 @@ class ValidateByRules
                                     'key_path' => $keyPath,
                                 ]
                             );
-                            // Important.
-                            return false;
+                            if (!$this->errUnconditionally) {
+                                if ($this->recordFailure) {
+                                    $this->record[] = $keyPath . ': ' . $rule . ' - bad args';
+                                }
+                                return false;
+                            }
                         }
                         throw new \InvalidArgumentException(
                             'Args for validation rule[' . $rule . '] must be non-empty array.'
@@ -325,6 +344,9 @@ class ValidateByRules
                                 ]
                             );
                             if (!$this->errUnconditionally) {
+                                if ($this->recordFailure) {
+                                    $this->record[] = $keyPath . ': ' . $rule . ' - duplicate rule';
+                                }
                                 return false;
                             }
                         }
@@ -345,6 +367,9 @@ class ValidateByRules
                                 ]
                             );
                             if (!$this->errUnconditionally) {
+                                if ($this->recordFailure) {
+                                    $this->record[] = $keyPath . ': ' . $rule . ' - nonexistent rule';
+                                }
                                 return false;
                             }
                         }
@@ -357,23 +382,39 @@ class ValidateByRules
 
         // Roll it.
         $failed = false;
+        $record = [];
         foreach ($rules_found as $rule => $args) {
             // We expect more boolean trues than arrays (few Validate methods take secondary args).
             if (!$args || $args === true || !is_array($args)) {
                 if (!$this->ruleProvider->{$rule}($var)) {
                     $failed = true;
+                    if ($this->recordFailure) {
+                        $record[] = $rule;
+                    }
                     break;
                 }
             } elseif (!$this->ruleProvider->{$rule}($var, ...$args)) {
                 $failed = true;
+                if ($this->recordFailure) {
+                    $record[] = $rule;
+                }
                 break;
             }
         }
 
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
-            if ($alternativeEnum && $this->ruleProvider->enum($var, $alternativeEnum)) {
-                return true;
+            if ($alternativeEnum) {
+                if ($this->ruleProvider->enum($var, $alternativeEnum)) {
+                    return true;
+                }
+                if ($this->recordFailure) {
+                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum';
+                }
+                return false;
+            }
+            if ($this->recordFailure) {
+                $this->record[] = $keyPath . ': ' . join(', ', $record);
             }
             return false;
         }
@@ -389,6 +430,9 @@ class ValidateByRules
         if (!$collection_type) {
             // A-OK: one should - for convenience - be allowed to use the '_elements_' rule,
             // without explicitly declaring/using a collection type checker.
+            if ($this->recordFailure) {
+                $this->record[] = $keyPath . ': _elements_ - ' . gettype($var) . ' is not a collection';
+            }
             return false;
         }
 
@@ -398,11 +442,19 @@ class ValidateByRules
                 if (!array_key_exists($key, $var)) {
                     // An element is required, unless explicitly 'optional'.
                     if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                        if ($this->recordFailure) {
+                            // We don't stop on failure when recording.
+                            continue;
+                        }
                         return false;
                     }
                 } else {
                     // Recursion.
                     if (!$this->internalChallenge($depth + 1, $keyPath . '[' . $key . ']', $var[$key], $subRuleSet)) {
+                        if ($this->recordFailure) {
+                            // We don't stop on failure when recording.
+                            continue;
+                        }
                         return false;
                     }
                 }
@@ -413,11 +465,19 @@ class ValidateByRules
                 if (!property_exists($var, $key)) {
                     // An element is required, unless explicitly 'optional'.
                     if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                        if ($this->recordFailure) {
+                            // We don't stop on failure when recording.
+                            continue;
+                        }
                         return false;
                     }
                 } else {
                     // Recursion.
                     if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $subRuleSet)) {
+                        if ($this->recordFailure) {
+                            // We don't stop on failure when recording.
+                            continue;
+                        }
                         return false;
                     }
                 }
@@ -425,5 +485,12 @@ class ValidateByRules
         }
 
         return true;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRecord() {
+        return $this->record;
     }
 }

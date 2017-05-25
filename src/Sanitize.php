@@ -107,7 +107,7 @@ class Sanitize
         if (!$s && $s === null) {
             $msg = 'var made native regex function fail.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'var' => $var,
@@ -160,7 +160,7 @@ class Sanitize
         if (!$s && $s === null) {
             $msg = 'var made native regex function fail.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'var' => $var,
@@ -212,7 +212,7 @@ class Sanitize
         if (!$s && $s === null) {
             $msg = 'var made native regex function fail.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'var' => $var,
@@ -246,7 +246,7 @@ class Sanitize
         if (!is_numeric($v)) {
             $msg = 'var is not integer/float nor number-like when stringified.';
             if ($this->logger) {
-                $this->logger->error(get_called_class() . '->' . __FUNCTION__ . '() arg ' . $msg, [
+                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
                     'variable' => [
                         'var' => $var,

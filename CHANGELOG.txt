@@ -3,6 +3,7 @@ SimpleComplex/Filter 1.x, 2017-05-25
 - Use ValidateByRules via Validate::challengeRules()
 - Option errUnconditionally.
 - Exceptions moved to sub namespace \Exception.
+- ValidateByRules recording.
 
 SimpleComplex/Filter 1.x, 2017-05-24
 ------------------------------------

@@ -1,0 +1,83 @@
+<?php
+
+require 'vendor/autoload.php';
+
+
+use \SimpleComplex\Filter\Validate;
+
+
+/** */
+class Bicycle
+{
+    public $wheels = 0;
+    public $saddle;
+    public $sound = '';
+    public $accessories = [];
+    public function __construct($wheels, $saddle, $sound, $accessories)
+    {
+        $this->wheels = $wheels;
+        $this->saddle = $saddle;
+        $this->sound = $sound;
+        $this->accessories = $accessories;
+    }
+}
+
+$rules = [
+    'class' => [
+        'Bicycle'
+    ],
+    '_elements_' => [
+        'wheels' => [
+            'integer',
+            'range' => [
+                1,
+                3
+            ]
+        ],
+        'saddle' => [
+            'integer',
+            'alternativeEnum' => [
+                true,
+            ]
+        ],
+        'sound' => [
+            'string' => true,
+            'enum' => [
+                [
+                    'silent',
+                    'swooshy',
+                    'clattering',
+                ]
+            ]
+        ],
+        'accessories' => [
+            'array',
+            '_elements_' => [
+                'luggageCarrier' => [
+                    'boolean',
+                    'optional'
+                ]
+            ]
+        ],
+    ]
+];
+
+$bike = new Bicycle(
+    2,
+    true,
+    'swooshy',
+    [
+        'luggageCarrier' => false,
+    ]
+);
+
+$validate = Validate::make();
+echo 'Valid: ' . ((int) $validate->challengeRules($bike, $rules)) . "\n";
+
+$recording = $validate->challengeRulesRecording($bike, $rules);
+if (empty($recording['passed'])) {
+    echo "Failed:\n" . join("\n", $recording['record']) . "\n";
+}
+else {
+    echo "Passed.\n";
+}
