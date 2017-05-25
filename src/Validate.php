@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
+use SimpleComplex\Filter\Exception\InvalidArgumentException;
 
 /**
  * Some string methods return true on empty
@@ -121,6 +122,7 @@ class Validate implements ValidationRuleProviderInterface
     /**
      * When provided with a logger, rule methods will fail gracefully
      * when given wrong argument(s) - otherwise they throw exception.
+     * Except if truthy option errUnconditionally.
      *
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
