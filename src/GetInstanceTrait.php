@@ -88,7 +88,8 @@ trait GetInstanceTrait
      *  Kill reference to last instantiated object.
      * @return void
      */
-    public static function flushInstance($name = '', $last = false) {
+    public static function flushInstance($name = '', $last = false)
+    {
         if ($name) {
             unset(static::$instances[$name]);
         }

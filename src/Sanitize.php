@@ -15,7 +15,8 @@ use Psr\Log\LoggerInterface;
  *
  * @package SimpleComplex\Filter
  */
-class Sanitize {
+class Sanitize
+{
     /**
      * @see GetInstanceTrait
      *
@@ -60,7 +61,8 @@ class Sanitize {
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
      */
-    public function __construct($logger = null) {
+    public function __construct($logger = null)
+    {
         $this->logger = $logger;
     }
 
@@ -70,7 +72,8 @@ class Sanitize {
      *
      * @return static
      */
-    public static function make($logger = null) {
+    public static function make($logger = null)
+    {
         // Make IDE recognize child class.
         /** @var Sanitize */
         return new static($logger);
@@ -84,7 +87,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function plainText($var) : string {
+    public function plainText($var) : string
+    {
         return htmlspecialchars(strip_tags('' . $var), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
@@ -99,7 +103,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function ascii($var) : string {
+    public function ascii($var) : string
+    {
         $s = preg_replace('/[^[:ascii:]]/', '', '' . $var);
         if (!$s && $s === null) {
             $msg = 'var made native regex function fail.';
@@ -124,7 +129,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function asciiPrintable($var) : string {
+    public function asciiPrintable($var) : string
+    {
         return str_replace(
             chr(127),
             '',
@@ -144,7 +150,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function asciiMultiLine($var, $noCarriageReturn = false) : string {
+    public function asciiMultiLine($var, $noCarriageReturn = false) : string
+    {
         // Remove lower ASCII except newline \x0A and CR \x0D,
         // and remove DEL and upper range.
         $s = preg_replace(
@@ -175,7 +182,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function unicodePrintable($var) : string {
+    public function unicodePrintable($var) : string
+    {
         return str_replace(
             chr(127),
             '',
@@ -195,7 +203,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function unicodeMultiline($var, $noCarriageReturn = false) : string {
+    public function unicodeMultiline($var, $noCarriageReturn = false) : string
+    {
         // Remove lower ASCII except newline \x0A and CR \x0D, and remove DEL.
         $s = preg_replace(
             !$noCarriageReturn ? '/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/' : '/[\x00-\x09\x0B-\x1F\x7F]/',
@@ -229,7 +238,8 @@ class Sanitize {
      *
      * @return string
      */
-    public function numberToString($var) : string {
+    public function numberToString($var) : string
+    {
         static $precision;
         if (!$precision) {
             $precision = pow(10, (int)ini_get('precision'));

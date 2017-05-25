@@ -15,7 +15,8 @@ use Psr\Log\LoggerInterface;
  *
  * @package SimpleComplex\Filter
  */
-class Unicode {
+class Unicode
+{
     /**
      * @see GetInstanceTrait
      *
@@ -60,7 +61,8 @@ class Unicode {
      *
      * Unicode constructor.
      */
-    public function __construct($logger = null) {
+    public function __construct($logger = null)
+    {
         $this->logger = $logger;
     }
 
@@ -70,7 +72,8 @@ class Unicode {
      *
      * @return static
      */
-    public static function make($logger = null) {
+    public static function make($logger = null)
+    {
         // Make IDE recognize child class.
         /** @var Unicode */
         return new static($logger);
@@ -85,7 +88,8 @@ class Unicode {
      * @return int
      *  0|1.
      */
-    public static function nativeSupport() : int {
+    public static function nativeSupport() : int
+    {
         $support = static::$mbString;
         if ($support == -1) {
             static::$mbString = $support = (int) function_exists('mb_strlen');
@@ -101,7 +105,8 @@ class Unicode {
      *
      * @return int
      */
-    public function strlen($var) : integer {
+    public function strlen($var) : integer
+    {
         $v = '' . $var;
         if ($v === '') {
             return 0;
@@ -151,7 +156,8 @@ class Unicode {
      *
      * @return string
      */
-    public function substr($var, $start, $length = null) : string {
+    public function substr($var, $start, $length = null) : string
+    {
         if (!is_int($start) || $start < 0) {
             $msg = 'start is not non-negative integer.';
             if ($this->logger) {
@@ -246,7 +252,8 @@ class Unicode {
      *
      * @return string
      */
-    public function truncateBytes($var, $length) {
+    public function truncateBytes($var, $length)
+    {
         if (!is_int($length) || $length < 0) {
             $msg = 'length is not non-negative integer or null.';
             if ($this->logger) {
@@ -314,7 +321,8 @@ class Unicode {
      * @return bool|int
      *  False: if needle not found, or if either arg evaluates to empty string.
      */
-    public function strpos($haystack, $needle) {
+    public function strpos($haystack, $needle)
+    {
         $hstck = '' . $haystack;
         $ndl = '' . $needle;
         if ($hstck === '' || $ndl === '') {

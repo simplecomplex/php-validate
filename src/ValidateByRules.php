@@ -68,7 +68,8 @@ namespace SimpleComplex\Filter;
  *
  * @package SimpleComplex\Filter
  */
-class ValidateByRules {
+class ValidateByRules
+{
     /**
      * @see GetInstanceTrait
      *
@@ -196,7 +197,8 @@ class ValidateByRules {
      *
      * @return bool
      */
-    public function challenge($var, array $rules) {
+    public function challenge($var, array $rules)
+    {
         // Init, really.
         // List rule methods made available by the rule provider.
         if (!$this->ruleMethods) {
@@ -231,7 +233,7 @@ class ValidateByRules {
      * @var int
      */
     const RECURSION_LIMIT = 10;
-    
+
     /**
      * Internal method to accommodate an inaccessible depth argument, to control/limit recursion.
      *
@@ -244,7 +246,8 @@ class ValidateByRules {
      *
      * @return bool
      */
-    protected function internalChallenge($depth, $keyPath, $var, $ruleSet) {
+    protected function internalChallenge($depth, $keyPath, $var, $ruleSet)
+    {
         if ($depth >= static::RECURSION_LIMIT) {
             $logger = $this->ruleProvider->getLogger();
             if ($logger) {
