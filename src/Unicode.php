@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
+use SimpleComplex\Filter\Exception\InvalidArgumentException;
 
 /**
  * Class Unicode

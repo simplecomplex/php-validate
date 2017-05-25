@@ -20,7 +20,7 @@
     "autoload": {
         "psr-4": {
             "SimpleComplex\\Filter\\": "src/",
-            "SimpleComplex\\Filter\\Exception\\": "src/exception/"
+            "SimpleComplex\\Filter\\Exception\\": "src/Exception/"
         }
     }
 }

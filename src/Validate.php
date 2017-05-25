@@ -10,6 +10,7 @@ namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
 use SimpleComplex\Filter\Exception\InvalidArgumentException;
+use SimpleComplex\Filter\Exception\BadMethodCallException;
 
 /**
  * Some string methods return true on empty
@@ -39,7 +40,7 @@ use SimpleComplex\Filter\Exception\InvalidArgumentException;
  * -------------------------------
  * Rule methods that take more arguments than the $var to validate:
  * - must check those arguments for type (and emptyness, if required)
- * - must log meaningful error message (if logger) and return false, or throw exception
+ * - must log meaningful error message (if logger) and return false, or throw an exception
  * Reasons:
  * - parameter type declarations don't support someType|otherType&not-empty
  * - it should be possible to fail gracefully; a non-passed validation should stop the party
@@ -112,7 +113,7 @@ class Validate implements ValidationRuleProviderInterface
     protected $nonRuleMethods = [];
 
     /**
-     * Do always throw exception on logical/runtime error, even when logger
+     * Do always throw an exception on logical/runtime error, even when logger
      * available (default not).
      *
      * @var bool
@@ -121,7 +122,7 @@ class Validate implements ValidationRuleProviderInterface
 
     /**
      * When provided with a logger, rule methods will fail gracefully
-     * when given wrong argument(s) - otherwise they throw exception.
+     * when given wrong argument(s) - otherwise they throw an exception.
      * Except if truthy option errUnconditionally.
      *
      * @param LoggerInterface|null
@@ -202,7 +203,7 @@ class Validate implements ValidationRuleProviderInterface
     public function __call($name, $arguments)
     {
         if ($this->logger) {
-            // Log warning instaed of error, because we also throw an exception.
+            // Log warning instaed of error, because we also throw an Exception.
             $this->logger->warning(
                 'Class ' . get_called_class() . ', and parents, provide no rule method \'{rule_method}\'.',
                 [

@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleComplex\Filter;
+namespace SimpleComplex\Filter\Exception;
 
 /**
  * To differentiate exceptions thrown in-package from exceptions thrown out-package.

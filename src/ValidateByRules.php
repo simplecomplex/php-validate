@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Filter;
 
+use SimpleComplex\Filter\Exception\InvalidArgumentException;
+use SimpleComplex\Filter\Exception\OutOfRangeException;
+
 
 // @todo: provide a means for recording validation failure, perhaps a 'recorder' which looks like a logger but doesn't log.
 
@@ -128,7 +131,7 @@ class ValidateByRules
     protected $ruleMethods = [];
 
     /**
-     * Do always throw exception on logical/runtime error, even when logger
+     * Do always throw Exception on logical/runtime error, even when logger
      * available (default not).
      *
      * @var bool
@@ -212,8 +215,8 @@ class ValidateByRules
             return $this->internalChallenge(0, '', $var, $rules);
         }
         catch (\Throwable $xc) {
-            // Out-library exception: log before propagating.
-            if (strpos($xc, __NAMESPACE__) !== 0) {
+            // Out-library Exception: log before propagating.
+            if (strpos($xc, __NAMESPACE__ . '\\Exception') !== 0) {
                 if ($this->ruleProvider->getLogger()) {
                     // @todo
                 }
@@ -238,6 +241,9 @@ class ValidateByRules
      * Internal method to accommodate an inaccessible depth argument, to control/limit recursion.
      *
      * @recursive
+     *
+     * @throws InvalidArgumentException
+     * @throws OutOfRangeException
      *
      * @param int $depth
      * @param string $keyPath
@@ -303,7 +309,9 @@ class ValidateByRules
                             // Important.
                             return false;
                         }
-                        throw new \LogicException('Args for validation rule[' . $rule . '] must be non-empty array.');
+                        throw new \InvalidArgumentException(
+                            'Args for validation rule[' . $rule . '] must be non-empty array.'
+                        );
                     }
                     // Good, save for later.
                     if ($rule == 'alternativeEnum') {
@@ -346,7 +354,7 @@ class ValidateByRules
                                 return false;
                             }
                         }
-                        throw new \LogicException('Duplicate validation rule[' . $rule . '].');
+                        throw new \InvalidArgumentException('Duplicate validation rule[' . $rule . '].');
                     }
                     // Check rule method existance.
                     if (!in_array($rule, $this->$this->ruleMethods)) {
@@ -366,7 +374,7 @@ class ValidateByRules
                                 return false;
                             }
                         }
-                        throw new \LogicException('Non-existent validation rule[' . $rule . '].');
+                        throw new \InvalidArgumentException('Non-existent validation rule[' . $rule . '].');
                     }
 
                     $rules_found[$rule] = $args;

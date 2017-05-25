@@ -83,7 +83,7 @@ interface ValidationRuleProviderInterface
      *
      * Compares type strict, and allowed values must be scalar or null.
      *
-     * The method must log or throw exception if arg allowedValues isn't a non-empty array.
+     * The method must log or throw Exception if arg allowedValues isn't a non-empty array.
      *
      * @param mixed $var
      * @param array $allowedValues

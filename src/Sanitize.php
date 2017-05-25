@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Filter;
 
 use Psr\Log\LoggerInterface;
+use SimpleComplex\Filter\Exception\InvalidArgumentException;
 
 /**
  * Class Sanitize
@@ -55,9 +56,6 @@ class Sanitize
     protected $logger;
 
     /**
-     * When provided with a logger, sanitize methods will fail gracefully
-     * when given secondary argument(s) - otherwise they throw exception.
-     *
      * @param LoggerInterface|null
      *  PSR-3 logger, if any.
      */
@@ -95,7 +93,7 @@ class Sanitize
     /**
      * Full ASCII; 0-127.
      *
-     * @throws RuntimeException
+     * @throws \RuntimeException
      *  If native regex function fails.
      *
      * @param mixed $var
@@ -116,7 +114,7 @@ class Sanitize
                     ],
                 ]);
             }
-            throw new RuntimeException('Arg ' . $msg);
+            throw new \RuntimeException('Arg ' . $msg);
         }
         return $s;
     }
@@ -141,7 +139,7 @@ class Sanitize
     /**
      * ASCII printable that allows newline and (default) carriage return.
      *
-     * @throws RuntimeException
+     * @throws \RuntimeException
      *  If native regex function fails.
      *
      * @param mixed $var
@@ -169,7 +167,7 @@ class Sanitize
                     ],
                 ]);
             }
-            throw new RuntimeException('Arg ' . $msg);
+            throw new \RuntimeException('Arg ' . $msg);
         }
         return $s;
     }
@@ -194,7 +192,7 @@ class Sanitize
     /**
      * Unicode printable that allows newline and (default) carriage return.
      *
-     * @throws RuntimeException
+     * @throws \RuntimeException
      *  If native regex function fails.
      *
      * @param mixed $var
@@ -221,7 +219,7 @@ class Sanitize
                     ],
                 ]);
             }
-            throw new RuntimeException('Arg ' . $msg);
+            throw new \RuntimeException('Arg ' . $msg);
         }
         return $s;
     }
