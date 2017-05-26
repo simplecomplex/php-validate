@@ -5,10 +5,10 @@ declare(strict_types=1);
  * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
-namespace SimpleComplex\Filter;
+namespace SimpleComplex\Validate;
 
-use SimpleComplex\Filter\Exception\InvalidArgumentException;
-use SimpleComplex\Filter\Exception\OutOfRangeException;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
+use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
  * Example
@@ -41,7 +41,7 @@ use SimpleComplex\Filter\Exception\OutOfRangeException;
  * And this class cannot 'see'/call protected methods of the Validate class.
  *
  *
- * @package SimpleComplex\Filter
+ * @package SimpleComplex\Validate
  */
 class ValidateByRules
 {
@@ -103,7 +103,7 @@ class ValidateByRules
     /**
      * The (most of the) methods of the Validate instance will be the rules available.
      *
-     * @var ValidationRuleProviderInterface
+     * @var RuleProviderInterface
      */
     protected $ruleProvider;
 
@@ -147,14 +147,14 @@ class ValidateByRules
      *
      * @see Validate::challengeRules()
      *
-     * @param ValidationRuleProviderInterface $ruleProvider
+     * @param RuleProviderInterface $ruleProvider
      *  The (most of the) methods of the Validate instance will be the rules available.
      * @param array $options
      *  (bool) errUnconditionally; default false.
      *  (bool) recordFailure; default false.
      */
     public function __construct(
-        ValidationRuleProviderInterface $ruleProvider,
+        RuleProviderInterface $ruleProvider,
         array $options = array(
             'errUnconditionally' => false,
             'recordFailure' => false,
@@ -212,7 +212,12 @@ class ValidateByRules
         }
         catch (\Throwable $xc) {
             // Out-library exception: log before propagating.
-            if (strpos(get_class($xc), __NAMESPACE__ . '\\Exception') !== 0) {
+            $cls = get_class($xc);
+            if (
+                strpos($cls, __NAMESPACE__ . '\\Exception') !== 0
+                // Filter also logs it's own exceptions.
+                && strpos($cls, '\\SimpleComplex\\Filter\\Exception') !== 0
+            ) {
                 $logger = $this->ruleProvider->getLogger();
                 if ($logger) {
                     $logger->warning('Validation by rule list failed due to an external error.', [

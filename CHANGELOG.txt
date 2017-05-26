@@ -1,23 +1,21 @@
-SimpleComplex/Filter 1.x, 2017-05-25
-------------------------------------
+SimpleComplex/Validate 1.x, 2017-05-26
+--------------------------------------
+- Package separated from SimpleComplex/Filter.
+
+SimpleComplex/Validate 1.x, 2017-05-25
+--------------------------------------
 - Use ValidateByRules via Validate::challengeRules()
 - Option errUnconditionally.
 - Exceptions moved to sub namespace \Exception.
 - ValidateByRules recording.
 
-SimpleComplex/Filter 1.x, 2017-05-24
-------------------------------------
-- Unicode and Sanitize methods now (optionally) log and err on bad args.
-- Unicode now (also) coerces subject arg to string.
-- New sanitizer numberToString().
-
-SimpleComplex/Filter 1.x, 2017-05-23
-------------------------------------
-- Parameter/return type declarations (Validate only, so far).
+SimpleComplex/Validate 1.x, 2017-05-23
+--------------------------------------
+- Parameter/return type declarations.
 - numeric() now returns 'integer'/'float' on pass.
 - ValidateByRules new 'alternativeEnum' pseudo-rule replaces similar which only
   worked when the var was empty().
 
-SimpleComplex/Filter 1.x, 2017-05-22
-------------------------------------
+SimpleComplex/Validate 1.x, 2017-05-22
+--------------------------------------
 - Initial design complete, however not tested.

@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleComplex\Filter\Exception;
+namespace SimpleComplex\Validate\Exception;
 
 /**
  * To differentiate exceptions thrown in-package from exceptions thrown out-package.
  *
  * Please do not use - throw - in code of another package/library.
  *
- * @package SimpleComplex\Filter
+ * @package SimpleComplex\Validate
  */
 class BadMethodCallException extends \BadMethodCallException
 {

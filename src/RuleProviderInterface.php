@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
-namespace SimpleComplex\Filter;
+namespace SimpleComplex\Validate;
 
 use Psr\Log\LoggerInterface;
 
@@ -30,9 +30,9 @@ use Psr\Log\LoggerInterface;
  * circular referencing is unhealthy.
  *
  *
- * @package SimpleComplex\Filter
+ * @package SimpleComplex\Validate
  */
-interface ValidationRuleProviderInterface
+interface RuleProviderInterface
 {
     /**
      * Make logger available for a ValidateByRules instance.

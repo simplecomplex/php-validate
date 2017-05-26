@@ -5,11 +5,12 @@ declare(strict_types=1);
  * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
-namespace SimpleComplex\Filter;
+namespace SimpleComplex\Validate;
 
 use Psr\Log\LoggerInterface;
-use SimpleComplex\Filter\Exception\InvalidArgumentException;
-use SimpleComplex\Filter\Exception\BadMethodCallException;
+use SimpleComplex\Filter\Unicode;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
+use SimpleComplex\Validate\Exception\BadMethodCallException;
 
 /**
  * Some string methods return true on empty
@@ -46,9 +47,9 @@ use SimpleComplex\Filter\Exception\BadMethodCallException;
  *   in a well constructed application anyway
  *
  *
- * @package SimpleComplex\Filter
+ * @package SimpleComplex\Validate
  */
-class Validate implements ValidationRuleProviderInterface
+class Validate implements RuleProviderInterface
 {
     /**
      * @see GetInstanceTrait

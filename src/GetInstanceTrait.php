@@ -5,12 +5,12 @@ declare(strict_types=1);
  * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
-namespace SimpleComplex\Filter;
+namespace SimpleComplex\Validate;
 
 /**
  * Provides static class vars and methods for reusing instance(s).
  *
- * @package SimpleComplex\Filter
+ * @package SimpleComplex\Validate
  */
 trait GetInstanceTrait
 {

@@ -1,9 +1,9 @@
 {
-    "name": "simplecomplex/filter",
+    "name": "simplecomplex/validate",
     "type": "library",
-    "description": "Sanitize, validate, work on Unicode (UTF-8) string without caring if the mbstring PHP extension is available.",
-    "keywords": ["filter", "sanitize", "validate", "unicode"],
-    "homepage": "https://github.com/simplecomplex/filter",
+    "description": "Validate shallowly and recursively (elements of object/array).",
+    "keywords": ["validate"],
+    "homepage": "https://github.com/simplecomplex/validate",
     "license": "MIT",
     "authors": [
         {
@@ -13,15 +13,13 @@
     ],
     "require": {
         "php": ">=7.0",
-        "psr/log": "^1.0"
-    },
-    "suggest": {
-        "ext-mbstring": "Lightweight UTF-8 support."
+        "psr/log": "^1.0",
+        "simplecomplex/filter": "dev-develop"
     },
     "autoload": {
         "psr-4": {
-            "SimpleComplex\\Filter\\": "src/",
-            "SimpleComplex\\Filter\\Exception\\": "src/Exception/"
+            "SimpleComplex\\Validate\\": "src/",
+            "SimpleComplex\\Validate\\Exception\\": "src/Exception/"
         }
     }
 }
