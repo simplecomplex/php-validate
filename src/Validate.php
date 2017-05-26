@@ -133,7 +133,7 @@ class Validate implements RuleProviderInterface
      *
      * @param array $softDependencies {
      *      @var LoggerInterface|null $logger
-     *      @var Unicode|null $unicode
+     *      @var Unicode|null $unicode Effective default: SimpleComplex\Filter\Unicode.
      * }
      * @param array $options {
      *      @var bool errUnconditionally Default: false.
@@ -163,16 +163,25 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * @param LoggerInterface|null
-     *      PSR-3 logger, if any.
+     * @param array $softDependencies {
+     *      @var LoggerInterface|null $logger
+     *      @var Unicode|null $unicode Effective default: SimpleComplex\Filter\Unicode.
+     * }
+     * @param array $options {
+     *      @var bool errUnconditionally Default: false.
+     * }
      *
      * @return static
      */
-    public static function make($logger = null)
-    {
+    public static function make(
+        array $softDependencies = ['logger' => null, 'unicode' => null],
+        array $options = [
+            'errUnconditionally' => false,
+        ]
+    ) {
         // Make IDE recognize child class.
         /** @var Validate */
-        return new static($logger);
+        return new static($softDependencies, $options);
     }
 
     /**
