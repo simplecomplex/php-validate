@@ -148,10 +148,11 @@ class ValidateByRules
      * @see Validate::challengeRules()
      *
      * @param RuleProviderInterface $ruleProvider
-     *  The (most of the) methods of the Validate instance will be the rules available.
-     * @param array $options
-     *  (bool) errUnconditionally; default false.
-     *  (bool) recordFailure; default false.
+     *      The (most of the) methods of the Validate instance will be the rules available.
+     * @param array $options {
+     *      @var bool errUnconditionally Default: false.
+     *      @var bool recordFailure Default: false.
+     * }
      */
     public function __construct(
         RuleProviderInterface $ruleProvider,
@@ -181,18 +182,18 @@ class ValidateByRules
      * @endcode
      *
      * @throws \Throwable
-     *  Propagated.
+     *      Propagated.
      *
      * @uses get_class_methods()
      * @uses Validate::getNonRuleMethods()
      *
      * @param mixed $var
      * @param array $rules
-     *  A list of rules; either 'rule':[specs] or N:'rule'.
-     *  [
-     *    'integer'
-     *    'range': [ 0, 2 ]
-     *  ]
+     *      A list of rules; either 'rule':[specs] or N:'rule'.
+     *      [
+     *          'integer'
+     *          'range': [ 0, 2 ]
+     *      ]
      *
      * @return bool
      */

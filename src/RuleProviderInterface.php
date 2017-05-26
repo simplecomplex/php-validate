@@ -84,11 +84,11 @@ interface RuleProviderInterface
      *
      * @param mixed $var
      * @param array $allowedValues
-     *  [
-     *    0: some scalar
-     *    1: null
-     *    3: other scalar
-     *  ]
+     *      [
+     *          0: some scalar
+     *          1: null
+     *          3: other scalar
+     *      ]
      *
      * @return bool
      */
@@ -104,7 +104,7 @@ interface RuleProviderInterface
      * @param mixed $var
      *
      * @return string|bool
-     *  String (array|object) on pass, boolean false on failure.
+     *      String (array|object) on pass, boolean false on failure.
      */
     public function collection($var);
 }

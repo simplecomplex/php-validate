@@ -1,6 +1,7 @@
 SimpleComplex/Validate 1.x, 2017-05-26
 --------------------------------------
 - Package separated from SimpleComplex/Filter.
+- Constructor use soft dependencies.
 
 SimpleComplex/Validate 1.x, 2017-05-25
 --------------------------------------

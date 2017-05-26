@@ -109,6 +109,11 @@ class Validate implements RuleProviderInterface
     protected $logger;
 
     /**
+     * @var Unicode
+     */
+    protected $unicode;
+
+    /**
      * @var array
      */
     protected $nonRuleMethods = [];
@@ -122,22 +127,26 @@ class Validate implements RuleProviderInterface
     protected $errUnconditionally;
 
     /**
-     * When provided with a logger, rule methods will fail gracefully
-     * when given wrong argument(s) - otherwise they throw exception.
-     * Except if truthy option errUnconditionally.
+     * When provided with a logger, rule methods will fail gracefully when
+     * given wrong argument(s) - otherwise they throw exception. Except if
+     * truthy option errUnconditionally.
      *
-     * @param LoggerInterface|null
-     *  PSR-3 logger, if any.
-     * @param array $options
-     *  (bool) errUnconditionally; default false.
+     * @param array $softDependencies {
+     *      @var LoggerInterface|null $logger
+     *      @var Unicode|null $unicode
+     * }
+     * @param array $options {
+     *      @var bool errUnconditionally Default: false.
+     * }
      */
     public function __construct(
-        $logger = null,
-        array $options = array(
+        array $softDependencies = ['logger' => null, 'unicode' => null],
+        array $options = [
             'errUnconditionally' => false,
-        )
+        ]
     ) {
-        $this->logger = $logger;
+        $this->logger = $softDependencies['logger'] ?? null;
+        $this->unicode = $softDependencies['unicode'] ?? Unicode::getInstance();
 
         $this->nonRuleMethods = self::NON_RULE_METHODS;
         /* // Extending class must merge non-rule-methods class constants.
@@ -155,7 +164,7 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param LoggerInterface|null
-     *  PSR-3 logger, if any.
+     *      PSR-3 logger, if any.
      *
      * @return static
      */
@@ -335,11 +344,10 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      * @param array $rules
      *
-     * @return array
-     *  [
-     *    'passed': boolean,
-     *    'record': array
-     *  ]
+     * @return array {
+     *      @var bool passed
+     *      @var array record
+     * }
      */
     public function challengeRulesRecording($var, array $rules)
     {
@@ -397,15 +405,15 @@ class Validate implements RuleProviderInterface
      * Compares type strict, and allowed values must be scalar or null.
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
      * @param array $allowedValues
-     *  [
-     *    0: some scalar
-     *    1: null
-     *    3: other scalar
-     *  ]
+     *      [
+     *          0: some scalar
+     *          1: null
+     *          3: other scalar
+     *      ]
      *
      * @return bool
      */
@@ -455,12 +463,12 @@ class Validate implements RuleProviderInterface
 
     /**
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param string $pattern
-     *  /regular expression/
+     *      /regular expression/
      *
      * @return bool
      */
@@ -514,7 +522,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return string|bool
-     *  String (integer|float) on pass, boolean false on failure.
+     *      String (integer|float) on pass, boolean false on failure.
      */
     public function number($var)
     {
@@ -608,7 +616,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return string|bool
-     *  String (array|object) on pass, boolean false on failure.
+     *      String (array|object) on pass, boolean false on failure.
      */
     public function collection($var)
     {
@@ -624,7 +632,7 @@ class Validate implements RuleProviderInterface
      * @param $var
      *
      * @return string|bool
-     *  String (array|object) on pass, boolean false on failure.
+     *      String (array|object) on pass, boolean false on failure.
      */
     public function hashTable($var)
     {
@@ -696,7 +704,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return bool
-     *  True: empty array, or all keys are integers.
+     *      True: empty array, or all keys are integers.
      */
     public function numArray($var) : bool
     {
@@ -715,7 +723,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return bool
-     *  True: empty array, or at least one key is not integer.
+     *      True: empty array, or at least one key is not integer.
      */
     public function assocArray($var) : bool
     {
@@ -761,10 +769,10 @@ class Validate implements RuleProviderInterface
      * @see Validate::range()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return string|bool
-     *  String (integer|float) on pass, boolean false on failure.
+     *      String (integer|float) on pass, boolean false on failure.
      */
     public function numeric($var)
     {
@@ -802,7 +810,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::range()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -831,7 +839,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -947,11 +955,11 @@ class Validate implements RuleProviderInterface
      * @see Validate::digit()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
      * @param int|float $min
-     *  Stringed number is not accepted.
+     *      Stringed number is not accepted.
      *
      * @return bool
      */
@@ -989,11 +997,11 @@ class Validate implements RuleProviderInterface
      * @see Validate::digit()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
      * @param int|float $max
-     *  Stringed number is not accepted.
+     *      Stringed number is not accepted.
      *
      * @return bool
      */
@@ -1031,13 +1039,13 @@ class Validate implements RuleProviderInterface
      * @see Validate::digit()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
      * @param int|float $min
-     *  Stringed number is not accepted.
+     *      Stringed number is not accepted.
      * @param int|float $max
-     *  Stringed number is not accepted.
+     *      Stringed number is not accepted.
      *
      * @return bool
      */
@@ -1106,7 +1114,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1173,19 +1181,19 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * String minimum multibyte/Unicode length.
+     * String minimum multibyte/unicode length.
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
      * @see Validate::unicode()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $min
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1211,23 +1219,23 @@ class Validate implements RuleProviderInterface
         if ($v === '') {
             return $min == 0;
         }
-        return Unicode::getInstance()->strlen($v) >= $min;
+        return $this->unicode->strlen($v) >= $min;
     }
 
     /**
-     * String maximum multibyte/Unicode length.
+     * String maximum multibyte/unicode length.
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
      * @see Validate::unicode()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $max
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1254,23 +1262,23 @@ class Validate implements RuleProviderInterface
             // Unlikely, but correct.
             return $max == 0;
         }
-        return Unicode::getInstance()->strlen($v) <= $max;
+        return $this->unicode->strlen($v) <= $max;
     }
 
     /**
-     * String exact multibyte/Unicode length.
+     * String exact multibyte/unicode length.
      *
      * NB: Does not check if valid UTF-8; use 'unicode' rule before this.
      *
      * @see Validate::unicode()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $exact
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1296,7 +1304,7 @@ class Validate implements RuleProviderInterface
         if ($v === '') {
             return $exact == 0;
         }
-        return Unicode::getInstance()->strlen($v) == $exact;
+        return $this->unicode->strlen($v) == $exact;
     }
 
 
@@ -1313,7 +1321,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1334,7 +1342,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1359,7 +1367,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param boolean $noCarriageReturn
      *
      * @return bool
@@ -1386,7 +1394,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::ascii()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1408,7 +1416,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::ascii()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1426,12 +1434,12 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $min
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1462,12 +1470,12 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $max
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1498,12 +1506,12 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @throws InvalidArgumentException
-     *  Unless logger.
+     *      Unless logger + falsy option errUnconditionally.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      * @param int $exact
-     *  Stringed integer is not accepted.
+     *      Stringed integer is not accepted.
      *
      * @return bool
      */
@@ -1540,7 +1548,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1560,7 +1568,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1578,7 +1586,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1594,7 +1602,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1615,7 +1623,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1639,7 +1647,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1664,7 +1672,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1683,7 +1691,7 @@ class Validate implements RuleProviderInterface
      * NB: Returns true on empty ('') string.
      *
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1695,7 +1703,7 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1707,7 +1715,7 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1719,7 +1727,7 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */
@@ -1734,7 +1742,7 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $var
-     *  Checked stringified.
+     *      Checked stringified.
      *
      * @return bool
      */

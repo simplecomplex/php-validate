@@ -83,9 +83,9 @@ trait GetInstanceTrait
      * Kill class reference(s) to instance(s).
      *
      * @param string $name
-     *  Unrefer instance by that name, if exists.
+     *      Unrefer instance by that name, if exists.
      * @param bool $last
-     *  Kill reference to last instantiated object.
+     *      Kill reference to last instantiated object.
      * @return void
      */
     public static function flushInstance($name = '', $last = false)
