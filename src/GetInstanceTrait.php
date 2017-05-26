@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+/*
+ * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
+ */
+
 namespace SimpleComplex\Filter;
 
 /**

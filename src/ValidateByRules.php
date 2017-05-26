@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 /*
- * Forwards compatility really; everybody will to this once.
- * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
 namespace SimpleComplex\Filter;
@@ -30,8 +29,8 @@ use SimpleComplex\Filter\Exception\OutOfRangeException;
  * - are ignored. They will be accessed/used via reset(), next()...
  *
  *
- * Design considerations
- * ---------------------
+ * Design considerations - proxy class pattern
+ * -------------------------------------------
  * The methods and props of this class could in principle be integrated
  * into the Validate class.
  * But it would obscure the primary purpose of the Validate class:

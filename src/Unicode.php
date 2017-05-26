@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 /*
- * Forwards compatility really; everybody will to this once.
- * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
 namespace SimpleComplex\Filter;
@@ -238,7 +237,7 @@ class Unicode
     }
 
     /**
-     * Truncate multibyte safe until ASCII length is equal to/less than arg
+     * Truncate multibyte safe until ~ASCII length is equal to/less than arg
      * length.
      *
      * Does not check if arg $v is valid UTF-8.
@@ -253,7 +252,7 @@ class Unicode
      *
      * @return string
      */
-    public function truncateBytes($var, $length)
+    public function truncateToByteLength($var, $length)
     {
         if (!is_int($length) || $length < 0) {
             $msg = 'length is not non-negative integer or null.';

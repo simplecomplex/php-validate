@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 /*
- * Forwards compatility really; everybody will to this once.
- * But scalar parameter type declaration is no-go until then; coercion or TypeError(?).
+ * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
  */
 
 namespace SimpleComplex\Filter;
