@@ -131,8 +131,8 @@ class Validate implements RuleProviderInterface
      * given wrong argument(s) - otherwise they throw exception. Except if
      * truthy option errUnconditionally.
      *
-     * @see Unicode::getInstance()
-     * @see Sanitize::setLogger()
+     * @see Validate::getInstance()
+     * @see Validate::setLogger()
      *
      * @param array $softDependencies {
      *      @var LoggerInterface|null $logger
