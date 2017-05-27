@@ -104,6 +104,13 @@ class Validate implements RuleProviderInterface
     ];
 
     /**
+     * Class name of \SimpleComplex\Filter\Unicode or extending class.
+     *
+     * @var string
+     */
+    const CLASS_UNICODE = Unicode::class;
+
+    /**
      * @var LoggerInterface|null
      */
     protected $logger;
@@ -134,22 +141,24 @@ class Validate implements RuleProviderInterface
      * @see Validate::getInstance()
      * @see Validate::setLogger()
      *
-     * @param array $softDependencies {
-     *      @var LoggerInterface|null $logger
-     *      @var Unicode|null $unicode Effective default: SimpleComplex\Filter\Unicode.
-     * }
+     * @param LoggerInterface|null
+     *      PSR-3 logger, if any.
      * @param array $options {
      *      @var bool errUnconditionally Default: false.
      * }
      */
     public function __construct(
-        array $softDependencies = ['logger' => null, 'unicode' => null],
+        $logger = null,
         array $options = [
             'errUnconditionally' => false,
         ]
     ) {
-        $this->logger = $softDependencies['logger'] ?? null;
-        $this->unicode = $softDependencies['unicode'] ?? Unicode::getInstance();
+        $this->logger = $logger;
+
+        $this->unicode = static::CLASS_UNICODE == Unicode::class ? Unicode::getInstance() :
+            forward_static_call(static::CLASS_UNICODE . '::getInstance');
+
+        $this->errUnconditionally = !empty($options['errUnconditionally']);
 
         $this->nonRuleMethods = self::NON_RULE_METHODS;
         /* // Extending class must merge non-rule-methods class constants.
@@ -161,8 +170,6 @@ class Validate implements RuleProviderInterface
          *   );
          * }
          */
-
-        $this->errUnconditionally = !empty($options['errUnconditionally']);
     }
 
     /**
@@ -172,7 +179,6 @@ class Validate implements RuleProviderInterface
      * debuggable provided a logger.
      *
      * @param LoggerInterface $logger
-     *      PSR-3 logger.
      *
      * @return void
      */

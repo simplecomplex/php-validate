@@ -2,6 +2,7 @@ SimpleComplex/Validate 1.x, 2017-05-27
 --------------------------------------
 - Removed make(); folks should use getInstance() instead.
 - Added setLogger() methods, for providing logger after instantiation.
+- Only one exposed (and optional) dependency: logger.
 
 SimpleComplex/Validate 1.x, 2017-05-26
 --------------------------------------
