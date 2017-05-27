@@ -1,3 +1,8 @@
+SimpleComplex/Validate 1.x, 2017-05-27
+--------------------------------------
+- Removed make(); folks should use getInstance() instead.
+- Added setLogger() methods, for providing logger after instantiation.
+
 SimpleComplex/Validate 1.x, 2017-05-26
 --------------------------------------
 - Package separated from SimpleComplex/Filter.

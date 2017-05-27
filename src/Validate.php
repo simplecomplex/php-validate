@@ -131,6 +131,9 @@ class Validate implements RuleProviderInterface
      * given wrong argument(s) - otherwise they throw exception. Except if
      * truthy option errUnconditionally.
      *
+     * @see Unicode::getInstance()
+     * @see Sanitize::setLogger()
+     *
      * @param array $softDependencies {
      *      @var LoggerInterface|null $logger
      *      @var Unicode|null $unicode Effective default: SimpleComplex\Filter\Unicode.
@@ -163,25 +166,19 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * @param array $softDependencies {
-     *      @var LoggerInterface|null $logger
-     *      @var Unicode|null $unicode Effective default: SimpleComplex\Filter\Unicode.
-     * }
-     * @param array $options {
-     *      @var bool errUnconditionally Default: false.
-     * }
+     * Overcome mutual dependency, provide a logger after instantiation.
      *
-     * @return static
+     * This class does not need a logger at all. But errors are slightly more
+     * debuggable provided a logger.
+     *
+     * @param LoggerInterface $logger
+     *      PSR-3 logger.
+     *
+     * @return void
      */
-    public static function make(
-        array $softDependencies = ['logger' => null, 'unicode' => null],
-        array $options = [
-            'errUnconditionally' => false,
-        ]
-    ) {
-        // Make IDE recognize child class.
-        /** @var Validate */
-        return new static($softDependencies, $options);
+    public function setLogger(LoggerInterface $logger) : void
+    {
+        $this->logger = $logger;
     }
 
     /**
