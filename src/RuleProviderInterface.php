@@ -42,7 +42,7 @@ interface RuleProviderInterface
      *
      * @return LoggerInterface|null
      */
-    public function getLogger();
+    public function getLogger() /*: ?LoggerInterface*/;
     // PHP >7.1
     // public function getLogger() : ?LoggerInterface;
 

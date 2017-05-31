@@ -3,7 +3,7 @@
     "type": "library",
     "description": "Validate shallowly and recursively (elements of object/array).",
     "keywords": ["validate"],
-    "homepage": "https://github.com/simplecomplex/validate",
+    "homepage": "https://github.com/simplecomplex/php-validate",
     "license": "MIT",
     "authors": [
         {
@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.0",
         "psr/log": "^1.0",
-        "simplecomplex/filter": "dev-develop"
+        "simplecomplex/utils": "dev-develop"
     },
     "autoload": {
         "psr-4": {

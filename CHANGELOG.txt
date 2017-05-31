@@ -1,3 +1,8 @@
+SimpleComplex/Validate 1.x, 2017-05-31
+--------------------------------------
+- Use parameter type declaration when possible, despite ambiguous effect for
+  method callers (coercion or TypeError).
+
 SimpleComplex/Validate 1.x, 2017-05-27
 --------------------------------------
 - Removed make(); folks should use getInstance() instead.
@@ -6,7 +11,6 @@ SimpleComplex/Validate 1.x, 2017-05-27
 
 SimpleComplex/Validate 1.x, 2017-05-26
 --------------------------------------
-- Package separated from SimpleComplex/Filter.
 - Constructor use soft dependencies.
 
 SimpleComplex/Validate 1.x, 2017-05-25

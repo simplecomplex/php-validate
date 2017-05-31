@@ -1,12 +1,15 @@
 <?php
-
-declare(strict_types=1);
-/*
- * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
+/**
+ * SimpleComplex PHP Validate
+ * @link      https://github.com/simplecomplex/php-validate
+ * @copyright Copyright (c) 2017 Jacob Friis Mathiasen
+ * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
+declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Utils\GetInstanceTrait;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -46,27 +49,17 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 class ValidateByRules
 {
     /**
-     * @see GetInstanceTrait
+     * @see \SimpleComplex\Utils\GetInstanceTrait
      *
-     * List of previously instantiated objects, by name.
+     * Reference to last instantiated instance of this class.
      * @protected
      * @static
-     * @var array $instances
-     *
-     * Reference to last instantiated instance.
-     * @protected
-     * @static
-     * @var static $lastInstance
+     * @var static $instanceByClass
      *
      * Get previously instantiated object or create new.
      * @public
      * @static
-     * @see GetInstanceTrait::getInstance()
-     *
-     * Kill class reference(s) to instance(s).
-     * @public
-     * @static
-     * @see GetInstanceTrait::flushInstance()
+     * @see \SimpleComplex\Utils\GetInstanceTrait::getInstance()
      */
     use GetInstanceTrait;
 
@@ -139,10 +132,8 @@ class ValidateByRules
      *
      * @code
      * $logger = new JsonLog();
-     * $validate = Validate::getInstance('', [$logger]);
-     * $validateByRules = ValidateByRules::getInstance('', [
-     *   $validate
-     * ]);
+     * $validate = Validate::getInstance($logger);
+     * $validateByRules = ValidateByRules::getInstance($validate);
      * @endcode
      *
      * @see Validate::challengeRules()
@@ -216,8 +207,8 @@ class ValidateByRules
             $cls = get_class($xc);
             if (
                 strpos($cls, __NAMESPACE__ . '\\Exception') !== 0
-                // Filter also logs it's own exceptions.
-                && strpos($cls, '\\SimpleComplex\\Filter\\Exception') !== 0
+                // Utils also logs it's own exceptions.
+                && strpos($cls, '\\SimpleComplex\\Utils\\Exception') !== 0
             ) {
                 $logger = $this->ruleProvider->getLogger();
                 if ($logger) {

@@ -1,14 +1,17 @@
 <?php
-
-declare(strict_types=1);
-/*
- * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
+/**
+ * SimpleComplex PHP Validate
+ * @link      https://github.com/simplecomplex/php-validate
+ * @copyright Copyright (c) 2017 Jacob Friis Mathiasen
+ * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
+declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
 use Psr\Log\LoggerInterface;
-use SimpleComplex\Filter\Unicode;
+use SimpleComplex\Utils\GetInstanceTrait;
+use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
@@ -52,28 +55,17 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
 class Validate implements RuleProviderInterface
 {
     /**
-     * @see GetInstanceTrait
+     * @see \SimpleComplex\Utils\GetInstanceTrait
      *
-     * List of previously instantiated objects, by name.
+     * Reference to last instantiated instance of this class.
      * @protected
      * @static
-     * @var array $instances
-     *
-     * Reference to last instantiated instance.
-     * @protected
-     * @static
-     * @var static $lastInstance
+     * @var static $instanceByClass
      *
      * Get previously instantiated object or create new.
      * @public
      * @static
-     * @function getInstance()
-     * @see GetInstanceTrait::getInstance()
-     *
-     * Kill class reference(s) to instance(s).
-     * @public
-     * @static
-     * @see GetInstanceTrait::flushInstance()
+     * @see \SimpleComplex\Utils\GetInstanceTrait::getInstance()
      */
     use GetInstanceTrait;
 
@@ -104,7 +96,7 @@ class Validate implements RuleProviderInterface
     ];
 
     /**
-     * Class name of \SimpleComplex\Filter\Unicode or extending class.
+     * Class name of \SimpleComplex\Utils\Unicode or extending class.
      *
      * @var string
      */
@@ -148,7 +140,7 @@ class Validate implements RuleProviderInterface
      * }
      */
     public function __construct(
-        $logger = null,
+        /*?LoggerInterface*/ $logger = null,
         array $options = [
             'errUnconditionally' => false,
         ]
@@ -182,7 +174,7 @@ class Validate implements RuleProviderInterface
      *
      * @return void
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger) /*: void*/
     {
         $this->logger = $logger;
     }
@@ -192,7 +184,7 @@ class Validate implements RuleProviderInterface
      *
      * @return LoggerInterface|null
      */
-    public function getLogger()
+    public function getLogger() /*: ?LoggerInterface*/
     {
         return $this->logger;
     }
@@ -333,12 +325,12 @@ class Validate implements RuleProviderInterface
     {
         // Extending class do not have to override this method;
         // the class name used as name arg will be the sub class' name.
-        return ValidateByRules::getInstance(get_class($this), [
+        return ValidateByRules::getInstance(
             $this,
             [
                 'errUnconditionally' => $this->errUnconditionally,
             ]
-        ])->challenge($var, $rules);
+        )->challenge($var, $rules);
     }
 
     /**
@@ -1209,9 +1201,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeMinLength($var, $min) : bool
+    public function unicodeMinLength($var, int $min) : bool
     {
-        if (!is_int($min) || $min < 0) {
+        if ($min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
@@ -1251,9 +1243,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeMaxLength($var, $max) : bool
+    public function unicodeMaxLength($var, int $max) : bool
     {
-        if (!is_int($max) || $max < 0) {
+        if ($max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
@@ -1294,9 +1286,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function unicodeExactLength($var, $exact) : bool
+    public function unicodeExactLength($var, int $exact) : bool
     {
-        if (!is_int($exact) || $exact < 0) {
+        if ($exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
@@ -1455,9 +1447,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function minLength($var, $min) : bool
+    public function minLength($var, int $min) : bool
     {
-        if (!is_int($min) || $min < 0) {
+        if ($min < 0) {
             $msg = 'min is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
@@ -1491,9 +1483,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function maxLength($var, $max) : bool
+    public function maxLength($var, int $max) : bool
     {
-        if (!is_int($max) || $max < 0) {
+        if ($max < 0) {
             $msg = 'max is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
@@ -1527,9 +1519,9 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function exactLength($var, $exact) : bool
+    public function exactLength($var, int $exact) : bool
     {
-        if (!is_int($exact) || $exact < 0) {
+        if ($exact < 0) {
             $msg = 'exact is not non-negative integer.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [

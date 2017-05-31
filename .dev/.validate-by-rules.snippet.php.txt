@@ -3,7 +3,7 @@
 require 'vendor/autoload.php';
 
 
-use \SimpleComplex\Filter\Validate;
+use \SimpleComplex\Validate\Validate;
 
 
 /** */
