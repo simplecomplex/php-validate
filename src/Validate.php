@@ -10,12 +10,15 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use Psr\Log\LoggerInterface;
-use SimpleComplex\Utils\GetInstanceTrait;
+use SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait;
 use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
 /**
+ * Validate almost anything.
+ *
+ *
  * Some string methods return true on empty
  * ----------------------------------------
  * Combine with the 'nonEmpty' rule if requiring non-empty.
@@ -24,12 +27,10 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * - ascii, asciiPrintable, asciiMultiLine, asciiLowerCase, asciiUpperCase
  * - plainText
  *
- *
  * Some methods return string on pass
  * ----------------------------------
  * Composite type checkers like:
  * - numeric, collection, hashTable
- *
  *
  * Maximum number of rule method parameters
  * ----------------------------------------
@@ -37,7 +38,6 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * that is: 1 for the var to validate and max. 4 secondary
  * (specifying) parameters.
  * ValidateByRules::challenge() will err when given more than 4 secondary args.
- *
  *
  * Rule methods invalid arg checks
  * -------------------------------
@@ -49,25 +49,21 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * - it should be possible to fail gracefully; a non-passed validation should stop the party
  *   in a well constructed application anyway
  *
+ * Intended as singleton - ::getInstance() - but constructor not protected.
  *
  * @package SimpleComplex\Validate
  */
 class Validate implements RuleProviderInterface
 {
     /**
-     * @see \SimpleComplex\Utils\GetInstanceTrait
+     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait
      *
-     * Reference to last instantiated instance of this class.
-     * @protected
-     * @static
-     * @var static $instanceByClass
-     *
-     * Get previously instantiated object or create new.
+     * First object instantiated via this method, disregarding class called on.
      * @public
      * @static
-     * @see \SimpleComplex\Utils\GetInstanceTrait::getInstance()
+     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait::getInstance()
      */
-    use GetInstanceTrait;
+    use GetInstanceOfFamilyTrait;
 
     /**
      * For logger 'type' context; like syslog RFC 5424 'facility code'.
@@ -94,13 +90,6 @@ class Validate implements RuleProviderInterface
         'challengeRules',
         'challengeRulesRecording',
     ];
-
-    /**
-     * Class name of \SimpleComplex\Utils\Unicode or extending class.
-     *
-     * @var string
-     */
-    const CLASS_UNICODE = Unicode::class;
 
     /**
      * @var LoggerInterface|null
@@ -147,8 +136,7 @@ class Validate implements RuleProviderInterface
     ) {
         $this->logger = $logger;
 
-        $this->unicode = static::CLASS_UNICODE == Unicode::class ? Unicode::getInstance() :
-            forward_static_call(static::CLASS_UNICODE . '::getInstance');
+        $this->unicode = Unicode::getInstance();
 
         $this->errUnconditionally = !empty($options['errUnconditionally']);
 
