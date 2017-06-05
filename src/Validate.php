@@ -24,7 +24,7 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * Combine with the 'nonEmpty' rule if requiring non-empty.
  * They are:
  * - unicode, unicodePrintable, unicodeMultiLine
- * - ascii, asciiPrintable, asciiMultiLine, asciiLowerCase, asciiUpperCase
+ * - ascii, asciiPrintable, asciiMultiLine
  * - plainText
  *
  * Some methods return string on pass
@@ -833,18 +833,26 @@ class Validate implements RuleProviderInterface
     /**
      * Hexadeximal number (string).
      *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
      * @param mixed $var
      *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
      *
      * @return bool
+     *      False on empty.
      */
-    public function hex($var) : bool
+    public function hex($var, string $case = '') : bool
     {
-        // Yes, ctype_... returns fals on ''.
-        return ctype_xdigit('' . $var);
+        switch ($case) {
+            case 'lower':
+                $v = '' . $var;
+                return $v === '' ? false : !!preg_match('/^[a-f\d]+$/', '' . $v);
+            case 'upper':
+                $v = '' . $var;
+                return $v === '' ? false : !!preg_match('/^[A-F\d]+$/', '' . $v);
+        }
+        // Yes, ctype_... returns false on ''.
+        return !!ctype_xdigit('' . $var);
     }
 
 
@@ -1115,6 +1123,7 @@ class Validate implements RuleProviderInterface
      *      Checked stringified.
      *
      * @return bool
+     *      True on empty.
      */
     public function unicode($var) : bool
     {
@@ -1140,6 +1149,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return bool
+     *      True on empty.
      */
     public function unicodePrintable($var) : bool
     {
@@ -1165,6 +1175,7 @@ class Validate implements RuleProviderInterface
      * @param boolean $noCarriageReturn
      *
      * @return bool
+     *      True on empty.
      */
     public function unicodeMultiLine($var, $noCarriageReturn = false) : bool
     {
@@ -1315,13 +1326,11 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
      * @param mixed $var
      *      Checked stringified.
      *
      * @return bool
+     *      True on empty.
      */
     public function ascii($var) : bool
     {
@@ -1336,13 +1345,11 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
      * @param mixed $var
      *      Checked stringified.
      *
      * @return bool
+     *      True on empty.
      */
     public function asciiPrintable($var) : bool
     {
@@ -1361,14 +1368,12 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param boolean $noCarriageReturn
      *
      * @return bool
+     *      True on empty.
      */
     public function asciiMultiLine($var, $noCarriageReturn = false) : bool
     {
@@ -1380,50 +1385,6 @@ class Validate implements RuleProviderInterface
                 '' . $var
             )
         );
-    }
-
-    /**
-     * ASCII lowercase.
-     *
-     * NB: Does not check if ASCII; use 'ascii' (or stricter) rule before this.
-     *
-     * NB: Returns true on empty ('') string.
-     *
-     * @see Validate::ascii()
-     *
-     * @param mixed $var
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function asciiLowerCase($var) : bool
-    {
-        // ctype_... is no good for ASCII-only check, if PHP and server locale
-        // is set to something non-English.
-        $v = '' . $var;
-        return $v === '' ? true : ctype_lower($v);
-    }
-
-    /**
-     * ASCII uppercase.
-     *
-     * NB: Does not check if ASCII; use 'ascii' (or stricter) rule before this.
-     *
-     * NB: Returns true on empty ('') string.
-     *
-     * @see Validate::ascii()
-     *
-     * @param mixed $var
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function asciiUpperCase($var) : bool
-    {
-        // ctype_... is no good for ASCII-only check, if PHP and server locale
-        // is set to something non-English.
-        $v = '' . $var;
-        return $v === '' ? true : ctype_upper($v);
     }
 
     /**
@@ -1542,76 +1503,103 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
      * @param mixed $var
      *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
      *
      * @return bool
+     *      False on empty.
      */
-    public function alphaNum($var) : bool
-    {
-        // ctype_... is no good for ASCII-only check, if PHP and server locale
-        // is set to something non-English.
-        return !!preg_match('/^[a-zA-Z\d]+$/', '' . $var);
-    }
-
-    /**
-     * Name; must start with alpha or underscore, followed by alphanum/underscore.
-     *
-     * @see Validate::string()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
-     * @param mixed $var
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function name($var) : bool
-    {
-        return !!preg_match('/^[a-zA-Z_][a-zA-Z\d_]*$/', '' . $var);
-    }
-
-    /**
-     * Dashed name; must start with alpha, followed by alphanum/dash.
-     *
-     * @see Validate::string()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
-     * @param mixed $var
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function dashName($var) : bool
-    {
-        return !!preg_match('/^[a-zA-Z][a-zA-Z\d\-]*$/', '' . $var);
-    }
-
-    /**
-     * @see Validate::string()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
-     *
-     * @param mixed $var
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function uuid($var) : bool
+    public function alphaNum($var, string $case = '') : bool
     {
         $v = '' . $var;
-        return strlen($v) == 36
-            && !!preg_match(
-                '/^[\da-fA-F]{8}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{12}$/',
-                $v
-            );
+        if ($v === '') {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[a-z\d]+$/';
+                break;
+            case 'upper':
+                $regex = '/^[A-Z\d]+$/';
+                break;
+            default:
+                $regex = '/^[a-zA-Z\d]+$/';
+                break;
+        }
+        // ctype_... is no good for ASCII-only check, if PHP and server locale
+        // is set to something non-English.
+        return !!preg_match($regex, $v);
+    }
+
+    /**
+     * Snake cased name: must start with alpha or underscore,
+     * followed by alphanum/underscore.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $var
+     *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
+     *
+     * @return bool
+     *      False on empty.
+     */
+    public function name($var, string $case = '') : bool
+    {
+        $v = '' . $var;
+        if ($v === '') {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[a-z_][a-z\d_]*$/';
+                break;
+            case 'upper':
+                $regex = '/^[A-Z_][A-Z\d_]*$/';
+                break;
+            default:
+                $regex = '/^[a-zA-Z_][a-zA-Z\d_]*$/';
+                break;
+        }
+        return !!preg_match($regex, $v);
+    }
+
+    /**
+     * Snake cased name: must start with alpha, followed by alphanum/dash.
+     *
+     * NB: Cannot start with dash.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $var
+     *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
+     *
+     * @return bool
+     *      False on empty.
+     */
+    public function dashName($var, string $case = '') : bool
+    {
+        $v = '' . $var;
+        if ($v === '') {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[a-z][A-Z\d\-]*$/';
+                break;
+            case 'upper':
+                $regex = '/^[A-Z][A-Z\d\-]*$/';
+                break;
+            default:
+                $regex = '/^[a-zA-Z][a-zA-Z\d\-]*$/';
+                break;
+        }
+        return !!preg_match($regex, $v);
     }
 
     /**
@@ -1622,8 +1610,40 @@ class Validate implements RuleProviderInterface
      *
      * @param mixed $var
      *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
      *
      * @return bool
+     *      False on empty.
+     */
+    public function uuid($var, string $case = '') : bool
+    {
+        $v = '' . $var;
+        if (strlen($v) != 36) {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[\da-f]{8}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{12}$/';
+                break;
+            case 'upper':
+                $regex = '/^[\dA-F]{8}\-[\dA-F]{4}\-[\dA-F]{4}\-[\dA-F]{4}\-[\dA-F]{12}$/';
+                break;
+            default:
+                $regex = '/^[\da-fA-F]{8}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{4}\-[\da-fA-F]{12}$/';
+                break;
+        }
+        return !!preg_match($regex, $v);
+    }
+
+    /**
+     * @see Validate::string()
+     *
+     * @param mixed $var
+     *      Checked stringified.
+     *
+     * @return bool
+     *      False on empty.
      */
     public function base64($var) : bool
     {
@@ -1640,9 +1660,6 @@ class Validate implements RuleProviderInterface
      * YYYY-MM-DDTHH:ii(:ss)?(.mmmmmmmmm)?(Z|+00:?(00)?)
      *
      * @see Validate::string()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
      *      Checked stringified.
@@ -1665,9 +1682,6 @@ class Validate implements RuleProviderInterface
      * YYYY-MM-DD
      *
      * @see Validate::string()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
      *
      * @param mixed $var
      *      Checked stringified.
