@@ -3,6 +3,8 @@ SimpleComplex/Validate 1.x, 2017-06-05
 - Validate allow extending constructur to provide dependency by other means.
 - Removed rule methods asciiLowerCase and asciiUpperCase. Added 'case' parameter
   to relevant rule methods instead.
+- Stopped including getInstance() trait; IDE cannot resolve classes beyond
+  1 level of reference.
 
 SimpleComplex/Validate 1.x, 2017-05-31
 --------------------------------------
