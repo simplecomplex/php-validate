@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\GetInstanceTrait;
+use SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -49,19 +49,14 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 class ValidateByRules
 {
     /**
-     * @see \SimpleComplex\Utils\GetInstanceTrait
+     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait
      *
-     * Reference to last instantiated instance of this class.
-     * @protected
-     * @static
-     * @var static $instanceByClass
-     *
-     * Get previously instantiated object or create new.
+     * First object instantiated via this method, disregarding class called on.
      * @public
      * @static
-     * @see \SimpleComplex\Utils\GetInstanceTrait::getInstance()
+     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait::getInstance()
      */
-    use GetInstanceTrait;
+    use GetInstanceOfFamilyTrait;
 
     /**
      * For logger 'type' context; like syslog RFC 5424 'facility code'.

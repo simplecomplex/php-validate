@@ -134,10 +134,16 @@ class Validate implements RuleProviderInterface
             'errUnconditionally' => false,
         ]
     ) {
+        // Dependencies.--------------------------------------------------------
+        // Logger is not required.
         $this->logger = $logger;
 
-        $this->unicode = Unicode::getInstance();
+        // Extending class' constructor might provide instance by other means.
+        if (!$this->unicode) {
+            $this->unicode = Unicode::getInstance();
+        }
 
+        // Business.------------------------------------------------------------
         $this->errUnconditionally = !empty($options['errUnconditionally']);
 
         $this->nonRuleMethods = self::NON_RULE_METHODS;

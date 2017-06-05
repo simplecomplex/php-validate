@@ -1,3 +1,7 @@
+SimpleComplex/Validate 1.x, 2017-06-05
+--------------------------------------
+- Validate allow extending constructur to provide dependency by other means.
+
 SimpleComplex/Validate 1.x, 2017-05-31
 --------------------------------------
 - Use parameter type declaration when possible, despite ambiguous effect for
