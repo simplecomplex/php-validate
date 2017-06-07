@@ -1,3 +1,7 @@
+SimpleComplex/Validate 1.x, 2017-06-07
+--------------------------------------
+- name(), snakeName(), lispName(). name() now allows underscore and hyphen.
+
 SimpleComplex/Validate 1.x, 2017-06-05
 --------------------------------------
 - Validate allow extending constructur to provide dependency by other means.

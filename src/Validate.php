@@ -1547,8 +1547,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Snake cased name: must start with alpha or underscore,
-     * followed by alphanum/underscore.
+     * Name: starts with alpha, followed by alphanum/underscore/hyphen.
      *
      * @see Validate::string()
      *
@@ -1568,22 +1567,20 @@ class Validate implements RuleProviderInterface
         }
         switch ($case) {
             case 'lower':
-                $regex = '/^[a-z_][a-z\d_]*$/';
+                $regex = '/^[a-z][a-z\d_\-]*$/';
                 break;
             case 'upper':
-                $regex = '/^[A-Z_][A-Z\d_]*$/';
+                $regex = '/^[A-Z][A-Z\d_\-]*$/';
                 break;
             default:
-                $regex = '/^[a-zA-Z_][a-zA-Z\d_]*$/';
+                $regex = '/^[a-zA-Z][a-zA-Z\d_\-]*$/';
                 break;
         }
         return !!preg_match($regex, $v);
     }
 
     /**
-     * Snake cased name: must start with alpha, followed by alphanum/dash.
-     *
-     * NB: Cannot start with dash.
+     * Snake cased name: starts with alpha, followed by alphanum/underscore.
      *
      * @see Validate::string()
      *
@@ -1595,7 +1592,7 @@ class Validate implements RuleProviderInterface
      * @return bool
      *      False on empty.
      */
-    public function dashName($var, string $case = '') : bool
+    public function snakeName($var, string $case = '') : bool
     {
         $v = '' . $var;
         if ($v === '') {
@@ -1603,7 +1600,40 @@ class Validate implements RuleProviderInterface
         }
         switch ($case) {
             case 'lower':
-                $regex = '/^[a-z][A-Z\d\-]*$/';
+                $regex = '/^[a-z][a-z\d_]*$/';
+                break;
+            case 'upper':
+                $regex = '/^[A-Z][A-Z\d_]*$/';
+                break;
+            default:
+                $regex = '/^[a-zA-Z][a-zA-Z\d_]*$/';
+                break;
+        }
+        return !!preg_match($regex, $v);
+    }
+
+    /**
+     * Lisp cased name: starts with alpha, followed by alphanum/hyphen.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $var
+     *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
+     *
+     * @return bool
+     *      False on empty.
+     */
+    public function lispName($var, string $case = '') : bool
+    {
+        $v = '' . $var;
+        if ($v === '') {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[a-z][a-z\d\-]*$/';
                 break;
             case 'upper':
                 $regex = '/^[A-Z][A-Z\d\-]*$/';
