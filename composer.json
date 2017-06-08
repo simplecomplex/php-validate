@@ -2,7 +2,7 @@
     "name": "simplecomplex/validate",
     "type": "library",
     "description": "Validate shallowly and recursively (elements of object/array).",
-    "keywords": ["validate"],
+    "keywords": ["validate", "PHP"],
     "homepage": "https://github.com/simplecomplex/php-validate",
     "license": "MIT",
     "authors": [
