@@ -48,15 +48,30 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  */
 class ValidateByRules
 {
+
     /**
-     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait
+     * Reference to first object instantiated via the getInstance() method,
+     * no matter which parent/child class the method was/is called on.
      *
-     * First object instantiated via this method, disregarding class called on.
-     * @public
-     * @static
-     * @see \SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait::getInstance()
+     * @var ValidateByRules
      */
-    use GetInstanceOfFamilyTrait;
+    protected static $instance;
+
+    /**
+     * First object instantiated via this method, disregarding class called on.
+     *
+     * @param mixed ...$constructorParams
+     *
+     * @return ValidateByRules
+     *      static, really, but IDE might not resolve that.
+     */
+    public static function getInstance(...$constructorParams)
+    {
+        if (!static::$instance) {
+            static::$instance = new static(...$constructorParams);
+        }
+        return static::$instance;
+    }
 
     /**
      * For logger 'type' context; like syslog RFC 5424 'facility code'.
@@ -167,9 +182,6 @@ class ValidateByRules
      * ]);
      * @endcode
      *
-     * @throws \Throwable
-     *      Propagated.
-     *
      * @uses get_class_methods()
      * @uses Validate::getNonRuleMethods()
      *
@@ -182,6 +194,9 @@ class ValidateByRules
      *      ]
      *
      * @return bool
+     *
+     * @throws \Throwable
+     *      Propagated.
      */
     public function challenge($var, array $rules)
     {
@@ -222,15 +237,15 @@ class ValidateByRules
      *
      * @recursive
      *
-     * @throws InvalidArgumentException
-     * @throws OutOfRangeException
-     *
      * @param int $depth
      * @param string $keyPath
      * @param mixed $var
      * @param array $ruleSet
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     * @throws OutOfRangeException
      */
     protected function internalChallenge($depth, $keyPath, $var, $ruleSet)
     {

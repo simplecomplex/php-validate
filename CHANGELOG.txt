@@ -1,3 +1,8 @@
+SimpleComplex/Validate 1.x, 2017-06-16
+--------------------------------------
+- Inline coded getInstance trait instead of using trait; IDE cannot resolve
+  (class) return type of trait.
+
 SimpleComplex/Validate 1.x, 2017-06-07
 --------------------------------------
 - name(), snakeName(), lispName(). name() now allows underscore and hyphen.

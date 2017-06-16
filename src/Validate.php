@@ -216,10 +216,10 @@ class Validate implements RuleProviderInterface
      *
      * @see ValidateByRules::challenge()
      *
-     * @throws BadMethodCallException
-     *
      * @param string $name
      * @param array $arguments
+     *
+     * @throws BadMethodCallException
      */
     public function __call($name, $arguments)
     {
@@ -415,9 +415,6 @@ class Validate implements RuleProviderInterface
     /**
      * Compares type strict, and allowed values must be scalar or null.
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      * @param array $allowedValues
      *      [
@@ -427,6 +424,9 @@ class Validate implements RuleProviderInterface
      *      ]
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function enum($var, $allowedValues) : bool
     {
@@ -473,15 +473,15 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param string $pattern
      *      /regular expression/
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionall
      */
     public function regex($var, $pattern) : bool
     {
@@ -973,14 +973,14 @@ class Validate implements RuleProviderInterface
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      * @param int|float $min
      *      Stringed number is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function min($var, $min) : bool
     {
@@ -1015,14 +1015,14 @@ class Validate implements RuleProviderInterface
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      * @param int|float $max
      *      Stringed number is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function max($var, $max) : bool
     {
@@ -1057,9 +1057,6 @@ class Validate implements RuleProviderInterface
      * @see Validate::numeric()
      * @see Validate::digit()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      * @param int|float $min
      *      Stringed number is not accepted.
@@ -1067,6 +1064,9 @@ class Validate implements RuleProviderInterface
      *      Stringed number is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function range($var, $min, $max) : bool
     {
@@ -1209,15 +1209,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::unicode()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $min
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function unicodeMinLength($var, int $min) : bool
     {
@@ -1251,15 +1251,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::unicode()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $max
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function unicodeMaxLength($var, int $max) : bool
     {
@@ -1294,15 +1294,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::unicode()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $exact
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function unicodeExactLength($var, int $exact) : bool
     {
@@ -1405,15 +1405,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $min
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function minLength($var, int $min) : bool
     {
@@ -1441,15 +1441,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $max
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function maxLength($var, int $max) : bool
     {
@@ -1477,15 +1477,15 @@ class Validate implements RuleProviderInterface
      *
      * @see Validate::string()
      *
-     * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
-     *
      * @param mixed $var
      *      Checked stringified.
      * @param int $exact
      *      Stringed integer is not accepted.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
     public function exactLength($var, int $exact) : bool
     {
