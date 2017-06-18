@@ -97,14 +97,28 @@ interface RuleProviderInterface
     /**
      * Object or array.
      *
-     * Must return string (array|object) on pass, boolean false on failure.
-     *
-     * Not related to PHP>=7 \DS\Collection (Traversable, Countable, JsonSerializable).
+     * Must return string (array|arrayAccess|iterable|object) on pass,
+     * boolean false on validation failure.
      *
      * @param mixed $var
      *
      * @return string|bool
-     *      String (array|object) on pass, boolean false on failure.
+     *      String (array|arrayAccess|iterable|object) on pass,
+     *      boolean false on validation failure.
      */
-    public function collection($var);
+    public function container($var);
+
+    /**
+     * Iterable object or array.
+     *
+     * Must return string (array|arrayAccess|iterable) on pass,
+     * boolean false on validation failure.
+     *
+     * @param mixed $var
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|iterable) on pass,
+     *      boolean false on validation failure.
+     */
+    public function iterable($var);
 }

@@ -29,7 +29,7 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * Some methods return string on pass
  * ----------------------------------
  * Composite type checkers like:
- * - numeric, collection, hashTable
+ * - numeric, container, iterable, indexedIterable, keyedIterable
  *
  * Maximum number of rule method parameters
  * ----------------------------------------
@@ -42,11 +42,12 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * -------------------------------
  * Rule methods that take more arguments than the $var to validate:
  * - must check those arguments for type (and emptyness, if required)
- * - must log meaningful error message (if logger) and return false, or throw exception
+ * - must log meaningful error message (if logger) and return false,
+ *   or throw exception
  * Reasons:
  * - parameter type declarations don't support someType|otherType&not-empty
- * - it should be possible to fail gracefully; a non-passed validation should stop the party
- *   in a well constructed application anyway
+ * - it should be possible to fail gracefully; a non-passed validation
+ *   should stop the party in a well constructed application anyway
  *
  * Intended as singleton - ::getInstance() - but constructor not protected.
  *
@@ -210,8 +211,8 @@ class Validate implements RuleProviderInterface
     /**
      * Log (if logger) call to non-existent rule method.
      *
-     * By design, ValidateByRules::challenge() should not be able to call a non-existent method
-     * of this class.
+     * By design, ValidateByRules::challenge() should not be able to call
+     * a non-existent method of this class.
      * But external call to Validate::noSuchRule() is somewhat expectable.
      *
      * @see ValidateByRules::challenge()
@@ -620,32 +621,94 @@ class Validate implements RuleProviderInterface
      * Object or array.
      *
      * Superset of all other object and array type(ish) checkers; here:
-     * - hashTable, object, class, array, numArray, assocArray
-     *
-     * Not related to PHP>=7 \DS\Collection (Traversable, Countable, JsonSerializable).
+     * - iterable, indexedIterable, keyedIterable, class,
+     *   array, indexedArray, keyedArray
      *
      * @param mixed $var
      *
      * @return string|bool
-     *      String (array|object) on pass, boolean false on failure.
+     *      String (array|arrayAccess|iterable|object) on pass,
+     *      boolean false on validation failure.
      */
-    public function collection($var)
+    public function container($var)
     {
-        if (is_array($var)) {
-            return 'array';
-        }
-        return ($var && is_object($var)) ? 'object' : false;
+        return is_array($var) ? 'array' : (
+            $var && is_object($var) ? (
+                $var instanceof \Traversable ? (
+                    $var instanceof \ArrayAccess ? 'arrayAccess' : 'iterable'
+                ) : 'object'
+            ) : false
+        );
     }
 
     /**
-     * Object or empty array or associative array.
+     * Iterable object or array.
      *
      * @param $var
      *
      * @return string|bool
-     *      String (array|object) on pass, boolean false on failure.
+     *      String (array|arrayAccess|iterable) on pass,
+     *      boolean false on validation failure.
      */
-    public function hashTable($var)
+    public function iterable($var)
+    {
+        return is_array($var) ? 'array' : (
+            $var && $var instanceof \Traversable ? (
+                $var instanceof \ArrayAccess ? 'arrayAccess' : 'iterable'
+            ) : false
+        );
+    }
+
+    /**
+     * Empty or indexed array, or empty or indexed ArrayAccess object.
+     *
+     * An ArrayAccess object which is neither \Countable, nor \ArrayObject
+     * or \ArrayIterator, will fail this validation.
+     *
+     * @param $var
+     *
+     * @return string|bool
+     *      String (array|arrayAccess) on pass,
+     *      boolean false on validation failure.
+     */
+    public function indexedIterable($var)
+    {
+        if (is_array($var)) {
+            if (!$var || ctype_digit(join('', array_keys($var)))) {
+                return 'array';
+            }
+            return false;
+        }
+        if ($var && $var instanceof \ArrayAccess) {
+            if ($var instanceof \Countable && !count($var)) {
+                return 'arrayAccess';
+            }
+            if (
+                ($var instanceof \ArrayObject || $var instanceof \ArrayIterator)
+                && ctype_digit(join('', array_keys($var->getArrayCopy())))
+            ) {
+                return 'arrayAccess';
+            }
+            // An ArrayAccess object which is neither \Countable, nor
+            // \ArrayObject or \ArrayIterator, must fail because we can't
+            // access it's index/keys en bloc (only via foreach).
+        }
+        return false;
+    }
+
+    /**
+     * Empty or keyed array, or empty or keyed ArrayAccess object.
+     *
+     * An ArrayAccess object which is neither \Countable, nor \ArrayObject
+     * or \ArrayIterator, will fail this validation.
+     *
+     * @param $var
+     *
+     * @return string|bool
+     *      String (array|arrayAccess) on pass,
+     *      boolean false on validation failure.
+     */
+    public function keyedIterable($var)
     {
         if (is_array($var)) {
             if (!$var || !ctype_digit(join('', array_keys($var)))) {
@@ -653,7 +716,23 @@ class Validate implements RuleProviderInterface
             }
             return false;
         }
-        return is_object($var) ? 'object' : false;
+        if ($var && $var instanceof \Traversable) {
+            if ($var instanceof \ArrayAccess) {
+                if ($var instanceof \Countable && !count($var)) {
+                    return 'arrayAccess';
+                }
+                if (
+                    ($var instanceof \ArrayObject || $var instanceof \ArrayIterator)
+                    && !ctype_digit(join('', array_keys($var->getArrayCopy())))
+                ) {
+                    return 'arrayAccess';
+                }
+            }
+            // An ArrayAccess object which is neither \Countable, nor
+            // \ArrayObject or \ArrayIterator, must fail because we can't
+            // access it's index/keys en bloc (only via foreach).
+        }
+        return false;
     }
 
     /**
@@ -675,11 +754,14 @@ class Validate implements RuleProviderInterface
      * @param string $className
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Unless logger + falsy option errUnconditionally.
      */
-    public function class($var, $className) : bool
+    public function class($var, string $className) : bool
     {
-        if (!$className || !is_string($className)) {
-            $msg = 'className is not a non-empty string.';
+        if (!$className) {
+            $msg = 'className is empty.';
             if ($this->logger) {
                 $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
                     'type' => static::LOG_TYPE,
@@ -717,7 +799,7 @@ class Validate implements RuleProviderInterface
      * @return bool
      *      True: empty array, or all keys are integers.
      */
-    public function numArray($var) : bool
+    public function indexedArray($var) : bool
     {
         if (!is_array($var)) {
             return false;
@@ -736,7 +818,7 @@ class Validate implements RuleProviderInterface
      * @return bool
      *      True: empty array, or at least one key is not integer.
      */
-    public function assocArray($var) : bool
+    public function keyedArray($var) : bool
     {
         if (!is_array($var)) {
             return false;
@@ -783,7 +865,8 @@ class Validate implements RuleProviderInterface
      *      Checked stringified.
      *
      * @return string|bool
-     *      String (integer|float) on pass, boolean false on failure.
+     *      String (integer|float) on pass,
+     *      boolean false on validation failure.
      */
     public function numeric($var)
     {
@@ -807,7 +890,8 @@ class Validate implements RuleProviderInterface
     /**
      * Non-negative integer or stringed integer.
      *
-     * If negative integer should pass, use numeric() and then check it's return value.
+     * If negative integer should pass, use numeric()
+     * and then check it's return value.
      *
      * @see Validate::integer()
      *

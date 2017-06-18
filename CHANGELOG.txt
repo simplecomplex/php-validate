@@ -1,3 +1,12 @@
+SimpleComplex/Validate 1.x, 2017-06-18
+--------------------------------------
+- Denominate object/array as 'container'; not 'collection'.
+- Method container replaces collection.
+  New methods iterable and indexedIterable.
+  Method keyedIterable replaces hashTable.
+  numArray/assocArray renamed to indexedArray/keyedArray.
+- ValidateByRules is now able to iterate ArrayAccess vars.
+
 SimpleComplex/Validate 1.x, 2017-06-16
 --------------------------------------
 - Inline coded getInstance trait instead of using trait; IDE cannot resolve

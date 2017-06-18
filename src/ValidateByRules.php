@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\Traits\GetInstanceOfFamilyTrait;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -83,10 +82,11 @@ class ValidateByRules
     /**
      * Recursion emergency brake.
      *
-     * Ideally the depth of a rule set describing objects/arrays having nested objects/arrays
-     * should limit recursion, naturally/orderly.
-     * But circular references within the rule set - or a programmatic error in this library
-     * - could (without this hardcoded limit) result in perpetual recursion.
+     * Ideally the depth of a rule set describing objects/arrays having nested
+     * objects/arrays should limit recursion, naturally/orderly.
+     * But circular references within the rule set - or a programmatic error
+     * in this library - could (without this hardcoded limit) result in
+     * perpetual recursion.
      *
      * @var int
      */
@@ -104,7 +104,8 @@ class ValidateByRules
     ];
 
     /**
-     * The (most of the) methods of the Validate instance will be the rules available.
+     * The (most of the) methods of the Validate instance will be the rules
+     * available.
      *
      * @var RuleProviderInterface
      */
@@ -149,7 +150,8 @@ class ValidateByRules
      * @see Validate::challengeRules()
      *
      * @param RuleProviderInterface $ruleProvider
-     *      The (most of the) methods of the Validate instance will be the rules available.
+     *      The (most of the) methods of the Validate instance will be
+     *      the rules available.
      * @param array $options {
      *      @var bool errUnconditionally Default: false.
      *      @var bool recordFailure Default: false.
@@ -233,7 +235,8 @@ class ValidateByRules
     }
 
     /**
-     * Internal method to accommodate an inaccessible depth argument, to control/limit recursion.
+     * Internal method to accommodate an inaccessible depth argument,
+     * to control/limit recursion.
      *
      * @recursive
      *
@@ -262,7 +265,8 @@ class ValidateByRules
                 );
                 // No 'errUnconditionally' here.
                 // Recursion can be dangerous, and exceeding the limit may only
-                // happen with an erratical rule list (too deep, or circular reference).
+                // happen with an erratical rule list;
+                // too deep, or circular reference.
             }
             throw new OutOfRangeException(
                 'Stopped recursive validation by rule-set at limit[' . static::RECURSION_LIMIT . '].'
@@ -283,7 +287,8 @@ class ValidateByRules
             }
             switch ($rule) {
                 case 'optional':
-                    // Do nothing, ignore here. Only used when working on '_elements_'.
+                    // Do nothing, ignore here.
+                    // Only used when working on '_elements_'.
                     break;
                 case 'alternativeEnum':
                 case '_elements_':
@@ -324,7 +329,8 @@ class ValidateByRules
                     if ($rules_found && isset($rules_found[$rule])) {
                         $logger = $this->ruleProvider->getLogger();
                         if ($logger) {
-                            // Collapse '_elements_'; don't want to log deep array.
+                            // Collapse '_elements_';
+                            // don't want to log deep array.
                             if (isset($ruleSet['_elements_'])) {
                                 if (is_array($ruleSet['_elements_'])) {
                                     $ruleSet['_elements_'] = 'array(' . count($ruleSet['_elements_']) . ')';
@@ -390,7 +396,8 @@ class ValidateByRules
         $failed = false;
         $record = [];
         foreach ($rules_found as $rule => $args) {
-            // We expect more boolean trues than arrays (few Validate methods take secondary args).
+            // We expect more boolean trues than arrays;
+            // few Validate methods take secondary args.
             if (!$args || $args === true || !is_array($args)) {
                 if (!$this->ruleProvider->{$rule}($var)) {
                     $failed = true;
@@ -431,63 +438,73 @@ class ValidateByRules
         }
 
         // Do '_elements_'.
-        // Check that it's an object or array, and get which type.
-        $collection_type = $this->ruleProvider->collection($var);
-        if (!$collection_type) {
-            // A-OK: one should - for convenience - be allowed to use the '_elements_' rule,
-            // without explicitly declaring/using a collection type checker.
+        // Check that input var is an object or array, and get which type.
+        $iterable_type = $this->ruleProvider->iterable($var);
+        if (!$iterable_type) {
+            // A-OK: one should - for convenience - be allowed to use
+            // the '_elements_' rule, without explicitly declaring/using
+            // an iterable type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': _elements_ - ' . gettype($var) . ' is not a collection';
+                $this->record[] = $keyPath . ': _elements_ - ' . gettype($var) . ' is not an iterable';
             }
             return false;
         }
 
-        // Iterate array|object separately, don't want to clone object to array; for performance reasons.
-        if ($collection_type == 'array') {
-            foreach ($elements as $key => $subRuleSet) {
-                if (!array_key_exists($key, $var)) {
-                    // An element is required, unless explicitly 'optional'.
-                    if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
-                        if ($this->recordFailure) {
-                            // We don't stop on failure when recording.
-                            continue;
+        // Iterate array|object separately, don't want to clone object to array;
+        // for performance reasons.
+        switch ($iterable_type) {
+            case 'array':
+            case 'arrayAccess':
+                $is_array = $iterable_type == 'array';
+                foreach ($elements as $key => $subRuleSet) {
+                    if (
+                        $is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)
+                    ) {
+                        // An element is required, unless explicitly 'optional'.
+                        if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                            if ($this->recordFailure) {
+                                // We don't stop on failure when recording.
+                                continue;
+                            }
+                            return false;
                         }
-                        return false;
-                    }
-                } else {
-                    // Recursion.
-                    if (!$this->internalChallenge($depth + 1, $keyPath . '[' . $key . ']', $var[$key], $subRuleSet)) {
-                        if ($this->recordFailure) {
-                            // We don't stop on failure when recording.
-                            continue;
+                    } else {
+                        // Recursion.
+                        if (!$this->internalChallenge(
+                            $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $subRuleSet)
+                        ) {
+                            if ($this->recordFailure) {
+                                // We don't stop on failure when recording.
+                                continue;
+                            }
+                            return false;
                         }
-                        return false;
-                    }
-                }
-            }
-        } else {
-            // Object.
-            foreach ($elements as $key => $subRuleSet) {
-                if (!property_exists($var, $key)) {
-                    // An element is required, unless explicitly 'optional'.
-                    if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
-                        if ($this->recordFailure) {
-                            // We don't stop on failure when recording.
-                            continue;
-                        }
-                        return false;
-                    }
-                } else {
-                    // Recursion.
-                    if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $subRuleSet)) {
-                        if ($this->recordFailure) {
-                            // We don't stop on failure when recording.
-                            continue;
-                        }
-                        return false;
                     }
                 }
-            }
+                break;
+            default:
+                // Iterable object.
+                foreach ($elements as $key => $subRuleSet) {
+                    if (!property_exists($var, $key)) {
+                        // An element is required, unless explicitly 'optional'.
+                        if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                            if ($this->recordFailure) {
+                                // We don't stop on failure when recording.
+                                continue;
+                            }
+                            return false;
+                        }
+                    } else {
+                        // Recursion.
+                        if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $subRuleSet)) {
+                            if ($this->recordFailure) {
+                                // We don't stop on failure when recording.
+                                continue;
+                            }
+                            return false;
+                        }
+                    }
+                }
         }
 
         return true;
