@@ -72,9 +72,9 @@ $bike = new Bicycle(
 );
 
 $validate = Validate::make();
-echo 'Valid: ' . ((int) $validate->challengeRules($bike, $rules)) . "\n";
+echo 'Valid: ' . ((int) $validate->challenge($bike, $rules)) . "\n";
 
-$recording = $validate->challengeRulesRecording($bike, $rules);
+$recording = $validate->challengeRecording($bike, $rules);
 if (empty($recording['passed'])) {
     echo "Failed:\n" . join("\n", $recording['record']) . "\n";
 }

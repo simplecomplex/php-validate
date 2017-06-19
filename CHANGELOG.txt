@@ -1,3 +1,7 @@
+SimpleComplex/Validate 1.x, 2017-06-19
+--------------------------------------
+- Accept iterable rules, not just array.
+
 SimpleComplex/Validate 1.x, 2017-06-18
 --------------------------------------
 - Denominate object/array as 'container'; not 'collection'.

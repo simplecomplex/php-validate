@@ -15,7 +15,7 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 /**
  * Example
  * -------
- * @see Validate::challengeRules()
+ * @see Validate::challenge()
  *
  * Purpose
  * -------
@@ -42,6 +42,8 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * rule methods.
  * And this class cannot 'see'/call protected methods of the Validate class.
  *
+ *
+ * @internal
  *
  * @package SimpleComplex\Validate
  */
@@ -136,18 +138,12 @@ class ValidateByRules
     protected $record = [];
 
     /**
-     * Use Validate::challengeRules() instead of this.
+     * Use Validate::challenge() instead of this.
      *
      * Uses the logger (if any) of the rule provider.
      * But only on demand; doesn't refer it.
      *
-     * @code
-     * $logger = new JsonLog();
-     * $validate = Validate::getInstance($logger);
-     * $validateByRules = ValidateByRules::getInstance($validate);
-     * @endcode
-     *
-     * @see Validate::challengeRules()
+     * @see Validate::challenge()
      *
      * @param RuleProviderInterface $ruleProvider
      *      The (most of the) methods of the Validate instance will be
@@ -171,7 +167,7 @@ class ValidateByRules
     }
 
     /**
-     * Use Validate::challengeRules() instead of this.
+     * Use Validate::challenge() instead of this.
      *
      * @code
      * // Validate a value which should be an integer zero thru two.
@@ -188,7 +184,7 @@ class ValidateByRules
      * @uses Validate::getNonRuleMethods()
      *
      * @param mixed $var
-     * @param array $rules
+     * @param iterable $rules
      *      A list of rules; either 'rule':[specs] or N:'rule'.
      *      [
      *          'integer'
@@ -197,11 +193,18 @@ class ValidateByRules
      *
      * @return bool
      *
+     * @throws \TypeError
+     *      Arg rules not iterable.
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, array $rules)
+    public function challenge($var, /*iterable*/ $rules)
     {
+        if (!$this->ruleProvider->iterable($rules)) {
+            throw new \TypeError(
+                'Arg rules type[' . (!is_object($rules) ? gettype($rules) : get_class($rules)) . '] is not iterable.'
+            );
+        }
         // Init, really.
         // List rule methods made available by the rule provider.
         if (!$this->ruleMethods) {
@@ -224,7 +227,7 @@ class ValidateByRules
             ) {
                 $logger = $this->ruleProvider->getLogger();
                 if ($logger) {
-                    $logger->warning('Validation by rule list failed due to an external error.', [
+                    $logger->warning('Validation by rules failed due to an external error.', [
                         'type' => static::LOG_TYPE,
                         'exception' => $xc,
                     ]);
@@ -243,14 +246,14 @@ class ValidateByRules
      * @param int $depth
      * @param string $keyPath
      * @param mixed $var
-     * @param array $ruleSet
+     * @param iterable $rules
      *
      * @return bool
      *
      * @throws InvalidArgumentException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($depth, $keyPath, $var, $ruleSet)
+    protected function internalChallenge($depth, $keyPath, $var, $rules)
     {
         if ($depth >= static::RECURSION_LIMIT) {
             $logger = $this->ruleProvider->getLogger();
@@ -274,7 +277,7 @@ class ValidateByRules
         }
 
         $rules_found = $alternative_enum = $elements = [];
-        foreach ($ruleSet as $k => $v) {
+        foreach ($rules as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
                 $rule = $v;
@@ -329,20 +332,6 @@ class ValidateByRules
                     if ($rules_found && isset($rules_found[$rule])) {
                         $logger = $this->ruleProvider->getLogger();
                         if ($logger) {
-                            // Collapse '_elements_';
-                            // don't want to log deep array.
-                            if (isset($ruleSet['_elements_'])) {
-                                if (is_array($ruleSet['_elements_'])) {
-                                    $ruleSet['_elements_'] = 'array(' . count($ruleSet['_elements_']) . ')';
-                                } elseif (is_object($ruleSet['_elements_'])) {
-                                    // Illegal, but anyway.
-                                    $ruleSet['_elements_'] = 'object('
-                                        . count(get_object_vars($ruleSet['_elements_'])) . ')';
-                                } else {
-                                    // Illegal, but anyway.
-                                    $ruleSet['_elements_'] = '(' . gettype($ruleSet['_elements_']) . ')';
-                                }
-                            }
                             $logger->warning(
                                 'Duplicate validation rule \'{rule_method}\''
                                 . ',  declared as rule:args as well as N:rule,'
@@ -352,7 +341,7 @@ class ValidateByRules
                                     'rule_provider' => get_class($this->ruleProvider),
                                     'rule_method' => $rule,
                                     'key_path' => $keyPath,
-                                    'variable' => $ruleSet,
+                                    'variable' => $rules,
                                 ]
                             );
                             if (!$this->errUnconditionally) {

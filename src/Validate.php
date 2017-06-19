@@ -101,8 +101,8 @@ class Validate implements RuleProviderInterface
         'getLogger',
         'getNonRuleMethods',
         '__call',
-        'challengeRules',
-        'challengeRulesRecording',
+        'challenge',
+        'challengeRecording',
     ];
 
     /**
@@ -240,7 +240,7 @@ class Validate implements RuleProviderInterface
 
     // Validate by list of rules.---------------------------------------------------------------------------------------
 
-    // @todo: rename 'challengeRules' to 'validate'?
+    // @todo: rename 'challenge' to 'validate'?
 
     /**
      * Validate by a list of rules.
@@ -323,15 +323,18 @@ class Validate implements RuleProviderInterface
      *     ]
      * );
      * // Validate it.
-     * $good_bike = Validate::make()->challengeRules($bike, $rules);
+     * $good_bike = Validate::make()->challenge($bike, $rules);
      * @endcode
      *
      * @param mixed $var
-     * @param array $rules
+     * @param iterable $rules
      *
      * @return bool
+     *
+     * @throws \Throwable
+     *      Propagated.
      */
-    public function challengeRules($var, array $rules) : bool
+    public function challenge($var, /*iterable*/ $rules) : bool
     {
         // Extending class do not have to override this method;
         // the class name used as name arg will be the sub class' name.
@@ -349,7 +352,7 @@ class Validate implements RuleProviderInterface
      * Creates a new ValidateByRules instance on every call.
      *
      * @code
-     * $good_bike = Validate::make()->challengeRulesRecording($bike, $rules);
+     * $good_bike = Validate::make()->challengeRecording($bike, $rules);
      * if (empty($good_bike['passed'])) {
      *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
      * }
@@ -362,8 +365,11 @@ class Validate implements RuleProviderInterface
      *      @var bool passed
      *      @var array record
      * }
+     *
+     * @throws \Throwable
+     *      Propagated.
      */
-    public function challengeRulesRecording($var, array $rules)
+    public function challengeRecording($var, /*iterable*/ $rules)
     {
         $validate_by_rules = new ValidateByRules($this, [
             'errUnconditionally' => $this->errUnconditionally,
