@@ -273,7 +273,7 @@ class ValidateByRules
             );
         }
 
-        $rules_found = $alternativeEnum = $elements = [];
+        $rules_found = $alternative_enum = $elements = [];
         foreach ($ruleSet as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -319,7 +319,7 @@ class ValidateByRules
                     }
                     // Good, save for later.
                     if ($rule == 'alternativeEnum') {
-                        $alternativeEnum = $args;
+                        $alternative_enum = $args;
                     } else {
                         $elements = $args;
                     }
@@ -417,8 +417,8 @@ class ValidateByRules
 
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
-            if ($alternativeEnum) {
-                if ($this->ruleProvider->enum($var, $alternativeEnum)) {
+            if ($alternative_enum) {
+                if ($this->ruleProvider->enum($var, $alternative_enum)) {
                     return true;
                 }
                 if ($this->recordFailure) {
@@ -456,12 +456,12 @@ class ValidateByRules
             case 'array':
             case 'arrayAccess':
                 $is_array = $iterable_type == 'array';
-                foreach ($elements as $key => $subRuleSet) {
+                foreach ($elements as $key => $sub_rules) {
                     if (
                         $is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)
                     ) {
                         // An element is required, unless explicitly 'optional'.
-                        if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                        if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
                             if ($this->recordFailure) {
                                 // We don't stop on failure when recording.
                                 continue;
@@ -471,7 +471,7 @@ class ValidateByRules
                     } else {
                         // Recursion.
                         if (!$this->internalChallenge(
-                            $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $subRuleSet)
+                            $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $sub_rules)
                         ) {
                             if ($this->recordFailure) {
                                 // We don't stop on failure when recording.
@@ -484,10 +484,10 @@ class ValidateByRules
                 break;
             default:
                 // Iterable object.
-                foreach ($elements as $key => $subRuleSet) {
+                foreach ($elements as $key => $sub_rules) {
                     if (!property_exists($var, $key)) {
                         // An element is required, unless explicitly 'optional'.
-                        if (empty($subRuleSet['optional']) && !in_array('optional', $subRuleSet)) {
+                        if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
                             if ($this->recordFailure) {
                                 // We don't stop on failure when recording.
                                 continue;
@@ -496,7 +496,7 @@ class ValidateByRules
                         }
                     } else {
                         // Recursion.
-                        if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $subRuleSet)) {
+                        if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $sub_rules)) {
                             if ($this->recordFailure) {
                                 // We don't stop on failure when recording.
                                 continue;

@@ -240,6 +240,8 @@ class Validate implements RuleProviderInterface
 
     // Validate by list of rules.---------------------------------------------------------------------------------------
 
+    // @todo: rename 'challengeRules' to 'validate'?
+
     /**
      * Validate by a list of rules.
      *
@@ -329,7 +331,7 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function challengeRules($var, array $rules)
+    public function challengeRules($var, array $rules) : bool
     {
         // Extending class do not have to override this method;
         // the class name used as name arg will be the sub class' name.
@@ -363,13 +365,13 @@ class Validate implements RuleProviderInterface
      */
     public function challengeRulesRecording($var, array $rules)
     {
-        $validateByRules = new ValidateByRules($this, [
+        $validate_by_rules = new ValidateByRules($this, [
             'errUnconditionally' => $this->errUnconditionally,
             'recordFailure' => true,
         ]);
 
-        $validateByRules->challenge($var, $rules);
-        $record = $validateByRules->getRecord();
+        $validate_by_rules->challenge($var, $rules);
+        $record = $validate_by_rules->getRecord();
 
         return [
             'passed' => !$record,
