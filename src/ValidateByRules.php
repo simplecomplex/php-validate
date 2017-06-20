@@ -276,6 +276,9 @@ class ValidateByRules
             );
         }
 
+        // @todo: -_elements_ +elementTable (object'ish; named elements of differing type/composition)
+        // @todo: and vs elementList (array'ish; repeated element type/composition)
+
         $rules_found = $alternative_enum = $elements = [];
         foreach ($rules as $k => $v) {
             if (ctype_digit('' . $k)) {
