@@ -249,14 +249,14 @@ class Validate implements RuleProviderInterface
      * Instance saved on ValidateByRules class, not here.
      *
      * @param mixed $var
-     * @param iterable $rules
+     * @param object|array $rules
      *
      * @return bool
      *
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, /*iterable*/ $rules) : bool
+    public function challenge($var, $rules) : bool
     {
         // Extending class do not have to override this method;
         // the class name used as name arg will be the sub class' name.
@@ -281,7 +281,7 @@ class Validate implements RuleProviderInterface
      * @endcode
      *
      * @param mixed $var
-     * @param array $rules
+     * @param object|array $rules
      *
      * @return array {
      *      @var bool passed
@@ -291,7 +291,7 @@ class Validate implements RuleProviderInterface
      * @throws \Throwable
      *      Propagated.
      */
-    public function challengeRecording($var, /*iterable*/ $rules)
+    public function challengeRecording($var, $rules)
     {
         $validate_by_rules = new ValidateByRules($this, [
             'errUnconditionally' => $this->errUnconditionally,
