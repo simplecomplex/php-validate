@@ -102,7 +102,8 @@ class ValidateByRules
     const NON_PROVIDER_RULES = [
         'optional',
         'alternativeEnum',
-        '_elements_',
+        'tableElements',
+        'listItemPrototype',
     ];
 
     /**
@@ -276,10 +277,7 @@ class ValidateByRules
             );
         }
 
-        // @todo: -_elements_ +elementTable (object'ish; named elements of differing type/composition)
-        // @todo: and vs elementList (array'ish; repeated element type/composition)
-
-        $rules_found = $alternative_enum = $elements = [];
+        $rules_found = $alternative_enum = $tableElements = $listItemPrototype = [];
         foreach ($rules as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -294,40 +292,43 @@ class ValidateByRules
             switch ($rule) {
                 case 'optional':
                     // Do nothing, ignore here.
-                    // Only used when working on '_elements_'.
+                    // Only used when working on tableElements|listItemPrototype.
                     break;
                 case 'alternativeEnum':
-                case '_elements_':
-                    // We know that these rules require non-empty array args.
-                    if (!$args || !is_array($args)) {
-                        $logger = $this->ruleProvider->getLogger();
-                        if ($logger) {
-                            $logger->warning(
-                                'Args for validation rule \'{rule_method}\' must be non-empty array, saw[{args_type}]'
-                                . ', at key path[{key_path}].',
-                                [
-                                    'type' => static::LOG_TYPE,
-                                    'rule_method' => $rule,
-                                    'args_type' => gettype($args),
-                                    'key_path' => $keyPath,
-                                ]
-                            );
-                            if (!$this->errUnconditionally) {
-                                if ($this->recordFailure) {
-                                    $this->record[] = $keyPath . ': ' . $rule . ' - bad args';
-                                }
-                                return false;
-                            }
-                        }
-                        throw new \InvalidArgumentException(
-                            'Args for validation rule[' . $rule . '] must be non-empty array.'
+                case 'tableElements':
+                case 'listItemPrototype':
+                    $arg_type = $this->ruleProvider->iterable($args);
+                    if (!$arg_type) {
+                        throw new InvalidArgumentException(
+                            'Args for validation rule[' . $rule
+                            . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
+                            . '] is not iterable.'
                         );
                     }
-                    // Good, save for later.
-                    if ($rule == 'alternativeEnum') {
-                        $alternative_enum = $args;
+                    if ($arg_type == 'array') {
+                        $args_array =& $args;
                     } else {
-                        $elements = $args;
+                        $args_array = (array) $args;
+                    }
+                    if (!$args_array) {
+                        if (!$arg_type) {
+                            throw new InvalidArgumentException(
+                                'Args for validation rule[' . $rule
+                                . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
+                                . '] is empty.'
+                            );
+                        }
+                    }
+                    switch ($rule) {
+                        case 'alternativeEnum':
+                            $alternative_enum = $args_array;
+                            break;
+                        case 'tableElements':
+                            $tableElements = $args_array;
+                            break;
+                        case 'listItemPrototype':
+                            $listItemPrototype = $args_array;
+                            break;
                     }
                     break;
                 default:
@@ -354,7 +355,7 @@ class ValidateByRules
                                 return false;
                             }
                         }
-                        throw new \InvalidArgumentException('Duplicate validation rule[' . $rule . '].');
+                        throw new InvalidArgumentException('Duplicate validation rule[' . $rule . '].');
                     }
                     // Check rule method existance.
                     if (!in_array($rule, $this->ruleMethods)) {
@@ -377,7 +378,7 @@ class ValidateByRules
                                 return false;
                             }
                         }
-                        throw new \InvalidArgumentException('Non-existent validation rule[' . $rule . '].');
+                        throw new InvalidArgumentException('Non-existent validation rule[' . $rule . '].');
                     }
 
                     $rules_found[$rule] = $args;
@@ -425,78 +426,112 @@ class ValidateByRules
         }
 
         // Didn't fail.
-        if (!$elements) {
+        if (!$tableElements && !$listItemPrototype) {
             return true;
         }
 
-        // Do '_elements_'.
+        // Do 'tableElements'.
         // Check that input var is an object or array, and get which type.
-        $iterable_type = $this->ruleProvider->iterable($var);
-        if (!$iterable_type) {
+        $container_type = $this->ruleProvider->container($var);
+        if (!$container_type) {
             // A-OK: one should - for convenience - be allowed to use
-            // the '_elements_' rule, without explicitly declaring/using
+            // the 'tableElements' rule, without explicitly declaring/using
             // an iterable type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': _elements_ - ' . gettype($var) . ' is not an iterable';
+                $this->record[] = $keyPath . ': tableElements - ' . gettype($var) . ' is not a container';
             }
             return false;
         }
 
-        // Iterate array|object separately, don't want to clone object to array;
-        // for performance reasons.
-        switch ($iterable_type) {
-            case 'array':
-            case 'arrayAccess':
-                $is_array = $iterable_type == 'array';
-                foreach ($elements as $key => $sub_rules) {
-                    if (
-                        $is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)
+        // tableElements + listItemPrototype is allowed.
+        // Relevant for a container derived from XML, which allows hash table
+        // elements and list items within the same container (XML sucks ;-).
+        // To prevent collision (repeated validation of elements) we filter
+        // declared tableElements out of list validation.
+        $element_list_skip_keys = [];
+        if ($tableElements) {
+            // Iterate array|object separately, don't want to clone object to array.
+            switch ($container_type) {
+                case 'array':
+                case 'arrayAccess':
+                    $is_array = $container_type == 'array';
+                    foreach ($tableElements as $key => $sub_rules) {
+                        if ($is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)) {
+                            // An element is required, unless explicitly 'optional'.
+                            if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
+                                if ($this->recordFailure) {
+                                    // We don't stop on failure when recording.
+                                    continue;
+                                }
+                                return false;
+                            }
+                        } else {
+                            $element_list_skip_keys[] = $key;
+                            // Recursion.
+                            if (!$this->internalChallenge(
+                                $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $sub_rules)
+                            ) {
+                                if ($this->recordFailure) {
+                                    // We don't stop on failure when recording.
+                                    continue;
+                                }
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    // (perhaps) Iterable object.
+                    foreach ($tableElements as $key => $sub_rules) {
+                        if (!property_exists($var, $key)) {
+                            // An element is required, unless explicitly 'optional'.
+                            if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
+                                if ($this->recordFailure) {
+                                    // We don't stop on failure when recording.
+                                    continue;
+                                }
+                                return false;
+                            }
+                        } else {
+                            $element_list_skip_keys[] = $key;
+                            // Recursion.
+                            if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $sub_rules)) {
+                                if ($this->recordFailure) {
+                                    // We don't stop on failure when recording.
+                                    continue;
+                                }
+                                return false;
+                            }
+                        }
+                    }
+            }
+        }
+
+        if ($listItemPrototype) {
+            switch ($container_type) {
+                case 'array':
+                case 'arrayAccess':
+                    $prefix = '[';
+                    $suffix = ']';
+                    break;
+                default:
+                    $prefix = '->';
+                    $suffix = '';
+            }
+            foreach ($var as $index => $item) {
+                if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
+                    // Recursion.
+                    if (!$this->internalChallenge(
+                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $listItemPrototype)
                     ) {
-                        // An element is required, unless explicitly 'optional'.
-                        if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
-                            if ($this->recordFailure) {
-                                // We don't stop on failure when recording.
-                                continue;
-                            }
-                            return false;
+                        if ($this->recordFailure) {
+                            // We don't stop on failure when recording.
+                            continue;
                         }
-                    } else {
-                        // Recursion.
-                        if (!$this->internalChallenge(
-                            $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $sub_rules)
-                        ) {
-                            if ($this->recordFailure) {
-                                // We don't stop on failure when recording.
-                                continue;
-                            }
-                            return false;
-                        }
+                        return false;
                     }
                 }
-                break;
-            default:
-                // Iterable object.
-                foreach ($elements as $key => $sub_rules) {
-                    if (!property_exists($var, $key)) {
-                        // An element is required, unless explicitly 'optional'.
-                        if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
-                            if ($this->recordFailure) {
-                                // We don't stop on failure when recording.
-                                continue;
-                            }
-                            return false;
-                        }
-                    } else {
-                        // Recursion.
-                        if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $sub_rules)) {
-                            if ($this->recordFailure) {
-                                // We don't stop on failure when recording.
-                                continue;
-                            }
-                            return false;
-                        }
-                    }
-                }
+            }
         }
 
         return true;

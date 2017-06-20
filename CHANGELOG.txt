@@ -1,3 +1,13 @@
+SimpleComplex/Validate 1.x, 2017-06-20
+--------------------------------------
+- Rule method empty() missed support for ArrayAccess class.
+- Type alias of a non-ArrayAccess Traversable is 'traversable'; not 'iterable'.
+- keyedIterable() must return 'traversable' on non-ArrayAccess Traversable;
+  not false.
+- Pseudo-rule 'tableElements' replaces '_elements_'.
+- New pseudo-rule 'listItemPrototype' for validating repeated similar
+  items of a list.
+
 SimpleComplex/Validate 1.x, 2017-06-19
 --------------------------------------
 - Accept iterable rules, not just array.

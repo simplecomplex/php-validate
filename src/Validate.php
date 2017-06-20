@@ -14,6 +14,8 @@ use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
+// @todo: remove errUnconditionally option; let malformed rules throw exceptions; far safer.
+
 /**
  * Validate almost anything.
  *
@@ -240,91 +242,11 @@ class Validate implements RuleProviderInterface
 
     // Validate by list of rules.---------------------------------------------------------------------------------------
 
-    // @todo: rename 'challenge' to 'validate'?
-
     /**
      * Validate by a list of rules.
      *
      * Reuses the same ValidateByRules instance on every call.
      * Instance saved on ValidateByRules class, not here.
-     *
-     * @code
-     * // A little helper class.
-     * class Bicycle
-     * {
-     *     public $wheels = 0;
-     *     public $saddles;
-     *     public $sound = '';
-     *     public $accessories = [];
-     *     public function __construct($wheels, $saddles, $sound, $accessories)
-     *     {
-     *         $this->wheels = $wheels;
-     *         $this->saddles = $saddles;
-     *         $this->sound = $sound;
-     *         $this->accessories = $accessories;
-     *     }
-     * }
-     * // Declare validation rules for a Bicycle of your taste.
-     * $rules = [
-     *     // (str) rule => (arr) arguments
-     *     'class' => [
-     *         'Bicycle'
-     *     ],
-     *     // A bike has properties.
-     *     '_elements_' => [
-     *         'wheels' => [
-     *             // You don't have to give an arguments array, when no arguments.
-     *             'integer',
-     *             // Zero makes no bike, 4 makes a waggon.
-     *             'range' => [
-     *                 1,
-     *                 3
-     *             ]
-     *         ],
-     *         'saddles' => [
-     *             'integer',
-     *             // We prefer number of saddles, but any will also do.
-     *             'alternativeEnum' => [
-     *                 true,
-     *             ]
-     *         ],
-     *         'sound' => [
-     *             // When no arguments, true will do just a well as no array and empty array.
-     *             'string' => true,
-     *             // Beware that actual argument(s) must always be array.
-     *             'enum' => [
-     *                 // First, and only, argument.
-     *                 [
-     *                     'silent',
-     *                     'swooshy',
-     *                     'clattering',
-     *                 ]
-     *             ]
-     *         ],
-     *         'accessories' => [
-     *             'array',
-     *             '_elements_' => [
-     *                 'luggageCarrier' => [
-     *                     'boolean',
-     *                     // We don't really care if there's a luggage carrier or not.
-     *                     'optional'
-     *                 ]
-     *             ]
-     *         ],
-     *     ]
-     * ];
-     * // Create a bike.
-     * $bike = new Bicycle(
-     *     2,
-     *     true,
-     *     'swooshy',
-     *     [
-     *         'luggageCarrier' => false,
-     *     ]
-     * );
-     * // Validate it.
-     * $good_bike = Validate::make()->challenge($bike, $rules);
-     * @endcode
      *
      * @param mixed $var
      * @param iterable $rules
@@ -403,8 +325,11 @@ class Validate implements RuleProviderInterface
             // Stringed zero - '0' - is not empty.
             return $var !== '0';
         }
-        if (is_object($var) && !get_object_vars($var)) {
-            return true;
+        if ($var instanceof \ArrayAccess) {
+            return !((array) $var);
+        }
+        if (is_object($var)) {
+            return !get_object_vars($var);
         }
         return false;
     }
@@ -635,7 +560,7 @@ class Validate implements RuleProviderInterface
      * @param mixed $var
      *
      * @return string|bool
-     *      String (array|arrayAccess|iterable|object) on pass,
+     *      String (array|arrayAccess|traversable|object) on pass,
      *      boolean false on validation failure.
      */
     public function container($var)
@@ -643,7 +568,7 @@ class Validate implements RuleProviderInterface
         return is_array($var) ? 'array' : (
             $var && is_object($var) ? (
                 $var instanceof \Traversable ? (
-                    $var instanceof \ArrayAccess ? 'arrayAccess' : 'iterable'
+                    $var instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
                 ) : 'object'
             ) : false
         );
@@ -655,14 +580,14 @@ class Validate implements RuleProviderInterface
      * @param $var
      *
      * @return string|bool
-     *      String (array|arrayAccess|iterable) on pass,
+     *      String (array|arrayAccess|traversable) on pass,
      *      boolean false on validation failure.
      */
     public function iterable($var)
     {
         return is_array($var) ? 'array' : (
             $var && $var instanceof \Traversable ? (
-                $var instanceof \ArrayAccess ? 'arrayAccess' : 'iterable'
+                $var instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
             ) : false
         );
     }
@@ -705,7 +630,8 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Empty or keyed array, or empty or keyed ArrayAccess object.
+     * Empty or keyed array, or empty or keyed ArrayAccess object,
+     * or non-ArrayAccess Traversable.
      *
      * An ArrayAccess object which is neither \Countable, nor \ArrayObject
      * or \ArrayIterator, will fail this validation.
@@ -713,7 +639,7 @@ class Validate implements RuleProviderInterface
      * @param $var
      *
      * @return string|bool
-     *      String (array|arrayAccess) on pass,
+     *      String (array|arrayAccess|traversable) on pass,
      *      boolean false on validation failure.
      */
     public function keyedIterable($var)
@@ -735,10 +661,12 @@ class Validate implements RuleProviderInterface
                 ) {
                     return 'arrayAccess';
                 }
+                // An ArrayAccess object which is neither \Countable, nor
+                // \ArrayObject or \ArrayIterator, must fail because we can't
+                // access it's index/keys en bloc (only via foreach).
+            } else {
+                return 'traversable';
             }
-            // An ArrayAccess object which is neither \Countable, nor
-            // \ArrayObject or \ArrayIterator, must fail because we can't
-            // access it's index/keys en bloc (only via foreach).
         }
         return false;
     }

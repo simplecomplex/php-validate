@@ -13,12 +13,16 @@ class Bicycle
     public $saddle;
     public $sound = '';
     public $accessories = [];
-    public function __construct($wheels, $saddle, $sound, $accessories)
+    public $various;
+    public function __construct($wheels, $saddle, $sound, $accessories, $various = [])
     {
         $this->wheels = $wheels;
         $this->saddle = $saddle;
         $this->sound = $sound;
         $this->accessories = $accessories;
+        if ($various) {
+            $this->various = $various;
+        }
     }
 }
 
@@ -26,7 +30,7 @@ $rules = [
     'class' => [
         'Bicycle'
     ],
-    '_elements_' => [
+    'tableElements' => [
         'wheels' => [
             'integer',
             'range' => [
@@ -52,13 +56,32 @@ $rules = [
         ],
         'accessories' => [
             'array',
-            '_elements_' => [
+            'tableElements' => [
                 'luggageCarrier' => [
                     'boolean',
+                    'optional'
+                ],
+                'lights' => [
+                    'numeric',
                     'optional'
                 ]
             ]
         ],
+        'various' => [
+            'array',
+            'optional',
+            'alternativeEnum' => [
+                null,
+            ],
+            'listItemPrototype' => [
+                'string',
+                'alternativeEnum' => [
+                    true,
+                    false,
+                    null,
+                ]
+            ]
+        ]
     ]
 ];
 
@@ -71,7 +94,36 @@ $bike = new Bicycle(
     ]
 );
 
-$validate = Validate::make();
+$validate = Validate::getInstance();
+echo 'Valid: ' . ((int) $validate->challenge($bike, $rules)) . "\n";
+
+$recording = $validate->challengeRecording($bike, $rules);
+if (empty($recording['passed'])) {
+    echo "Failed:\n" . join("\n", $recording['record']) . "\n";
+}
+else {
+    echo "Passed.\n";
+}
+
+echo "\n";
+
+$bike = new Bicycle(
+    2,
+    true,
+    'swooshy',
+    [
+        'luggageCarrier' => false,
+    ],
+    [
+        null,
+        true,
+        'paint',
+        13,
+        'rubbish'
+    ]
+);
+
+$validate = Validate::getInstance();
 echo 'Valid: ' . ((int) $validate->challenge($bike, $rules)) . "\n";
 
 $recording = $validate->challengeRecording($bike, $rules);

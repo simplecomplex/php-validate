@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
  * argument of other type to a type declared parameter is ambiguous; coercion
  * or TypeError(?).
  * II  Illegal rule method names:
- * - optional, alternativeEnum, _elements_
+ * - optional, alternativeEnum, tableElements, listItemPrototype
  * @see ValidateByRules::NON_PROVIDER_RULES
  *
  * Referring a ValidateByRules instance is forbidden
@@ -58,6 +58,8 @@ interface RuleProviderInterface
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
+     * @see Validate::empty()
+     *
      * @param mixed $var
      *
      * @return bool
@@ -68,6 +70,8 @@ interface RuleProviderInterface
      * There must be a 'nonEmpty' method, because ValidateByRules may need it.
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
+     *
+     * @see Validate::nonEmpty()
      *
      * @param mixed $var
      *
@@ -81,6 +85,8 @@ interface RuleProviderInterface
      * Compares type strict, and allowed values must be scalar or null.
      *
      * The method must log or throw exception if arg allowedValues isn't a non-empty array.
+     *
+     * @see Validate::enum()
      *
      * @param mixed $var
      * @param array $allowedValues
@@ -97,13 +103,15 @@ interface RuleProviderInterface
     /**
      * Object or array.
      *
-     * Must return string (array|arrayAccess|iterable|object) on pass,
+     * Must return string (array|arrayAccess|traversable|object) on pass,
      * boolean false on validation failure.
+     *
+     * @see Validate::container()
      *
      * @param mixed $var
      *
      * @return string|bool
-     *      String (array|arrayAccess|iterable|object) on pass,
+     *      String (array|arrayAccess|traversable|object) on pass,
      *      boolean false on validation failure.
      */
     public function container($var);
@@ -111,13 +119,15 @@ interface RuleProviderInterface
     /**
      * Iterable object or array.
      *
-     * Must return string (array|arrayAccess|iterable) on pass,
+     * Must return string (array|arrayAccess|traversable) on pass,
      * boolean false on validation failure.
+     *
+     * @see Validate::iterable()
      *
      * @param mixed $var
      *
      * @return string|bool
-     *      String (array|arrayAccess|iterable) on pass,
+     *      String (array|arrayAccess|traversable) on pass,
      *      boolean false on validation failure.
      */
     public function iterable($var);
