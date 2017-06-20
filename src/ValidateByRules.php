@@ -185,7 +185,7 @@ class ValidateByRules
      * @uses Validate::getNonRuleMethods()
      *
      * @param mixed $var
-     * @param iterable $rules
+     * @param object|array $rules
      *      A list of rules; either 'rule':[specs] or N:'rule'.
      *      [
      *          'integer'
@@ -195,15 +195,16 @@ class ValidateByRules
      * @return bool
      *
      * @throws \TypeError
-     *      Arg rules not iterable.
+     *      Arg rules not object|array.
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, /*iterable*/ $rules)
+    public function challenge($var, $rules)
     {
-        if (!$this->ruleProvider->iterable($rules)) {
+        if (!is_array($rules) && !is_object($rules)) {
             throw new \TypeError(
-                'Arg rules type[' . (!is_object($rules) ? gettype($rules) : get_class($rules)) . '] is not iterable.'
+                'Arg rules type[' . (!is_object($rules) ? gettype($rules) : get_class($rules))
+                . '] is not object|array.'
             );
         }
         // Init, really.
@@ -297,12 +298,12 @@ class ValidateByRules
                 case 'alternativeEnum':
                 case 'tableElements':
                 case 'listItemPrototype':
-                    $arg_type = $this->ruleProvider->iterable($args);
+                    $arg_type = $this->ruleProvider->container($args);
                     if (!$arg_type) {
                         throw new InvalidArgumentException(
                             'Args for validation rule[' . $rule
                             . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
-                            . '] is not iterable.'
+                            . '] is not a container.'
                         );
                     }
                     if ($arg_type == 'array') {
