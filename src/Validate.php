@@ -249,7 +249,7 @@ class Validate implements RuleProviderInterface
      * Instance saved on ValidateByRules class, not here.
      *
      * @param mixed $var
-     * @param object|array $rules
+     * @param array|object $rules
      *
      * @return bool
      *
@@ -281,7 +281,7 @@ class Validate implements RuleProviderInterface
      * @endcode
      *
      * @param mixed $var
-     * @param object|array $rules
+     * @param array|object $rules
      *
      * @return array {
      *      @var bool passed

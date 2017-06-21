@@ -185,7 +185,7 @@ class ValidateByRules
      * @uses Validate::getNonRuleMethods()
      *
      * @param mixed $var
-     * @param object|array $rules
+     * @param array|object $rules
      *      A list of rules; either 'rule':[specs] or N:'rule'.
      *      [
      *          'integer'
@@ -195,7 +195,7 @@ class ValidateByRules
      * @return bool
      *
      * @throws \TypeError
-     *      Arg rules not object|array.
+     *      Arg rules not array|object.
      * @throws \Throwable
      *      Propagated.
      */
@@ -204,7 +204,7 @@ class ValidateByRules
         if (!is_array($rules) && !is_object($rules)) {
             throw new \TypeError(
                 'Arg rules type[' . (!is_object($rules) ? gettype($rules) : get_class($rules))
-                . '] is not object|array.'
+                . '] is not array|object.'
             );
         }
         // Init, really.
@@ -248,7 +248,7 @@ class ValidateByRules
      * @param int $depth
      * @param string $keyPath
      * @param mixed $var
-     * @param object|array $rules
+     * @param array|object $rules
      *
      * @return bool
      *
