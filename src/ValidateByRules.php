@@ -248,7 +248,7 @@ class ValidateByRules
      * @param int $depth
      * @param string $keyPath
      * @param mixed $var
-     * @param iterable $rules
+     * @param object|array $rules
      *
      * @return bool
      *
@@ -278,7 +278,7 @@ class ValidateByRules
             );
         }
 
-        $rules_found = $alternative_enum = $tableElements = $listItemPrototype = [];
+        $rules_found = $alternative_enum = $table_elements = $list_item_prototype = [];
         foreach ($rules as $k => $v) {
             if (ctype_digit('' . $k)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
@@ -325,10 +325,10 @@ class ValidateByRules
                             $alternative_enum = $args_array;
                             break;
                         case 'tableElements':
-                            $tableElements = $args_array;
+                            $table_elements = $args_array;
                             break;
                         case 'listItemPrototype':
-                            $listItemPrototype = $args_array;
+                            $list_item_prototype = $args_array;
                             break;
                     }
                     break;
@@ -427,7 +427,7 @@ class ValidateByRules
         }
 
         // Didn't fail.
-        if (!$tableElements && !$listItemPrototype) {
+        if (!$table_elements && !$list_item_prototype) {
             return true;
         }
 
@@ -437,7 +437,7 @@ class ValidateByRules
         if (!$container_type) {
             // A-OK: one should - for convenience - be allowed to use
             // the 'tableElements' rule, without explicitly declaring/using
-            // an iterable type checker.
+            // a container type checker.
             if ($this->recordFailure) {
                 $this->record[] = $keyPath . ': tableElements - ' . gettype($var) . ' is not a container';
             }
@@ -450,13 +450,13 @@ class ValidateByRules
         // To prevent collision (repeated validation of elements) we filter
         // declared tableElements out of list validation.
         $element_list_skip_keys = [];
-        if ($tableElements) {
+        if ($table_elements) {
             // Iterate array|object separately, don't want to clone object to array.
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
-                    foreach ($tableElements as $key => $sub_rules) {
+                    foreach ($table_elements as $key => $sub_rules) {
                         if ($is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
@@ -482,8 +482,8 @@ class ValidateByRules
                     }
                     break;
                 default:
-                    // (perhaps) Iterable object.
-                    foreach ($tableElements as $key => $sub_rules) {
+                    // Object.
+                    foreach ($table_elements as $key => $sub_rules) {
                         if (!property_exists($var, $key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
@@ -508,7 +508,7 @@ class ValidateByRules
             }
         }
 
-        if ($listItemPrototype) {
+        if ($list_item_prototype) {
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
@@ -523,7 +523,7 @@ class ValidateByRules
                 if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
                     // Recursion.
                     if (!$this->internalChallenge(
-                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $listItemPrototype)
+                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_item_prototype)
                     ) {
                         if ($this->recordFailure) {
                             // We don't stop on failure when recording.
