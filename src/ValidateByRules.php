@@ -68,7 +68,7 @@ class ValidateByRules
      */
     public static function getInstance(...$constructorParams)
     {
-        // Can't use null ternary ?? apparantly doesn't work for static prop.
+        // Unsure about null ternary ?? for class and instance vars.
         if (!static::$instance) {
             static::$instance = new static(...$constructorParams);
         }
