@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use Psr\Log\LoggerInterface;
-
 /**
  * Describes required properties of a class - a 'rule provider' - that can
  * provide validation rules for a ValidateByRules instance.
@@ -34,18 +32,6 @@ use Psr\Log\LoggerInterface;
  */
 interface RuleProviderInterface
 {
-    /**
-     * Make logger available for a ValidateByRules instance.
-     *
-     * The logger is allowed be null (none), but preferably shouldn't be.
-     * And ValidateByRules only gets the logger on demand; doesn't refer it.
-     *
-     * @return LoggerInterface|null
-     */
-    public function getLogger() /*: ?LoggerInterface*/;
-    // PHP >7.1
-    // public function getLogger() : ?LoggerInterface;
-
     /**
      * Methods of the class that a ValidateByRules instance should never call.
      *
@@ -98,7 +84,7 @@ interface RuleProviderInterface
      *
      * @return bool
      */
-    public function enum($var, $allowedValues) : bool;
+    public function enum($var, array $allowedValues) : bool;
 
     /**
      * Object or array.

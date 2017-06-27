@@ -9,16 +9,12 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use Psr\Log\LoggerInterface;
 use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
-// @todo: remove errUnconditionally option; let malformed rules throw exceptions; far safer.
-
 /**
  * Validate almost anything.
- *
  *
  * Some string methods return true on empty
  * ----------------------------------------
@@ -42,16 +38,9 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  *
  * Rule methods invalid arg checks
  * -------------------------------
- * Rule methods that take more arguments than the $var to validate:
- * - must check those arguments for type (and emptyness, if required)
- * - must log meaningful error message (if logger) and return false,
- *   or throw exception
- * Reasons:
- * - parameter type declarations don't support someType|otherType&not-empty
- * - it should be possible to fail gracefully; a non-passed validation
- *   should stop the party in a well constructed application anyway
- *
- * Intended as singleton - ::getInstance() - but constructor not protected.
+ * Rule methods that take more arguments than the $var to validate
+ * must check those arguments for type/emptyness and throw exception
+ * on such error.
  *
  * @package SimpleComplex\Validate
  */
@@ -68,6 +57,9 @@ class Validate implements RuleProviderInterface
     /**
      * First object instantiated via this method, disregarding class called on.
      *
+     * @deprecated Use a dependency injection container instead.
+     * @see \SimpleComplex\Utils\Dependency
+     *
      * @param mixed ...$constructorParams
      *
      * @return Validate
@@ -83,13 +75,6 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * For logger 'type' context; like syslog RFC 5424 'facility code'.
-     *
-     * @var string
-     */
-    const LOG_TYPE = 'validate';
-
-    /**
      * Methods of this class that a ValidateByRules instance should never call.
      *
      * Does not contain __construct nor __call; would be slightly paranoid.
@@ -101,17 +86,11 @@ class Validate implements RuleProviderInterface
         'flushInstance',
         '__construct',
         'make',
-        'getLogger',
         'getNonRuleMethods',
         '__call',
         'challenge',
         'challengeRecording',
     ];
-
-    /**
-     * @var LoggerInterface|null
-     */
-    protected $logger;
 
     /**
      * @var Unicode
@@ -124,45 +103,17 @@ class Validate implements RuleProviderInterface
     protected $nonRuleMethods = [];
 
     /**
-     * Do always throw exception on logical/runtime error, even when logger
-     * available (default not).
-     *
-     * @var bool
-     */
-    protected $errUnconditionally;
-
-    /**
-     * When provided with a logger, rule methods will fail gracefully when
-     * given wrong argument(s) - otherwise they throw exception. Except if
-     * truthy option errUnconditionally.
-     *
      * @see Validate::getInstance()
-     * @see Validate::setLogger()
-     *
-     * @param LoggerInterface|null
-     *      PSR-3 logger, if any.
-     * @param array $options {
-     *      @var bool errUnconditionally Default: false.
-     * }
      */
-    public function __construct(
-        /*?LoggerInterface*/ $logger = null,
-        array $options = [
-            'errUnconditionally' => false,
-        ]
-    ) {
+    public function __construct()
+    {
         // Dependencies.--------------------------------------------------------
-        // Logger is not required.
-        $this->logger = $logger;
-
         // Extending class' constructor might provide instance by other means.
         if (!$this->unicode) {
             $this->unicode = Unicode::getInstance();
         }
 
         // Business.------------------------------------------------------------
-        $this->errUnconditionally = !empty($options['errUnconditionally']);
-
         $this->nonRuleMethods = self::NON_RULE_METHODS;
         /* // Extending class must merge non-rule-methods class constants.
          * $parent_class = get_parent_class();
@@ -173,31 +124,6 @@ class Validate implements RuleProviderInterface
          *   );
          * }
          */
-    }
-
-    /**
-     * Overcome mutual dependency, provide a logger after instantiation.
-     *
-     * This class does not need a logger at all. But errors are slightly more
-     * debuggable provided a logger.
-     *
-     * @param LoggerInterface $logger
-     *
-     * @return void
-     */
-    public function setLogger(LoggerInterface $logger) /*: void*/
-    {
-        $this->logger = $logger;
-    }
-
-    /**
-     * Makes our logger available for a ValidateByRules instance.
-     *
-     * @return LoggerInterface|null
-     */
-    public function getLogger() /*: ?LoggerInterface*/
-    {
-        return $this->logger;
     }
 
     /**
@@ -212,8 +138,6 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Log (if logger) call to non-existent rule method.
-     *
      * By design, ValidateByRules::challenge() should not be able to call
      * a non-existent method of this class.
      * But external call to Validate::noSuchRule() is somewhat expectable.
@@ -224,19 +148,10 @@ class Validate implements RuleProviderInterface
      * @param array $arguments
      *
      * @throws BadMethodCallException
+     *      Undefined rule method by arg name.
      */
     public function __call($name, $arguments)
     {
-        if ($this->logger) {
-            // Log warning instaed of error, because we also throw exception.
-            $this->logger->warning(
-                'Class ' . get_class($this) . ', and parents, provide no rule method \'{rule_method}\'.',
-                [
-                    'type' => static::LOG_TYPE,
-                    'rule_method' => $name,
-                ]
-            );
-        }
         throw new BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
 
@@ -263,10 +178,7 @@ class Validate implements RuleProviderInterface
         // Since we pass this object to the ValidateByRules instance,
         // we shan't refer the ValidateByRules instance directly.
         return ValidateByRules::getInstance(
-            $this,
-            [
-                'errUnconditionally' => $this->errUnconditionally,
-            ]
+            $this
         )->challenge($var, $rules);
     }
 
@@ -296,7 +208,6 @@ class Validate implements RuleProviderInterface
     public function challengeRecording($var, $rules)
     {
         $validate_by_rules = new ValidateByRules($this, [
-            'errUnconditionally' => $this->errUnconditionally,
             'recordFailure' => true,
         ]);
 
@@ -362,45 +273,23 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg allowedValues is empty.
+     *      A bucket of arg allowedValues is no scalar or null.
      */
-    public function enum($var, $allowedValues) : bool
+    public function enum($var, array $allowedValues) : bool
     {
-        if (!$allowedValues || !is_array($allowedValues)) {
-            $msg = 'allowedValues is not non-empty array.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variables' => [
-                        'allowedValues' => $allowedValues,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+        if (!$allowedValues) {
+            throw new InvalidArgumentException('Arg allowedValues is empty.');
         }
-
         $i = -1;
         foreach ($allowedValues as $allowed) {
             ++$i;
             if ($allowed !== null && !is_scalar($allowed)) {
-                $msg = 'allowedValues bucket ' . $i . ' is not scalar or null.';
-                if ($this->logger) {
-                    $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                        'type' => static::LOG_TYPE,
-                        'variables' => [
-                            'allowedValues' => $allowedValues,
-                        ],
-                    ]);
-                    if (!$this->errUnconditionally) {
-                        return false;
-                    }
-                }
-                throw new InvalidArgumentException('Arg ' . $msg);
+                throw new InvalidArgumentException(
+                    'Arg allowedValues bucket ' . $i . ' type['
+                    . (!is_object($allowed) ? gettype($allowed) : get_class($allowed)) . '] is not scalar or null.'
+                );
             }
-
             if ($var === $allowed) {
                 return true;
             }
@@ -417,26 +306,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionall
+     *      Arg pattern empty
      */
-    public function regex($var, $pattern) : bool
+    public function regex($var, string $pattern) : bool
     {
-        if (!$pattern || !is_string($pattern)) {
-            $msg = 'pattern is not non-empty string.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variables' => [
-                        'pattern' => $pattern,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+        if (!$pattern) {
+            throw new InvalidArgumentException('Arg pattern is empty.');
         }
-
         return !!preg_match($pattern, '' . $var);
     }
 
@@ -694,26 +570,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg className empty.
      */
     public function class($var, string $className) : bool
     {
         if (!$className) {
-            $msg = 'className is empty.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'className' => $className,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg className is empty.');
         }
-
         return $var && is_object($var) && is_a($var, $className);
     }
 
@@ -1002,26 +865,15 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg min not integer or float.
      */
     public function min($var, $min) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            $msg = 'min is not integer or float.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException(
+                'Arg min type[' . (!is_object($min) ? gettype($min) : get_class($min)) . '] is not integer or float.'
+            );
         }
-
         return $var >= $min;
     }
 
@@ -1044,26 +896,15 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg max not integer or float.
      */
     public function max($var, $max) : bool
     {
         if (!is_int($max) && !is_float($max)) {
-            $msg = 'max is not integer or float.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException(
+                'Arg max type[' . (!is_object($max) ? gettype($max) : get_class($max)) . '] is not integer or float.'
+            );
         }
-
         return $var <= $max;
     }
 
@@ -1088,59 +929,25 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg min not integer or float.
+     *      Arg max not integer or float.
+     *      Arg max less than arg min.
      */
     public function range($var, $min, $max) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            $msg = 'min is not integer or float.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException(
+                'Arg min type[' . (!is_object($max) ? gettype($min) : get_class($min)) . '] is not integer or float.'
+            );
         }
         if (!is_int($max) && !is_float($max)) {
-            $msg = 'max is not integer or float.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException(
+                'Arg max type[' . (!is_object($max) ? gettype($max) : get_class($max)) . '] is not integer or float.'
+            );
         }
         if ($max < $min) {
-            $msg = 'max cannot be less than arg min.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than arg min[' .  $min . '].');
         }
-
         return $var >= $min && $var <= $max;
     }
 
@@ -1239,26 +1046,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg min not non-negative.
      */
     public function unicodeMinLength($var, int $min) : bool
     {
         if ($min < 0) {
-            $msg = 'min is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
         }
-
         $v = '' . $var;
         if ($v === '') {
             return $min == 0;
@@ -1281,26 +1075,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg max not non-negative.
      */
     public function unicodeMaxLength($var, int $max) : bool
     {
         if ($max < 0) {
-            $msg = 'max is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
         }
-
         $v = '' . $var;
         if ($v === '') {
             // Unlikely, but correct.
@@ -1324,26 +1105,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg exact not non-negative.
      */
     public function unicodeExactLength($var, int $exact) : bool
     {
         if ($exact < 0) {
-            $msg = 'exact is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'exact' => $exact,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
         }
-
         $v = '' . $var;
         if ($v === '') {
             return $exact == 0;
@@ -1435,26 +1203,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg min not non-negative.
      */
     public function minLength($var, int $min) : bool
     {
         if ($min < 0) {
-            $msg = 'min is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'min' => $min,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
         }
-
         return strlen('' . $var) >= $min;
     }
 
@@ -1471,26 +1226,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg max not non-negative.
      */
     public function maxLength($var, int $max) : bool
     {
         if ($max < 0) {
-            $msg = 'max is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'max' => $max,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
         }
-
         return strlen('' . $var) <= $max;
     }
 
@@ -1507,26 +1249,13 @@ class Validate implements RuleProviderInterface
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Unless logger + falsy option errUnconditionally.
+     *      Arg exact not non-negative.
      */
     public function exactLength($var, int $exact) : bool
     {
         if ($exact < 0) {
-            $msg = 'exact is not non-negative integer.';
-            if ($this->logger) {
-                $this->logger->error(get_class($this) . '->' . __FUNCTION__ . '() arg ' . $msg, [
-                    'type' => static::LOG_TYPE,
-                    'variable' => [
-                        'exact' => $exact,
-                    ],
-                ]);
-                if (!$this->errUnconditionally) {
-                    return false;
-                }
-            }
-            throw new InvalidArgumentException('Arg ' . $msg);
+            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
         }
-
         return strlen('' . $var) == $exact;
     }
 

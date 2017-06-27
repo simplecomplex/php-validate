@@ -78,13 +78,6 @@ class ValidateByRules
     }
 
     /**
-     * For logger 'type' context; like syslog RFC 5424 'facility code'.
-     *
-     * @var string
-     */
-    const LOG_TYPE = 'validate';
-
-    /**
      * Recursion emergency brake.
      *
      * Ideally the depth of a rule set describing objects/arrays having nested
@@ -123,15 +116,6 @@ class ValidateByRules
     protected $ruleMethods = [];
 
     /**
-     * Do always throw Exception on logical/runtime error, even when logger
-     * available (default not).
-     * Ignored for recursion limit excess.
-     *
-     * @var bool
-     */
-    protected $errUnconditionally = false;
-
-    /**
      * @var bool
      */
     protected $recordFailure = false;
@@ -144,29 +128,22 @@ class ValidateByRules
     /**
      * Use Validate::challenge() instead of this.
      *
-     * Uses the logger (if any) of the rule provider.
-     * But only on demand; doesn't refer it.
-     *
      * @see Validate::challenge()
      *
      * @param RuleProviderInterface $ruleProvider
      *      The (most of the) methods of the Validate instance will be
      *      the rules available.
      * @param array $options {
-     *      @var bool errUnconditionally Default: false.
      *      @var bool recordFailure Default: false.
      * }
      */
     public function __construct(
         RuleProviderInterface $ruleProvider,
-        array $options = array(
-            'errUnconditionally' => false,
+        array $options = [
             'recordFailure' => false,
-        )
+        ]
     ) {
         $this->ruleProvider = $ruleProvider;
-
-        $this->errUnconditionally = !empty($options['errUnconditionally']);
         $this->recordFailure = !empty($options['recordFailure']);
     }
 
@@ -219,27 +196,7 @@ class ValidateByRules
             );
         }
 
-        try {
-            return $this->internalChallenge(0, '', $var, $rules);
-        }
-        catch (\Throwable $xc) {
-            // Out-library exception: log before propagating.
-            $cls = get_class($xc);
-            if (
-                strpos($cls, __NAMESPACE__ . '\\Exception') !== 0
-                // Utils also logs it's own exceptions.
-                && strpos($cls, '\\SimpleComplex\\Utils\\Exception') !== 0
-            ) {
-                $logger = $this->ruleProvider->getLogger();
-                if ($logger) {
-                    $logger->warning('Validation by rules failed due to an external error.', [
-                        'type' => static::LOG_TYPE,
-                        'exception' => $xc,
-                    ]);
-                }
-            }
-            throw $xc;
-        }
+        return $this->internalChallenge(0, '', $var, $rules);
     }
 
     /**
@@ -261,21 +218,6 @@ class ValidateByRules
     protected function internalChallenge($depth, $keyPath, $var, $rules)
     {
         if ($depth >= static::RECURSION_LIMIT) {
-            $logger = $this->ruleProvider->getLogger();
-            if ($logger) {
-                $logger->warning(
-                    'Stopped recursive validation by rule-set at limit {recursion_limit}, at key path[{key_path}].',
-                    [
-                        'type' => static::LOG_TYPE,
-                        'recursion_limit' => static::RECURSION_LIMIT,
-                        'key_path' => $keyPath,
-                    ]
-                );
-                // No 'errUnconditionally' here.
-                // Recursion can be dangerous, and exceeding the limit may only
-                // happen with an erratical rule list;
-                // too deep, or circular reference.
-            }
             throw new OutOfRangeException(
                 'Stopped recursive validation by rule-set at limit[' . static::RECURSION_LIMIT . '].'
             );
@@ -338,50 +280,10 @@ class ValidateByRules
                 default:
                     // Check for dupe; 'rule':args as well as N:'rule'.
                     if ($rules_found && isset($rules_found[$rule])) {
-                        $logger = $this->ruleProvider->getLogger();
-                        if ($logger) {
-                            $logger->warning(
-                                'Duplicate validation rule \'{rule_method}\''
-                                . ',  declared as rule:args as well as N:rule,'
-                                . ' of rule provider {rule_provider}, at key path[{key_path}].',
-                                [
-                                    'type' => static::LOG_TYPE,
-                                    'rule_provider' => get_class($this->ruleProvider),
-                                    'rule_method' => $rule,
-                                    'key_path' => $keyPath,
-                                    'variable' => $rules,
-                                ]
-                            );
-                            if (!$this->errUnconditionally) {
-                                if ($this->recordFailure) {
-                                    $this->record[] = $keyPath . ': ' . $rule . ' - duplicate rule';
-                                }
-                                return false;
-                            }
-                        }
                         throw new InvalidArgumentException('Duplicate validation rule[' . $rule . '].');
                     }
                     // Check rule method existance.
                     if (!in_array($rule, $this->ruleMethods)) {
-                        $logger = $this->ruleProvider->getLogger();
-                        if ($logger) {
-                            $logger->warning(
-                                'Non-existent validation rule \'{rule_method}\''
-                                . ' of rule provider {rule_provider}, at key path[{key_path}].',
-                                [
-                                    'type' => static::LOG_TYPE,
-                                    'rule_provider' => get_class($this->ruleProvider),
-                                    'rule_method' => $rule,
-                                    'key_path' => $keyPath,
-                                ]
-                            );
-                            if (!$this->errUnconditionally) {
-                                if ($this->recordFailure) {
-                                    $this->record[] = $keyPath . ': ' . $rule . ' - nonexistent rule';
-                                }
-                                return false;
-                            }
-                        }
                         throw new InvalidArgumentException('Non-existent validation rule[' . $rule . '].');
                     }
 
