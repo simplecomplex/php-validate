@@ -259,8 +259,9 @@ class Validate implements RuleProviderInterface
      */
     public function challenge($var, $rules) : bool
     {
-        // Extending class do not have to override this method;
-        // the class name used as name arg will be the sub class' name.
+        // Re-uses instance on ValidateByRules rules.
+        // Since we pass this object to the ValidateByRules instance,
+        // we shan't refer the ValidateByRules instance directly.
         return ValidateByRules::getInstance(
             $this,
             [

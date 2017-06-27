@@ -13,8 +13,8 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
- * Example
- * -------
+ * Do not use this method directly - use Validate->challenge().
+ *
  * @see Validate::challenge()
  *
  * Purpose
@@ -60,6 +60,8 @@ class ValidateByRules
 
     /**
      * First object instantiated via this method, disregarding class called on.
+     *
+     * @see Validate::challenge()
      *
      * @param mixed ...$constructorParams
      *
