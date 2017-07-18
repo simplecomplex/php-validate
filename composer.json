@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "simplecomplex/utils": "^1.0"
+        "simplecomplex/utils": "^1.0 || dev-develop"
     },
     "autoload": {
         "psr-4": {
