@@ -172,6 +172,8 @@ class ValidateByRules
      */
     public function challenge($subject, $ruleSet)
     {
+        // @todo: convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet, to secure checks.
+
         if (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
                 'Arg rules type[' . (!is_object($ruleSet) ? gettype($ruleSet) : get_class($ruleSet))
