@@ -124,6 +124,9 @@ class ValidationRuleSet
                             . '] is not non-empty array.'
                         );
                     }
+
+                    // @todo: check that allowed values are scalar|null.
+
                     // Allow defining alternativeEnum as nested array, because
                     // easy to confuse with the format for enum.
                     // enum formally requires to be nested, since
@@ -253,6 +256,7 @@ class ValidationRuleSet
                         // the allowed values array is second argument
                         // to be passed to the enum() method.
                         case 'enum':
+                            // @todo: check that allowed values are scalar|null.
                             $this->enum = !is_array(reset($args)) ? [ $args ] : $args;
                             break;
                         default:

@@ -42,7 +42,6 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  */
 class ValidateByRules
 {
-
     /**
      * Reference to first object instantiated via the getInstance() method,
      * no matter which parent/child class the method was/is called on.
@@ -230,6 +229,7 @@ class ValidateByRules
                     // Only used when working on tableElements|listItemPrototype.
                     break;
                 case 'alternativeEnum':
+                    // @todo: remove falsy and is_array() checks; rely on checks performed by ValidationRuleSet constructor.
                     if (!$args || !is_array($args)) {
                         throw new InvalidRuleException(
                             'Non-provider validation rule[alternativeEnum] type['
@@ -241,6 +241,8 @@ class ValidateByRules
                     break;
                 case 'tableElements':
                 case 'listItemPrototype':
+                    // @todo: remove type checks; rely on checks performed by ValidationRuleSet constructor.
+                    // @todo: use simple is_array()|is_object, like ValidationRuleSet does.
                     $arg_type = $this->ruleProvider->container($args);
                     if (!$arg_type) {
                         throw new InvalidRuleException(
@@ -271,6 +273,7 @@ class ValidateByRules
                     }
                     break;
                 default:
+                    // @todo: remove dupe check; rely on checks performed by ValidationRuleSet constructor.
                     // Check for dupe; 'rule':args as well as N:'rule'.
                     if ($rules_found && isset($rules_found[$rule])) {
                         throw new InvalidRuleException('Duplicate validation rule[' . $rule . '].');
@@ -288,8 +291,12 @@ class ValidateByRules
         $failed = false;
         $record = [];
         foreach ($rules_found as $rule => $args) {
+
+            // @todo: use
+
             // We expect more boolean trues than arrays;
             // few Validate methods take secondary args.
+            // @todo: remove falsy and is_array() checks; rely on checks performed by ValidationRuleSet constructor.
             if (!$args || $args === true || !is_array($args)) {
                 if (!$this->ruleProvider->{$rule}($subject)) {
                     $failed = true;
@@ -299,6 +306,7 @@ class ValidateByRules
                     break;
                 }
             } elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
+                // @todo: declare and use own (fast) enum() method; rely on allowed values check performed by ValidationRuleSet constructor.
                 $failed = true;
                 if ($this->recordFailure) {
                     $record[] = $rule;
@@ -310,6 +318,7 @@ class ValidateByRules
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternative_enum) {
+                // @todo: declare and use own (fast) enum() method; rely on allowed values check performed by ValidationRuleSet constructor.
                 if ($this->ruleProvider->enum($subject, $alternative_enum)) {
                     return true;
                 }
