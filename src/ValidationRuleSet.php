@@ -15,6 +15,13 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 /**
  * Validation rule set.
  *
+ * Checks integrity of non-provider rules and converts child rule sets
+ * (tableElements, listItemPrototype) to ValidationRuleSets.
+ *
+ * Only checks integrity of arguments for the provider rule enum().
+ * For all other provider rules the arguments get checked run-time
+ * by the rule methods called.
+ *
  *
  * @see Validate::challenge()
  *
@@ -98,6 +105,7 @@ class ValidationRuleSet
 
         $rules_found = [];
         foreach ($rules as $ruleKey => $ruleValue) {
+            unset($args);
             if (ctype_digit('' . $ruleKey)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
                 $rule = $ruleValue;
@@ -124,15 +132,31 @@ class ValidationRuleSet
                             . '] is not non-empty array.'
                         );
                     }
-
-                    // @todo: check that allowed values are scalar|null.
-
                     // Allow defining alternativeEnum as nested array, because
                     // easy to confuse with the format for enum.
                     // enum formally requires to be nested, since
                     // the allowed values array is second argument
                     // to be passed to the enum() method.
-                    $this->alternativeEnum = is_array(reset($args)) ? reset($args) : $args;
+                    if (is_array(reset($args))) {
+                        $allowed_values = current($args);
+                    } else {
+                        $allowed_values =& $args;
+                    }
+                    // Check once and for all that allowed values are scalar|null.
+                    $i = -1;
+                    foreach ($allowed_values as $allowed) {
+                        ++$i;
+                        if ($allowed !== null && !is_scalar($allowed)) {
+                            throw new InvalidRuleException(
+                                'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
+                                . '] allowed values bucket[' . $i . '] type['
+                                . (!is_object($allowed) ? gettype($allowed) : get_class($allowed))
+                                . '] is not scalar or null.'
+                            );
+                        }
+                    }
+                    $this->alternativeEnum =& $allowed_values;
+                    unset($allowed_values, $allowed);
                     break;
 
                 case 'tableElements':
@@ -158,7 +182,7 @@ class ValidationRuleSet
                     switch ($rule) {
                         case 'tableElements':
                             if ($arg_type == 'array') {
-                                $args_array = $args;
+                                $args_array =& $args;
                             } else {
                                 $args_array = (array) $args;
                             }
@@ -250,14 +274,33 @@ class ValidationRuleSet
                     $rules_found[$rule] = true;
 
                     switch ($rule) {
-                        // Allow defining enum as un-nested array, because
-                        // counter-intuitive.
-                        // enum formally requires to be nested, since
-                        // the allowed values array is second argument
-                        // to be passed to the enum() method.
                         case 'enum':
-                            // @todo: check that allowed values are scalar|null.
-                            $this->enum = !is_array(reset($args)) ? [ $args ] : $args;
+                            // Allow defining enum as un-nested array, because
+                            // counter-intuitive.
+                            // enum formally requires to be nested, since
+                            // the allowed values array is second argument
+                            // to be passed to the enum() method.
+                            $allowed_values = reset($args);
+                            if (!is_array($allowed_values)) {
+                                $allowed_values =& $args;
+                            }
+                            // Check once and for all that allowed values are scalar|null.
+                            $i = -1;
+                            foreach ($allowed_values as $allowed) {
+                                ++$i;
+                                if ($allowed !== null && !is_scalar($allowed)) {
+                                    throw new InvalidRuleException(
+                                        'Validation rule[enum] at depth[' .  $depth
+                                        . '] allowed values bucket[' . $i . '] type['
+                                        . (!is_object($allowed) ? gettype($allowed) : get_class($allowed))
+                                        . '] is not scalar or null.'
+                                    );
+                                }
+                            }
+                            $this->enum = [
+                                $allowed_values
+                            ];
+                            unset($allowed_values, $allowed);
                             break;
                         default:
                             $this->{$rule} = $args;

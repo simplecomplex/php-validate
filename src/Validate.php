@@ -168,6 +168,8 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules.
      *
+     * If arg ruleSet isn't ValidationRuleSet
+     *
      * Reuses the same ValidateByRules instance on every call.
      * Instance saved on ValidateByRules class, not here.
      *
@@ -287,6 +289,9 @@ class Validate implements RuleProviderInterface
     {
         if (!$allowedValues) {
             throw new InvalidArgumentException('Arg allowedValues is empty.');
+        }
+        if ($subject !== null && !is_scalar($subject)) {
+            return false;
         }
         $i = -1;
         foreach ($allowedValues as $allowed) {

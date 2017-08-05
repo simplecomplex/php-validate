@@ -1,6 +1,10 @@
 SimpleComplex/Validate 1.x, 2017-08-05
 --------------------------------------
 - Validation rule set class.
+- All type et al checks moved from internal challenge method
+  to ValidationRuleSet (constructor).
+- ValidateByRules::challenge() now converts non-ValidationRuleSet
+  arg ruleSet to ValidationRuleSet.
 
 SimpleComplex/Validate 1.x, 2017-07-12
 --------------------------------------

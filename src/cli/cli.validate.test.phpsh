@@ -114,7 +114,7 @@ function simple_complex_validate_test_cli()
     $logger = $container->get('logger');
 
 
-    $rules = [
+    $ruleSet = [
         'class' => [
             'Bicycle'
         ],
@@ -184,7 +184,7 @@ function simple_complex_validate_test_cli()
         ]
     ];
 
-    $ruleSet = new ValidationRuleSet($rules);
+    $ruleSet = new ValidationRuleSet($ruleSet);
     $logger->debug('Validation rule set:' . "\n" . $inspect->variable($ruleSet));
 
 

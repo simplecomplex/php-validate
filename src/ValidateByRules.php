@@ -172,21 +172,28 @@ class ValidateByRules
      */
     public function challenge($subject, $ruleSet)
     {
-        // @todo: convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet, to secure checks.
-
-        if (!is_array($ruleSet) && !is_object($ruleSet)) {
-            throw new \TypeError(
-                'Arg rules type[' . (!is_object($ruleSet) ? gettype($ruleSet) : get_class($ruleSet))
-                . '] is not array|object.'
-            );
-        }
         // Init, really.
         // List rule methods made available by the rule provider.
         if (!$this->ruleMethods) {
             $this->ruleMethods = ValidationRuleSet::ruleMethodsAvailable($this->ruleProvider);
         }
 
-        return $this->internalChallenge(0, '', $subject, $ruleSet);
+        if ($ruleSet instanceof ValidationRuleSet) {
+            return $this->internalChallenge(0, '', $subject, $ruleSet);
+        } elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
+            throw new \TypeError(
+                'Arg rules type[' . (!is_object($ruleSet) ? gettype($ruleSet) : get_class($ruleSet))
+                . '] is not ValidationRuleSet|array|object.'
+            );
+        }
+        // Convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet,
+        // to secure checks.
+        return $this->internalChallenge(
+            0,
+            '',
+            $subject,
+            new ValidationRuleSet($ruleSet)
+        );
     }
 
     /**
@@ -198,14 +205,14 @@ class ValidateByRules
      * @param int $depth
      * @param string $keyPath
      * @param mixed $subject
-     * @param ValidationRuleSet|array|object $ruleSet
+     * @param ValidationRuleSet $ruleSet
      *
      * @return bool
      *
      * @throws InvalidRuleException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($depth, $keyPath, $subject, $ruleSet)
+    protected function internalChallenge($depth, $keyPath, $subject, ValidationRuleSet $ruleSet)
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -215,77 +222,34 @@ class ValidateByRules
 
         $rules_found = $alternative_enum = $table_elements = $list_item_prototype = [];
         foreach ($ruleSet as $ruleKey => $ruleValue) {
-            if (ctype_digit('' . $ruleKey)) {
-                // Bucket is simply the name of a rule; key is int, value is the rule.
-                $rule = $ruleValue;
-                $args = true;
-            } else {
-                // Bucket key is name of the rule,
-                // value is arguments for the rule method.
-                $rule = $ruleKey;
-                $args = $ruleValue;
-            }
-            switch ($rule) {
+            switch ($ruleKey) {
                 case 'optional':
                     // Do nothing, ignore here.
                     // Only used when working on tableElements|listItemPrototype.
                     break;
                 case 'alternativeEnum':
-                    // @todo: remove falsy and is_array() checks; rely on checks performed by ValidationRuleSet constructor.
-                    if (!$args || !is_array($args)) {
-                        throw new InvalidRuleException(
-                            'Non-provider validation rule[alternativeEnum] type['
-                            . (!is_object($args) ? gettype($args) : get_class($args))
-                            . '] is not non-empty array.'
-                        );
-                    }
-                    $alternative_enum = $args;
+                    // No need to check for falsy nor non-array $args;
+                    // ValidationRuleSet do that.
+                    $alternative_enum = $ruleValue;
                     break;
                 case 'tableElements':
+                    // No need to check for type nor emptyness; ValidationRuleSet
+                    // do that, and makes it array.
+                    $table_elements = $ruleValue;
+                    break;
                 case 'listItemPrototype':
-                    // @todo: remove type checks; rely on checks performed by ValidationRuleSet constructor.
-                    // @todo: use simple is_array()|is_object, like ValidationRuleSet does.
-                    $arg_type = $this->ruleProvider->container($args);
-                    if (!$arg_type) {
-                        throw new InvalidRuleException(
-                            'Non-provider validation rule[' . $rule
-                            . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
-                            . '] is not a array|object.'
-                        );
-                    }
-                    if ($arg_type == 'array') {
-                        $args_array = $args;
-                    } else {
-                        $args_array = (array) $args;
-                    }
-                    if (!$args_array) {
-                        throw new InvalidRuleException(
-                            'Non-provider validation rule[' . $rule
-                            . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
-                            . '] is empty.'
-                        );
-                    }
-                    switch ($rule) {
-                        case 'tableElements':
-                            $table_elements = $args_array;
-                            break;
-                        case 'listItemPrototype':
-                            $list_item_prototype = $args_array;
-                            break;
-                    }
+                    // No need to check for type; ValidationRuleSet do that,
+                    // and makes it a ValidationRuleSet.
+                    $list_item_prototype = $ruleValue;
                     break;
                 default:
-                    // @todo: remove dupe check; rely on checks performed by ValidationRuleSet constructor.
-                    // Check for dupe; 'rule':args as well as N:'rule'.
-                    if ($rules_found && isset($rules_found[$rule])) {
-                        throw new InvalidRuleException('Duplicate validation rule[' . $rule . '].');
+                    // No need to check for dupes; ValidationRuleSet does that.
+                    // But do check for rule method existance, because we might
+                    // be using a different rule provider now.
+                    if (!in_array($ruleKey, $this->ruleMethods)) {
+                        throw new InvalidRuleException('Non-existent validation rule[' . $ruleKey . '].');
                     }
-                    // Check rule method existance.
-                    if (!in_array($rule, $this->ruleMethods)) {
-                        throw new InvalidRuleException('Non-existent validation rule[' . $rule . '].');
-                    }
-
-                    $rules_found[$rule] = $args;
+                    $rules_found[$ruleKey] = $ruleValue;
             }
         }
 
@@ -293,13 +257,9 @@ class ValidateByRules
         $failed = false;
         $record = [];
         foreach ($rules_found as $rule => $args) {
-
-            // @todo: use
-
             // We expect more boolean trues than arrays;
             // few Validate methods take secondary args.
-            // @todo: remove falsy and is_array() checks; rely on checks performed by ValidationRuleSet constructor.
-            if (!$args || $args === true || !is_array($args)) {
+            if ($args === true) {
                 if (!$this->ruleProvider->{$rule}($subject)) {
                     $failed = true;
                     if ($this->recordFailure) {
@@ -307,8 +267,20 @@ class ValidateByRules
                     }
                     break;
                 }
-            } elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
-                // @todo: declare and use own (fast) enum() method; rely on allowed values check performed by ValidationRuleSet constructor.
+            } elseif ($rule == 'enum') {
+                // Use own pre-checked enum() because ValidationRuleSet checks
+                // that all allowed values are scalar|null.
+                if (!$this->preCheckedEnum($subject, $args[0])) {
+                    $failed = true;
+                    if ($this->recordFailure) {
+                        $record[] = $rule;
+                    }
+                    break;
+                }
+            }
+            // No need to check for falsy nor non-array $args;
+            // ValidationRuleSet do that.
+            elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
                 $failed = true;
                 if ($this->recordFailure) {
                     $record[] = $rule;
@@ -320,8 +292,9 @@ class ValidateByRules
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternative_enum) {
-                // @todo: declare and use own (fast) enum() method; rely on allowed values check performed by ValidationRuleSet constructor.
-                if ($this->ruleProvider->enum($subject, $alternative_enum)) {
+                // Use own pre-checked enum() because ValidationRuleSet checks
+                // that all allowed values are scalar|null.
+                if ($this->preCheckedEnum($subject, $alternative_enum)) {
                     return true;
                 }
                 if ($this->recordFailure) {
@@ -365,18 +338,10 @@ class ValidateByRules
                 case 'array':
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
-                    foreach ($table_elements as $key => $sub_rules) {
+                    foreach ($table_elements as $key => $element_rule_set) {
                         if ($is_array ? !array_key_exists($key, $subject) : !$subject->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
-                            if (is_array($sub_rules)) {
-                                if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules, true)) {
-                                    if ($this->recordFailure) {
-                                        // We don't stop on failure when recording.
-                                        continue;
-                                    }
-                                    return false;
-                                }
-                            } elseif (empty($sub_rules->optional)) {
+                            if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
                                     continue;
@@ -387,7 +352,7 @@ class ValidateByRules
                             $element_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
-                                $depth + 1, $keyPath . '[' . $key . ']', $subject[$key], $sub_rules)
+                                $depth + 1, $keyPath . '[' . $key . ']', $subject[$key], $element_rule_set)
                             ) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
@@ -400,10 +365,10 @@ class ValidateByRules
                     break;
                 default:
                     // Object.
-                    foreach ($table_elements as $key => $sub_rules) {
+                    foreach ($table_elements as $key => $element_rule_set) {
                         if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.
-                            if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
+                            if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
                                     continue;
@@ -413,7 +378,9 @@ class ValidateByRules
                         } else {
                             $element_list_skip_keys[] = $key;
                             // Recursion.
-                            if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $subject->{$key}, $sub_rules)) {
+                            if (!$this->internalChallenge(
+                                $depth + 1, $keyPath . '->' . $key, $subject->{$key}, $element_rule_set)
+                            ) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
                                     continue;
@@ -460,5 +427,31 @@ class ValidateByRules
      */
     public function getRecord() {
         return $this->record;
+    }
+
+    /**
+     * Enum rule method which doesn't check that all allowed values
+     * are scalar|null; ValidationRuleSet checks that.
+     *
+     *
+     *
+     * @see Validate::enum()
+     *
+     * @param mixed $subject
+     * @param array $allowedValues
+     *
+     * @return bool
+     */
+    protected function preCheckedEnum($subject, array $allowedValues) : bool
+    {
+        if ($subject !== null && !is_scalar($subject)) {
+            return false;
+        }
+        foreach ($allowedValues as $allowed) {
+            if ($subject === $allowed) {
+                return true;
+            }
+        }
+        return false;
     }
 }
