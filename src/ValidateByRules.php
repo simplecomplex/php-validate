@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Exception\InvalidArgumentException;
+use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
@@ -23,25 +23,18 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * 1) calling more validation methods on a var _by configuration_
  * 2) validating buckets (and sub buckets) of objects and arrays
  *
- *
- * Sequence of secondary rule arg buckets
- * --------------------------------------
- * When a rule takes/requires secondary arguments:
- * The sequence of buckets is essential, keys - whether numeric or associative
- * - are ignored. They will be accessed/used via reset(), next()...
- *
- *
  * Design considerations - proxy class pattern
  * -------------------------------------------
  * The methods and props of this class could in principle be integrated
  * into the Validate class.
  * But it would obscure the primary purpose of the Validate class:
- * to provide simple, directly applicable, validation methods.
+ * to provide simple and directly applicable validation methods.
  * Having the rule methods in a class separate from this also has the added
  * benefit that it's far simpler to determine which (Validate) methods are
  * rule methods.
- * And this class cannot 'see'/call protected methods of the Validate class.
  *
+ * @see simple_complex_validate_test_cli()
+ *      For example of use.
  *
  * @internal
  *
@@ -161,12 +154,11 @@ class ValidateByRules
      * ]);
      * @endcode
      *
-     * @uses get_class_methods()
-     * @uses Validate::getNonRuleMethods()
+     * @uses ValidationRuleSet::ruleMethodsAvailable()
      *
      * @param mixed $var
-     * @param array|object $rules
-     *      A list of rules; either 'rule':[specs] or N:'rule'.
+     * @param ValidationRuleSet|array|object $ruleSet
+     *      A list of rules; either N:'rule' or 'rule':true or 'rule':[specs].
      *      [
      *          'integer'
      *          'range': [ 0, 2 ]
@@ -179,24 +171,21 @@ class ValidateByRules
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, $rules)
+    public function challenge($var, $ruleSet)
     {
-        if (!is_array($rules) && !is_object($rules)) {
+        if (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
-                'Arg rules type[' . (!is_object($rules) ? gettype($rules) : get_class($rules))
+                'Arg rules type[' . (!is_object($ruleSet) ? gettype($ruleSet) : get_class($ruleSet))
                 . '] is not array|object.'
             );
         }
         // Init, really.
         // List rule methods made available by the rule provider.
         if (!$this->ruleMethods) {
-            $this->ruleMethods = array_diff(
-                get_class_methods(get_class($this->ruleProvider)),
-                $this->ruleProvider->getNonRuleMethods()
-            );
+            $this->ruleMethods = ValidationRuleSet::ruleMethodsAvailable($this->ruleProvider);
         }
 
-        return $this->internalChallenge(0, '', $var, $rules);
+        return $this->internalChallenge(0, '', $var, $ruleSet);
     }
 
     /**
@@ -208,14 +197,14 @@ class ValidateByRules
      * @param int $depth
      * @param string $keyPath
      * @param mixed $var
-     * @param array|object $rules
+     * @param ValidationRuleSet|array|object $ruleSet
      *
      * @return bool
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidRuleException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($depth, $keyPath, $var, $rules)
+    protected function internalChallenge($depth, $keyPath, $var, $ruleSet)
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -224,16 +213,16 @@ class ValidateByRules
         }
 
         $rules_found = $alternative_enum = $table_elements = $list_item_prototype = [];
-        foreach ($rules as $k => $v) {
-            if (ctype_digit('' . $k)) {
+        foreach ($ruleSet as $ruleKey => $ruleValue) {
+            if (ctype_digit('' . $ruleKey)) {
                 // Bucket is simply the name of a rule; key is int, value is the rule.
-                $rule = $v;
+                $rule = $ruleValue;
                 $args = true;
             } else {
                 // Bucket key is name of the rule,
                 // value is arguments for the rule method.
-                $rule = $k;
-                $args = $v;
+                $rule = $ruleKey;
+                $args = $ruleValue;
             }
             switch ($rule) {
                 case 'optional':
@@ -241,34 +230,38 @@ class ValidateByRules
                     // Only used when working on tableElements|listItemPrototype.
                     break;
                 case 'alternativeEnum':
+                    if (!$args || !is_array($args)) {
+                        throw new InvalidRuleException(
+                            'Non-provider validation rule[alternativeEnum] type['
+                            . (!is_object($args) ? gettype($args) : get_class($args))
+                            . '] is not non-empty array.'
+                        );
+                    }
+                    $alternative_enum = $args;
+                    break;
                 case 'tableElements':
                 case 'listItemPrototype':
                     $arg_type = $this->ruleProvider->container($args);
                     if (!$arg_type) {
-                        throw new InvalidArgumentException(
-                            'Args for validation rule[' . $rule
+                        throw new InvalidRuleException(
+                            'Non-provider validation rule[' . $rule
                             . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
-                            . '] is not a container.'
+                            . '] is not a array|object.'
                         );
                     }
                     if ($arg_type == 'array') {
-                        $args_array =& $args;
+                        $args_array = $args;
                     } else {
                         $args_array = (array) $args;
                     }
                     if (!$args_array) {
-                        if (!$arg_type) {
-                            throw new InvalidArgumentException(
-                                'Args for validation rule[' . $rule
-                                . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
-                                . '] is empty.'
-                            );
-                        }
+                        throw new InvalidRuleException(
+                            'Non-provider validation rule[' . $rule
+                            . '] type[' . (!is_object($args) ? gettype($args) : get_class($args))
+                            . '] is empty.'
+                        );
                     }
                     switch ($rule) {
-                        case 'alternativeEnum':
-                            $alternative_enum = $args_array;
-                            break;
                         case 'tableElements':
                             $table_elements = $args_array;
                             break;
@@ -280,11 +273,11 @@ class ValidateByRules
                 default:
                     // Check for dupe; 'rule':args as well as N:'rule'.
                     if ($rules_found && isset($rules_found[$rule])) {
-                        throw new InvalidArgumentException('Duplicate validation rule[' . $rule . '].');
+                        throw new InvalidRuleException('Duplicate validation rule[' . $rule . '].');
                     }
                     // Check rule method existance.
                     if (!in_array($rule, $this->ruleMethods)) {
-                        throw new InvalidArgumentException('Non-existent validation rule[' . $rule . '].');
+                        throw new InvalidRuleException('Non-existent validation rule[' . $rule . '].');
                     }
 
                     $rules_found[$rule] = $args;
@@ -341,8 +334,8 @@ class ValidateByRules
         $container_type = $this->ruleProvider->container($var);
         if (!$container_type) {
             // A-OK: one should - for convenience - be allowed to use
-            // the 'tableElements' rule, without explicitly declaring/using
-            // a container type checker.
+            // the 'tableElements' and/or 'list_item_prototype' rule, without
+            // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
                 $this->record[] = $keyPath . ': tableElements - ' . gettype($var) . ' is not a container';
             }
@@ -364,7 +357,15 @@ class ValidateByRules
                     foreach ($table_elements as $key => $sub_rules) {
                         if ($is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
-                            if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
+                            if (is_array($sub_rules)) {
+                                if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules, true)) {
+                                    if ($this->recordFailure) {
+                                        // We don't stop on failure when recording.
+                                        continue;
+                                    }
+                                    return false;
+                                }
+                            } elseif (empty($sub_rules->optional)) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
                                     continue;

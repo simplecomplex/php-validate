@@ -36,6 +36,8 @@ interface RuleProviderInterface
      * Methods of the class that a ValidateByRules instance should never call.
      *
      * @return array
+     *
+     * @see Validate::getNonRuleMethods()
      */
     public function getNonRuleMethods() : array;
 
@@ -44,11 +46,11 @@ interface RuleProviderInterface
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
-     * @see Validate::empty()
-     *
      * @param mixed $var
      *
      * @return bool
+     *
+     * @see Validate::empty()
      */
     public function empty($var) : bool;
 
@@ -57,11 +59,11 @@ interface RuleProviderInterface
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
      *
-     * @see Validate::nonEmpty()
-     *
      * @param mixed $var
      *
      * @return bool
+     *
+     * @see Validate::nonEmpty()
      */
     public function nonEmpty($var) : bool;
 
@@ -72,8 +74,6 @@ interface RuleProviderInterface
      *
      * The method must log or throw exception if arg allowedValues isn't a non-empty array.
      *
-     * @see Validate::enum()
-     *
      * @param mixed $var
      * @param array $allowedValues
      *      [
@@ -83,6 +83,8 @@ interface RuleProviderInterface
      *      ]
      *
      * @return bool
+     *
+     * @see Validate::enum()
      */
     public function enum($var, array $allowedValues) : bool;
 
@@ -92,13 +94,13 @@ interface RuleProviderInterface
      * Must return string (array|arrayAccess|traversable|object) on pass,
      * boolean false on validation failure.
      *
-     * @see Validate::container()
-     *
      * @param mixed $var
      *
      * @return string|bool
      *      String (array|arrayAccess|traversable|object) on pass,
      *      boolean false on validation failure.
+     *
+     * @see Validate::container()
      */
     public function container($var);
 
@@ -108,13 +110,13 @@ interface RuleProviderInterface
      * Must return string (array|arrayAccess|traversable) on pass,
      * boolean false on validation failure.
      *
-     * @see Validate::iterable()
-     *
      * @param mixed $var
      *
      * @return string|bool
      *      String (array|arrayAccess|traversable) on pass,
      *      boolean false on validation failure.
+     *
+     * @see Validate::iterable()
      */
     public function iterable($var);
 }

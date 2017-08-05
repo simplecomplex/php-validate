@@ -13,6 +13,8 @@ use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
+// @todo: rename all $var parameters to $subject.
+
 /**
  * Validate almost anything.
  *
@@ -42,6 +44,9 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * must check those arguments for type/emptyness and throw exception
  * on such error.
  *
+ * @dependency-injection-container validator
+ *      Suggested ID of a global Validate instance.
+ *
  * @package SimpleComplex\Validate
  */
 class Validate implements RuleProviderInterface
@@ -63,6 +68,7 @@ class Validate implements RuleProviderInterface
      * @see \Slim\Container
      *
      * @param mixed ...$constructorParams
+     *      Validate child class constructor may have parameters.
      *
      * @return Validate
      *      static, really, but IDE might not resolve that.
@@ -71,6 +77,7 @@ class Validate implements RuleProviderInterface
     {
         // Unsure about null ternary ?? for class and instance vars.
         if (!static::$instance) {
+            // Validate child class constructor may have parameters.
             static::$instance = new static(...$constructorParams);
         }
         return static::$instance;
@@ -167,25 +174,25 @@ class Validate implements RuleProviderInterface
      * Instance saved on ValidateByRules class, not here.
      *
      * @param mixed $var
-     * @param array|object $rules
+     * @param ValidationRuleSet|array|object $ruleSet
      *
      * @return bool
      *
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, $rules) : bool
+    public function challenge($var, $ruleSet) : bool
     {
         // Re-uses instance on ValidateByRules rules.
         // Since we pass this object to the ValidateByRules instance,
         // we shan't refer the ValidateByRules instance directly.
         return ValidateByRules::getInstance(
             $this
-        )->challenge($var, $rules);
+        )->challenge($var, $ruleSet);
     }
 
     /**
-     * Validate by a list of rules,
+     * Validate by a list of rules, recording validation failures.
      *
      * Creates a new ValidateByRules instance on every call.
      *
@@ -197,7 +204,7 @@ class Validate implements RuleProviderInterface
      * @endcode
      *
      * @param mixed $var
-     * @param array|object $rules
+     * @param ValidationRuleSet|array|object $ruleSet
      *
      * @return array {
      *      @var bool passed
@@ -207,13 +214,13 @@ class Validate implements RuleProviderInterface
      * @throws \Throwable
      *      Propagated.
      */
-    public function challengeRecording($var, $rules)
+    public function challengeRecording($var, $ruleSet)
     {
         $validate_by_rules = new ValidateByRules($this, [
             'recordFailure' => true,
         ]);
 
-        $validate_by_rules->challenge($var, $rules);
+        $validate_by_rules->challenge($var, $ruleSet);
         $record = $validate_by_rules->getRecord();
 
         return [
