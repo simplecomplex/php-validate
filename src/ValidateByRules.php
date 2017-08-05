@@ -20,7 +20,7 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * Purpose
  * -------
  * Provides means of:
- * 1) calling more validation methods on a var _by configuration_
+ * 1) calling more validation methods on a subject _by configuration_
  * 2) validating buckets (and sub buckets) of objects and arrays
  *
  * Design considerations - proxy class pattern
@@ -156,7 +156,7 @@ class ValidateByRules
      *
      * @uses ValidationRuleSet::ruleMethodsAvailable()
      *
-     * @param mixed $var
+     * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
      *      A list of rules; either N:'rule' or 'rule':true or 'rule':[specs].
      *      [
@@ -171,7 +171,7 @@ class ValidateByRules
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($var, $ruleSet)
+    public function challenge($subject, $ruleSet)
     {
         if (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
@@ -185,7 +185,7 @@ class ValidateByRules
             $this->ruleMethods = ValidationRuleSet::ruleMethodsAvailable($this->ruleProvider);
         }
 
-        return $this->internalChallenge(0, '', $var, $ruleSet);
+        return $this->internalChallenge(0, '', $subject, $ruleSet);
     }
 
     /**
@@ -196,7 +196,7 @@ class ValidateByRules
      *
      * @param int $depth
      * @param string $keyPath
-     * @param mixed $var
+     * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
      *
      * @return bool
@@ -204,7 +204,7 @@ class ValidateByRules
      * @throws InvalidRuleException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($depth, $keyPath, $var, $ruleSet)
+    protected function internalChallenge($depth, $keyPath, $subject, $ruleSet)
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -291,14 +291,14 @@ class ValidateByRules
             // We expect more boolean trues than arrays;
             // few Validate methods take secondary args.
             if (!$args || $args === true || !is_array($args)) {
-                if (!$this->ruleProvider->{$rule}($var)) {
+                if (!$this->ruleProvider->{$rule}($subject)) {
                     $failed = true;
                     if ($this->recordFailure) {
                         $record[] = $rule;
                     }
                     break;
                 }
-            } elseif (!$this->ruleProvider->{$rule}($var, ...$args)) {
+            } elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
                 $failed = true;
                 if ($this->recordFailure) {
                     $record[] = $rule;
@@ -310,7 +310,7 @@ class ValidateByRules
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternative_enum) {
-                if ($this->ruleProvider->enum($var, $alternative_enum)) {
+                if ($this->ruleProvider->enum($subject, $alternative_enum)) {
                     return true;
                 }
                 if ($this->recordFailure) {
@@ -330,14 +330,14 @@ class ValidateByRules
         }
 
         // Do 'tableElements'.
-        // Check that input var is an object or array, and get which type.
-        $container_type = $this->ruleProvider->container($var);
+        // Check that subject is an object or array, and get which type.
+        $container_type = $this->ruleProvider->container($subject);
         if (!$container_type) {
             // A-OK: one should - for convenience - be allowed to use
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': tableElements - ' . gettype($var) . ' is not a container';
+                $this->record[] = $keyPath . ': tableElements - ' . gettype($subject) . ' is not a container';
             }
             return false;
         }
@@ -355,7 +355,7 @@ class ValidateByRules
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
                     foreach ($table_elements as $key => $sub_rules) {
-                        if ($is_array ? !array_key_exists($key, $var) : !$var->offsetExists($key)) {
+                        if ($is_array ? !array_key_exists($key, $subject) : !$subject->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (is_array($sub_rules)) {
                                 if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules, true)) {
@@ -376,7 +376,7 @@ class ValidateByRules
                             $element_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
-                                $depth + 1, $keyPath . '[' . $key . ']', $var[$key], $sub_rules)
+                                $depth + 1, $keyPath . '[' . $key . ']', $subject[$key], $sub_rules)
                             ) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
@@ -390,7 +390,7 @@ class ValidateByRules
                 default:
                     // Object.
                     foreach ($table_elements as $key => $sub_rules) {
-                        if (!property_exists($var, $key)) {
+                        if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($sub_rules['optional']) && !in_array('optional', $sub_rules)) {
                                 if ($this->recordFailure) {
@@ -402,7 +402,7 @@ class ValidateByRules
                         } else {
                             $element_list_skip_keys[] = $key;
                             // Recursion.
-                            if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $var->{$key}, $sub_rules)) {
+                            if (!$this->internalChallenge($depth + 1, $keyPath . '->' . $key, $subject->{$key}, $sub_rules)) {
                                 if ($this->recordFailure) {
                                     // We don't stop on failure when recording.
                                     continue;
@@ -425,7 +425,7 @@ class ValidateByRules
                     $prefix = '->';
                     $suffix = '';
             }
-            foreach ($var as $index => $item) {
+            foreach ($subject as $index => $item) {
                 if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
                     // Recursion.
                     if (!$this->internalChallenge(
