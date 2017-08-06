@@ -3,6 +3,11 @@ SimpleComplex/Validate 1.x, 2017-08-06
 - Non-provider rule listItems replaces listItemPrototype.
 - Fixed that optional is to be ignored for root ruleSet; not the opposite.
 - Fixed that recording validation must record missing non-optional bucket.
+- Fixed that listItems subsidary rules minOccur/maxOccur shan't stop
+  validation on failure when recording failures.
+- Abandoned attempts to make listItems support un-nested singleton item;
+  that awful XML pattern. Users must instead use two (similar) rule sets.
+- Implemented tableElements subsidary rules exclusive, whitelist, blacklist.
 
 SimpleComplex/Validate 1.x, 2017-08-05
 --------------------------------------

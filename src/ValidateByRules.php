@@ -332,11 +332,76 @@ class ValidateByRules
         // elements and list items within the same container (XML sucks ;-).
         // To prevent collision (repeated validation of elements) we filter
         // declared tableElements out of list validation.
-        $element_list_skip_keys = [];
+        $item_list_skip_keys = [];
+
         if ($table_elements) {
-
-            // @todo: do tableElements subsidary flags.
-
+            $subject_keys = $specified_keys = [];
+            $exclusive = $whitelist = $blacklist = false;
+            if (!empty($table_elements->exclusive)) {
+                $exclusive = true;
+                $specified_keys = array_keys(get_object_vars($table_elements->rulesByElements));
+            } elseif (!empty($table_elements->whitelist)) {
+                $whitelist = true;
+                $specified_keys = array_keys(get_object_vars($table_elements->rulesByElements));
+            } elseif (!empty($table_elements->blacklist)) {
+                $blacklist = true;
+            }
+            if ($exclusive || $whitelist || $blacklist) {
+                switch ($container_type) {
+                    case 'array':
+                        $subject_keys = array_keys($subject);
+                        break;
+                    case 'arrayAccess':
+                        if (method_exists($subject, 'getArrayCopy')) {
+                            $subject_keys = array_keys($subject->getArrayCopy());
+                        } else {
+                            // ArrayAccess itself (unlike ArrayObject)
+                            // specifies no means of getting keys.
+                            if ($this->recordFailure) {
+                                $this->record[] = $keyPath . ': tableElements '
+                                    . ($exclusive ? 'exclusive' : ($whitelist ? 'whitelist' : 'blacklist'))
+                                    . ' - subject class ' . gettype($subject)
+                                    . ' (\ArrayAccess) specifies no means of getting keys';
+                            }
+                            return false;
+                        }
+                        break;
+                    default:
+                        $subject_keys = array_keys(get_object_vars($subject));
+                }
+                if ($exclusive) {
+                    if (($illegal_keys = array_diff($subject_keys, $specified_keys))) {
+                        if ($this->recordFailure) {
+                            $this->record[] = $keyPath . ': tableElements exclusive - subject has key(s)'
+                                . ' not specified by elementsByRules, key(s) \''
+                                . join('\', \'', $illegal_keys) . '\'';
+                            // Don't stop on failure when recording.
+                        } else {
+                            return false;
+                        }
+                    }
+                } elseif ($whitelist) {
+                    if (($illegal_keys = array_diff($subject_keys, $specified_keys, $table_elements->whitelist))) {
+                        if ($this->recordFailure) {
+                            $this->record[] = $keyPath . ': tableElements whitelist - subject has key(s)'
+                                . ' not specified by elementsByRules nor whitelist, key(s) \''
+                                . join('\', \'', $illegal_keys) . '\'';
+                            // Don't stop on failure when recording.
+                        } else {
+                            return false;
+                        }
+                    }
+                } elseif (($illegal_keys = array_intersect($table_elements->blacklist, $subject_keys))) {
+                    if ($this->recordFailure) {
+                        $this->record[] = $keyPath . ': tableElements blacklist - subject has blacklisted key(s) \''
+                            . join('\', \'', $illegal_keys) . '\'';
+                        // Don't stop on failure when recording.
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            unset($subject_keys, $specified_keys, $illegal_keys);
             // Iterate array|object separately, don't want to clone object
             // to array (nor vice versa).
             switch ($container_type) {
@@ -350,19 +415,19 @@ class ValidateByRules
                                 if ($this->recordFailure) {
                                     $this->record[] = $keyPath . ': tableElements - non-optional bucket '
                                         . $key . ' doesn\'t exist';
-                                    // We don't stop on failure when recording.
+                                    // Don't stop on failure when recording.
                                     continue;
                                 }
                                 return false;
                             }
                         } else {
-                            $element_list_skip_keys[] = $key;
+                            $item_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
                                 $depth + 1, $keyPath . '[' . $key . ']', $subject[$key], $element_rule_set)
                             ) {
                                 if ($this->recordFailure) {
-                                    // We don't stop on failure when recording.
+                                    // Don't stop on failure when recording.
                                     continue;
                                 }
                                 return false;
@@ -379,19 +444,19 @@ class ValidateByRules
                                 if ($this->recordFailure) {
                                     $this->record[] = $keyPath . ': tableElements - non-optional bucket '
                                         . $key . ' doesn\'t exist';
-                                    // We don't stop on failure when recording.
+                                    // Don't stop on failure when recording.
                                     continue;
                                 }
                                 return false;
                             }
                         } else {
-                            $element_list_skip_keys[] = $key;
+                            $item_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
                                 $depth + 1, $keyPath . '->' . $key, $subject->{$key}, $element_rule_set)
                             ) {
                                 if ($this->recordFailure) {
-                                    // We don't stop on failure when recording.
+                                    // Don't stop on failure when recording.
                                     continue;
                                 }
                                 return false;
@@ -402,9 +467,6 @@ class ValidateByRules
         }
 
         if ($list_items) {
-
-            // @todo: do allowUnnestedSingle.
-
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
@@ -417,14 +479,14 @@ class ValidateByRules
             }
             $occurrence = 0;
             foreach ($subject as $index => $item) {
-                if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
+                if (!$item_list_skip_keys || !in_array($index, $item_list_skip_keys, true)) {
                     ++$occurrence;
                     // Recursion.
                     if (!$this->internalChallenge(
                         $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRules)
                     ) {
                         if ($this->recordFailure) {
-                            // We don't stop on failure when recording.
+                            // Don't stop on failure when recording.
                             continue;
                         }
                         return false;
@@ -436,16 +498,20 @@ class ValidateByRules
                 if ($this->recordFailure) {
                     $this->record[] = $keyPath . ': listItems - saw less instances ' . $occurrence
                         . ' than minOccur ' . $minOccur;
+                    // Don't stop on failure when recording.
+                } else {
+                    return false;
                 }
-                return false;
             }
             $maxOccur = $list_items->maxOccur ?? 0;
             if ($maxOccur && $occurrence > $maxOccur) {
                 if ($this->recordFailure) {
                     $this->record[] = $keyPath . ': listItems - saw more instances ' . $occurrence
                         . ' than maxOccur ' . $maxOccur;
+                    // Don't stop on failure when recording.
+                } else {
+                    return false;
                 }
-                return false;
             }
         }
 

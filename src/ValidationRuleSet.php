@@ -67,6 +67,8 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *      If no type checking rule then container() will be used.
  *
  *      Flags/lists exclusive, whitelist and blacklist are mutually exclusive.
+ *      If subject is \ArrayAccess without a getArrayCopy() method then that
+ *      will count as validation failure, because validation no possible.
  *
  *      tableElements combined with listItems is allowed.
  *      Relevant for a container derived from XML, which allows hash table
@@ -76,13 +78,9 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  * @property object|undefined $listItems {
  *      @var ValidationRuleSet|array|object $itemRules
+ *          Rule set which will be applied on every item.
  *      @var int|undefined $minOccur
  *      @var int|undefined $maxOccur
- *      @var bool|undefined $allowUnnestedSingle
- *          Allow that there's only one item and it isn't nested in a list.
- *          To accomodote the (XML) pattern: either a single item
- *          or a list of items.
- *          Illegal when listItems is combined with tableElements.
  * }
  *      Rule representing every element of array|object subject.
  *
@@ -129,7 +127,6 @@ class ValidationRuleSet
         $rule_methods = $ruleMethodsAvailable ? $ruleMethodsAvailable : static::ruleMethodsAvailable();
 
         $rules_found = [];
-        $has_table_elements = $has_list_items = false;
 
         foreach ($rules as $ruleKey => &$ruleValue) {
             unset($args);
@@ -369,7 +366,6 @@ class ValidationRuleSet
                             );
                         }
                         $this->tableElements = $ruleValue;
-                        $has_table_elements = true;
                     }
                     // listItems.
                     else {
@@ -414,18 +410,6 @@ class ValidationRuleSet
                                 . '] cannot be less that minOccur[' . $ruleValue->minOccur . '].'
                             );
                         }
-                        // allowUnnestedSingle.
-                        if (
-                            isset($ruleValue->allowUnnestedSingle)
-                            && !is_bool($ruleValue->allowUnnestedSingle)
-                        ) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                . ' bucket \'allowUnnestedSingle\' type['
-                                . static::phpType($ruleValue->allowUnnestedSingle)
-                                . '] is not boolean.'
-                            );
-                        }
                         // itemRules.
                         if (!isset($ruleValue->itemRules)) {
                             throw new InvalidRuleException(
@@ -447,7 +431,6 @@ class ValidationRuleSet
                             }
                         }
                         $this->listItems = $ruleValue;
-                        $has_list_items = true;
                     }
                     break;
 
@@ -514,13 +497,6 @@ class ValidationRuleSet
         }
         // Iteration ref.
         unset($ruleValue);
-
-        if ($has_table_elements && $has_list_items && !empty($this->listItems->allowUnnestedSingle)) {
-            throw new InvalidRuleException(
-                'Non-provider validation rule[listItems] true \'allowUnnestedSingle\' bucket is illegal in combination'
-                . ' with non-provider validation rule[tableElements], at depth[' .  $depth . '].'
-            );
-        }
     }
 
     /**
@@ -534,7 +510,7 @@ class ValidationRuleSet
      * @var string[]
      */
     const LIST_ITEMS_ALLOWED_KEYS = [
-        'itemRules', 'minOccur', 'maxOccur', 'allowUnnestedSingle',
+        'itemRules', 'minOccur', 'maxOccur',
     ];
 
 
