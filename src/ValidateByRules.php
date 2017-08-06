@@ -91,7 +91,7 @@ class ValidateByRules
         'optional',
         'alternativeEnum',
         'tableElements',
-        'listItemPrototype',
+        'listItems',
     ];
 
     /**
@@ -226,7 +226,7 @@ class ValidateByRules
             switch ($ruleKey) {
                 case 'optional':
                     // Do nothing, ignore here.
-                    // Only used when working on tableElements|listItemPrototype.
+                    // Only used when working on tableElements|listItems.
                     break;
                 case 'alternativeEnum':
                     // No need to check for falsy nor non-array $args;
@@ -327,7 +327,7 @@ class ValidateByRules
             return false;
         }
 
-        // tableElements + listItemPrototype is allowed.
+        // tableElements combined with listItems is allowed.
         // Relevant for a container derived from XML, which allows hash table
         // elements and list items within the same container (XML sucks ;-).
         // To prevent collision (repeated validation of elements) we filter
@@ -344,6 +344,8 @@ class ValidateByRules
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
+                                    $this->record[] = $keyPath . ': tableElements - non-optional bucket '
+                                        . $key . ' doesn\'t exist';
                                     // We don't stop on failure when recording.
                                     continue;
                                 }
@@ -371,6 +373,8 @@ class ValidateByRules
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
+                                    $this->record[] = $keyPath . ': tableElements - non-optional bucket '
+                                        . $key . ' doesn\'t exist';
                                     // We don't stop on failure when recording.
                                     continue;
                                 }
@@ -407,6 +411,7 @@ class ValidateByRules
             $occurrence = 0;
             foreach ($subject as $index => $item) {
                 if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
+                    ++$occurrence;
                     // Recursion.
                     if (!$this->internalChallenge(
                         $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRuleSet)
@@ -417,7 +422,6 @@ class ValidateByRules
                         }
                         return false;
                     }
-                    ++$occurrence;
                 }
             }
             $minOccur = $list_items->minOccur ?? 0;

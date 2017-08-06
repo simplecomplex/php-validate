@@ -16,7 +16,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * Validation rule set.
  *
  * Checks integrity of non-provider rules and converts child rule sets
- * (tableElements, listItemPrototype) to ValidationRuleSets.
+ * (tableElements, listItems.itemRuleSet) to ValidationRuleSets.
  *
  * Only checks integrity of arguments for the provider rule enum().
  * For all other provider rules the arguments get checked run-time
@@ -58,7 +58,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  *      If no type checking rule then container() will be used.
  *
- *      tableElements + listItemPrototype is allowed.
+ *      tableElements combined with listItems is allowed.
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
  *
@@ -66,17 +66,18 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  *      Only declared if relevant, otherwise undefined.
  *
- * @property ValidationRuleSet|undefined $listItemPrototype
- *      A rule set representing every element of array|object subject.
+ * @property array|object|undefined $listItems {
+ *      @var int|null|undefined $minOccur
+ *      @var int|null|undefined $maxOccur
+ *      @var ValidationRuleSet|array|object $itemRuleSet
+ * }
+ *      A rule representing every element of array|object subject.
  *
  *      If no type checking rule then container() will be used.
  *
- *      tableElements + listItemPrototype is allowed.
+ *      tableElements combined with listItems is allowed.
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
- *
- *      Non-ValidationRuleSet object/array will be converted
- *      to ValidationRuleSet.
  *
  *      Only declared if relevant, otherwise undefined.
  *
@@ -165,7 +166,7 @@ class ValidationRuleSet
 
             switch ($rule) {
                 case 'optional':
-                    if (!$depth && $args) {
+                    if ($depth && $args) {
                         $this->optional = true;
                     }
                     break;

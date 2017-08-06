@@ -18,7 +18,7 @@ namespace SimpleComplex\Validate;
  * argument of other type to a type declared parameter is ambiguous; coercion
  * or TypeError(?).
  * II  Illegal rule method names:
- * - optional, alternativeEnum, tableElements, listItemPrototype
+ * - optional, alternativeEnum, tableElements, listItems
  * @see ValidateByRules::NON_PROVIDER_RULES
  *
  * Referring a ValidateByRules instance is forbidden

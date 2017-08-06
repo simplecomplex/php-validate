@@ -1,3 +1,9 @@
+SimpleComplex/Validate 1.x, 2017-08-06
+--------------------------------------
+- Non-provider rule listItems replaces listItemPrototype.
+- Fixed that optional is to be ignored for root ruleSet; not the opposite.
+- Fixed that recording validation must record missing non-optional bucket.
+
 SimpleComplex/Validate 1.x, 2017-08-05
 --------------------------------------
 - Validation rule set class.
