@@ -171,13 +171,25 @@ function simple_complex_validate_test_cli()
                 'alternativeEnum' => [
                     null,
                 ],
-                'listItemPrototype' => [
+               /* 'listItemPrototype' => [
                     'string',
                     'alternativeEnum' => [
                         // Correctly defined as un-nested array.
                         true,
                         false,
-                        null,
+                    ]
+                ],*/
+                'listItems' => [
+                    'minOccur' => 1,
+                    'maxOccur' => 5,
+                    'itemRuleSet' => [
+                        'string',
+                        'alternativeEnum' => [
+                            // Correctly defined as un-nested array.
+                            true,
+                            false,
+                            null,
+                        ]
                     ]
                 ]
             ]
@@ -197,7 +209,8 @@ function simple_complex_validate_test_cli()
         'swooshy',
         [
             'luggageCarrier' => false,
-        ]
+        ],
+        null
     );
 
 
@@ -214,7 +227,7 @@ function simple_complex_validate_test_cli()
             'luggageCarrier' => false,
         ],
         [
-            null,
+            false,
             true,
             'paint',
             13,
@@ -239,7 +252,7 @@ class Bicycle
     public $accessories = [];
     public $various;
     /** */
-    public function __construct($wheels, $saddle, $sound, $accessories, $various = [])
+    public function __construct($wheels, $saddle, $sound, $accessories, $various)
     {
         $this->wheels = $wheels;
         $this->saddle = $saddle;

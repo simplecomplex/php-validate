@@ -75,9 +75,21 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
  *
- *      Non-ValidationRuleSet object/array will be cast to ValidationRuleSet.
+ *      Non-ValidationRuleSet object/array will be converted
+ *      to ValidationRuleSet.
  *
  *      Only declared if relevant, otherwise undefined.
+ *
+ *
+ * @property string[]|object $blackListedKeys (tableElements.) @todo
+ *      List of array|object subject element keys that are illegal. @todo
+ *
+ * @property string[]|object $whiteListedKeys (tableElements.) @todo
+ *      List of the only array|object subject element keys that are legal,
+ *      apart from keys defining (sub) rule sets. @todo
+ *
+ * @property bool $exclusive (tableElements.) @todo
+ *      Require that array|object subject @todo
  *
  *
  * @package SimpleComplex\Validate
@@ -110,6 +122,40 @@ class ValidationRuleSet
                 // Bucket is simply the name of a rule; key is int, value is the rule.
                 $rule = $ruleValue;
                 $args = true;
+                // The only non-provider rules supported is 'optional';
+                // the others cannot be boolean.
+                // And only provider rules having no parameters are legal here.
+                switch ($rule) {
+                    case 'optional':
+                        break;
+                    case 'enum':
+                        throw new InvalidRuleException(
+                            'Provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
+                            . ' cannot be defined via numeric key and bucket value,'
+                            . ' because cannot be (simple) boolean true,'
+                            . ' must be array (of secondary rule method arguments).'
+                        );
+                    default:
+                        if (in_array($rule, ValidateByRules::NON_PROVIDER_RULES)) {
+                            throw new InvalidRuleException(
+                                'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
+                                . ' cannot be defined via numeric key and bucket value,'
+                                . ' because cannot be (simple) boolean true,'
+                                . ' must be non-scalar.'
+                            );
+                        }
+                        if (!in_array($rule, $rule_methods)) {
+                            throw new InvalidRuleException(
+                                'Non-existent validation rule[' . $rule . '] at depth[' .  $depth . '],'
+                                . ' was attempted to be defined via numeric key and bucket value.'
+                            );
+                        }
+                        // Could check whether the rule method has secondary paramaters, like
+                        //if ((new \ReflectionMethod($ruleProvider, $rule))->getNumberOfParameters() > 1) {
+                        //    throw new InvalidRuleException('... must be array (of secondary rule method arguments).');
+                        //}
+                        // but doesn't know rule provider instance (nor class) here.
+                }
             } else {
                 // Bucket key is name of the rule,
                 // value is arguments for the rule method.
@@ -160,9 +206,12 @@ class ValidationRuleSet
                     break;
 
                 case 'tableElements':
-                case 'listItemPrototype':
-                    $arg_type = is_array($args) ? 'array' : (is_object($args) ? 'object' : false);
-                    if (!$arg_type) {
+                case 'listItems':
+                    if (is_array($args)) {
+                        $args_object = (object) $args;
+                    } elseif (is_object($args)) {
+                        $args_object = $args;
+                    } else {
                         $msg = 'Non-provider validation rule[' . $rule
                             . '] at depth[' .  $depth . '] type['
                             . (!is_object($args) ? gettype($args) : get_class($args))
@@ -181,42 +230,28 @@ class ValidationRuleSet
                     }
                     switch ($rule) {
                         case 'tableElements':
-                            if ($arg_type == 'array') {
-                                $args_array =& $args;
-                            } else {
-                                $args_array = (array) $args;
-                            }
-                            if (!$args_array) {
-                                throw new InvalidRuleException(
-                                    'Non-provider validation rule[tableElements] at depth[' .  $depth . '] type['
-                                    . (!is_object($args) ? gettype($args) : get_class($args))
-                                    . '] is empty.'
-                                );
-                            }
-                            $tableElements = [];
+                            $tableElements = $args_object;
                             try {
                                 $index = -1;
-                                foreach ($args_array as $elementName => $subRuleSet) {
+                                foreach ($tableElements as $elementName => &$subRuleSet) {
                                     $name = $elementName;
                                     ++$index;
-                                    if (is_array($subRuleSet)) {
-                                        $tableElements[$elementName] = new static($subRuleSet);
-                                    } elseif (is_object($subRuleSet)) {
-                                        if ($subRuleSet instanceof ValidationRuleSet) {
-                                            $tableElements[$elementName] = $subRuleSet;
-                                        } else {
-                                            $tableElements[$elementName] = new static(
+                                    if (!($subRuleSet instanceof ValidationRuleSet)) {
+                                        if (is_array($subRuleSet) || is_object($subRuleSet)) {
+                                            $subRuleSet = new static(
                                                 $subRuleSet, $rule_methods, $depth + 1
                                             );
+                                        } else {
+                                            throw new InvalidRuleException(
+                                                'Non-provider validation rule[tableElements] at depth[' .  $depth
+                                                . '] element rule set type['
+                                                . (!is_object($args) ? gettype($args) : get_class($args))
+                                                . '] is not ValidationRuleSet|array|object.'
+                                            );
                                         }
-                                    } else {
-                                        throw new InvalidRuleException(
-                                            'Sub rule set type['
-                                            . (!is_object($args) ? gettype($args) : get_class($args))
-                                            . '] is not array|object.'
-                                        );
                                     }
                                 }
+                                unset($subRuleSet);
                             } catch (\Throwable $xc) {
                                 $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth
                                     . '] element index[' . $index . '] name[' . $name . ']'
@@ -235,18 +270,88 @@ class ValidationRuleSet
                                 }
                                 throw new InvalidRuleException($msg . ' ' . $xc->getMessage());
                             }
-                            $this->tableElements =& $tableElements;
-                            break;
-                        case 'listItemPrototype':
-                            if ($args instanceof ValidationRuleSet) {
-                                $this->listItemPrototype = $args;
-                            } else {
-                                $this->listItemPrototype = new static(
-                                    $args, $rule_methods, $depth + 1
+                            if ($index == -1) {
+                                throw new InvalidRuleException(
+                                    'Non-provider validation rule[tableElements] at depth[' .  $depth . '] type['
+                                    . (!is_object($args) ? gettype($args) : get_class($args))
+                                    . '] is empty.'
                                 );
                             }
+                            $this->tableElements = $tableElements;
+                            break;
+                        case 'listItems':
+                            // Allow only specific buckets.
+                            if (array_diff(
+                                $prop_keys = array_keys(get_object_vars($args_object)),
+                                static::ITEM_LIST_ALLOWED_KEYS
+                            )) {
+                                throw new InvalidRuleException(
+                                    'Non-provider validation rule[listItems] at depth[' .  $depth . '] type['
+                                    . (!is_object($args) ? gettype($args) : get_class($args))
+                                    . '] can only contain accessible keys[' . join(', ', static::ITEM_LIST_ALLOWED_KEYS)
+                                    . '], saw[' . join(', ', $prop_keys) . '].'
+                                );
+                            }
+                            unset($prop_keys);
+                            // minOccur|maxOccur must be non-negative integer.
+                            $occur_keys = array('minOccur' , 'maxOccur');
+                            foreach ($occur_keys as $occur_key) {
+                                if (isset($args_object->{$occur_key})) {
+                                    if (!is_int($args_object->{$occur_key}) || $args_object->{$occur_key} < 0) {
+                                        throw new InvalidRuleException(
+                                            'Non-provider validation rule[listItems] at depth[' .  $depth . '] type['
+                                            . (!is_object($args) ? gettype($args) : get_class($args))
+                                            . '] bucket {$occur_key} type['
+                                            . (!is_object($args_object->{$occur_key}) ?
+                                                gettype($args_object->{$occur_key}) :
+                                                get_class($args_object->{$occur_key}))
+                                            . ']'
+                                            . (!is_int($args_object->{$occur_key}) ? '' :
+                                                ' value[' . $args_object->{$occur_key} . ']')
+                                            . ' is not non-negative integer.'
+                                        );
+                                    }
+                                }
+                            }
+                            unset($occur_keys, $occur_key);
+                            // Positive maxOccur cannot be less than minOccur.
+                            // maxOccur:zero means no maximum occurrence.
+                            if (
+                                isset($args_object->maxOccur) && isset($args_object->minOccur)
+                                && $args_object->maxOccur && $args_object->maxOccur < $args_object->minOccur
+                            ) {
+                                throw new InvalidRuleException(
+                                    'Non-provider validation rule[listItems] at depth[' .  $depth . '] type['
+                                    . (!is_object($args) ? gettype($args) : get_class($args))
+                                    . '] positive maxOccur[' . $args_object->maxOccur
+                                    . '] cannot be less that minOccur[' . $args_object->minOccur . '].'
+                                );
+                            }
+                            if (!isset($args_object->itemRuleSet)) {
+                                throw new InvalidRuleException(
+                                    'Non-provider validation rule[listItems] at depth[' .  $depth . '] type['
+                                    . (!is_object($args) ? gettype($args) : get_class($args))
+                                    . '] misses ValidationRuleSet|array|object itemRuleSet bucket.'
+                                );
+                            }
+                            if (!($args_object->itemRuleSet instanceof ValidationRuleSet)) {
+                                if (is_array($args_object->itemRuleSet) || is_object($args_object->itemRuleSet)) {
+                                    $args_object->itemRuleSet = new static(
+                                        $args_object->itemRuleSet, $rule_methods, $depth + 1
+                                    );
+                                } else {
+                                    throw new InvalidRuleException(
+                                        'Non-provider validation rule[listItems] at depth[' .  $depth
+                                        . ' itemRuleSet bucket type['
+                                        . (!is_object($args) ? gettype($args) : get_class($args))
+                                        . '] is not ValidationRuleSet|array|object.'
+                                    );
+                                }
+                            }
+                            $this->listItems = $args_object;
                             break;
                     }
+                    unset($args_object);
                     break;
 
                 default:
@@ -308,6 +413,13 @@ class ValidationRuleSet
             }
         }
     }
+
+    /**
+     * @var string[]
+     */
+    const ITEM_LIST_ALLOWED_KEYS = [
+        'minOccur', 'maxOccur', 'itemRuleSet'
+    ];
 
 
     /**

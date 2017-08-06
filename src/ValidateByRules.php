@@ -220,7 +220,8 @@ class ValidateByRules
             );
         }
 
-        $rules_found = $alternative_enum = $table_elements = $list_item_prototype = [];
+        $rules_found = [];
+        $alternative_enum = $table_elements = $list_items = null;
         foreach ($ruleSet as $ruleKey => $ruleValue) {
             switch ($ruleKey) {
                 case 'optional':
@@ -237,10 +238,10 @@ class ValidateByRules
                     // do that, and makes it array.
                     $table_elements = $ruleValue;
                     break;
-                case 'listItemPrototype':
+                case 'listItems':
                     // No need to check for type; ValidationRuleSet do that,
                     // and makes it a ValidationRuleSet.
-                    $list_item_prototype = $ruleValue;
+                    $list_items = $ruleValue;
                     break;
                 default:
                     // No need to check for dupes; ValidationRuleSet does that.
@@ -309,7 +310,7 @@ class ValidateByRules
         }
 
         // Didn't fail.
-        if (!$table_elements && !$list_item_prototype) {
+        if (!$table_elements && !$list_items) {
             return true;
         }
 
@@ -392,7 +393,7 @@ class ValidateByRules
             }
         }
 
-        if ($list_item_prototype) {
+        if ($list_items) {
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
@@ -403,11 +404,12 @@ class ValidateByRules
                     $prefix = '->';
                     $suffix = '';
             }
+            $occurrence = 0;
             foreach ($subject as $index => $item) {
                 if (!$element_list_skip_keys || !in_array($index, $element_list_skip_keys, true)) {
                     // Recursion.
                     if (!$this->internalChallenge(
-                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_item_prototype)
+                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRuleSet)
                     ) {
                         if ($this->recordFailure) {
                             // We don't stop on failure when recording.
@@ -415,7 +417,24 @@ class ValidateByRules
                         }
                         return false;
                     }
+                    ++$occurrence;
                 }
+            }
+            $minOccur = $list_items->minOccur ?? 0;
+            if ($minOccur && $occurrence < $minOccur) {
+                if ($this->recordFailure) {
+                    $this->record[] = $keyPath . ': listItems - saw less instances ' . $occurrence
+                        . ' than minOccur ' . $minOccur;
+                }
+                return false;
+            }
+            $maxOccur = $list_items->maxOccur ?? 0;
+            if ($maxOccur && $occurrence > $maxOccur) {
+                if ($this->recordFailure) {
+                    $this->record[] = $keyPath . ': listItems - saw more instances ' . $occurrence
+                        . ' than maxOccur ' . $maxOccur;
+                }
+                return false;
             }
         }
 
