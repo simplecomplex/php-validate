@@ -343,7 +343,7 @@ class ValidateByRules
                 case 'array':
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
-                    foreach ($table_elements->elements as $key => $element_rule_set) {
+                    foreach ($table_elements->rulesByElements as $key => $element_rule_set) {
                         if ($is_array ? !array_key_exists($key, $subject) : !$subject->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -372,7 +372,7 @@ class ValidateByRules
                     break;
                 default:
                     // Object.
-                    foreach ($table_elements->elements as $key => $element_rule_set) {
+                    foreach ($table_elements->rulesByElements as $key => $element_rule_set) {
                         if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -421,7 +421,7 @@ class ValidateByRules
                     ++$occurrence;
                     // Recursion.
                     if (!$this->internalChallenge(
-                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRuleSet)
+                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRules)
                     ) {
                         if ($this->recordFailure) {
                             // We don't stop on failure when recording.

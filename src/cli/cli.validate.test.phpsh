@@ -119,7 +119,7 @@ function simple_complex_validate_test_cli()
             'Bicycle'
         ],
         'tableElements' => [
-            'elements' => [
+            'rulesByElements' => [
                 'wheels' => [
                     'integer',
                     'range' => [
@@ -156,7 +156,7 @@ function simple_complex_validate_test_cli()
                 'accessories' => [
                     'array',
                     'tableElements' => [
-                        'elements' => [
+                        'rulesByElements' => [
                             'luggageCarrier' => [
                                 'boolean',
                                 'optional'
@@ -176,7 +176,7 @@ function simple_complex_validate_test_cli()
                     ],
                     'listItems' => [
                         'maxOccur' => 5,
-                        'itemRuleSet' => [
+                        'itemRules' => [
                             'string',
                             'alternativeEnum' => [
                                 // Correctly defined as un-nested array.

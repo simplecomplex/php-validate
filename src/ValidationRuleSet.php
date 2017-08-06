@@ -16,7 +16,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * Validation rule set.
  *
  * Checks integrity of non-provider rules and converts child rule sets
- * (tableElements, listItems.itemRuleSet) to ValidationRuleSets.
+ * (tableElements.rulesByElements, listItems.itemRules) to ValidationRuleSets.
  *
  * Only checks integrity of arguments for the provider rule enum().
  * For all other provider rules the arguments get checked run-time
@@ -51,14 +51,14 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  *
  * @property object|undefined $tableElements {
- *      @var object $elements
+ *      @var object $rulesByElements
  *          ValidationRuleSet by element key.
  *      @var bool|undefined $exclusive
  *          Subject array|object must not contain any other keys
- *          than listed in $elements.
+ *          than those defined by $rulesByElements.
  *      @var array|undefined $whitelist
  *          Subject array|object must only contain these keys,
- *          apart from the keys listed in $elements.
+ *          apart from the keys defined by $rulesByElements.
  *      @var array|undefined $blacklist
  *          Subject array|object must not contain these keys.
  * }
@@ -75,7 +75,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *      Only declared if relevant, otherwise undefined.
  *
  * @property object|undefined $listItems {
- *      @var ValidationRuleSet|array|object $itemRuleSet
+ *      @var ValidationRuleSet|array|object $itemRules
  *      @var int|undefined $minOccur
  *      @var int|undefined $maxOccur
  *      @var bool|undefined $allowUnnestedSingle
@@ -300,18 +300,18 @@ class ValidationRuleSet
                             );
                         }
                         unset($has_lists);
-                        // elements.
-                        if (!isset($ruleValue->elements)) {
+                        // rulesByElements.
+                        if (!isset($ruleValue->rulesByElements)) {
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                . ' misses array|object \'elements\' bucket.'
+                                . ' misses array|object \'rulesByElements\' bucket.'
                             );
                         }
-                        if (is_array($ruleValue->elements)) {
-                            $ruleValue->elements = (object) $ruleValue->elements;
-                        } elseif (!is_object($ruleValue->elements)) {
+                        if (is_array($ruleValue->rulesByElements)) {
+                            $ruleValue->rulesByElements = (object) $ruleValue->rulesByElements;
+                        } elseif (!is_object($ruleValue->rulesByElements)) {
                             $msg = 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
-                                . ' bucket \'elements\' type[' . static::phpType($ruleValue->elements)
+                                . ' bucket \'rulesByElements\' type[' . static::phpType($ruleValue->rulesByElements)
                                 . '] is not a array|object.';
                             $container = Dependency::container();
                             if ($container->has('logger')) {
@@ -327,7 +327,7 @@ class ValidationRuleSet
                         }
                         try {
                             $index = -1;
-                            foreach ($ruleValue->elements as $elementName => &$subRuleSet) {
+                            foreach ($ruleValue->rulesByElements as $elementName => &$subRuleSet) {
                                 $name = $elementName;
                                 ++$index;
                                 if (!($subRuleSet instanceof ValidationRuleSet)) {
@@ -426,22 +426,22 @@ class ValidationRuleSet
                                 . '] is not boolean.'
                             );
                         }
-                        // itemRuleSet.
-                        if (!isset($ruleValue->itemRuleSet)) {
+                        // itemRules.
+                        if (!isset($ruleValue->itemRules)) {
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                . ' misses ValidationRuleSet|array|object itemRuleSet bucket.'
+                                . ' misses ValidationRuleSet|array|object \'itemRules\' bucket.'
                             );
                         }
-                        if (!($ruleValue->itemRuleSet instanceof ValidationRuleSet)) {
-                            if (is_array($ruleValue->itemRuleSet) || is_object($ruleValue->itemRuleSet)) {
-                                $ruleValue->itemRuleSet = new static(
-                                    $ruleValue->itemRuleSet, $rule_methods, $depth + 1
+                        if (!($ruleValue->itemRules instanceof ValidationRuleSet)) {
+                            if (is_array($ruleValue->itemRules) || is_object($ruleValue->itemRules)) {
+                                $ruleValue->itemRules = new static(
+                                    $ruleValue->itemRules, $rule_methods, $depth + 1
                                 );
                             } else {
                                 throw new InvalidRuleException(
                                     'Non-provider validation rule[listItems] at depth[' .  $depth
-                                    . '] itemRuleSet bucket type[' . static::phpType($ruleValue->itemRuleSet)
+                                    . '] \'itemRules\' bucket type[' . static::phpType($ruleValue->itemRules)
                                     . '] is not ValidationRuleSet|array|object.'
                                 );
                             }
@@ -527,14 +527,14 @@ class ValidationRuleSet
      * @var string[]
      */
     const TABLE_ELEMENTS_ALLOWED_KEYS = [
-        'elements', 'exclusive', 'whitelist', 'blacklist',
+        'rulesByElements', 'exclusive', 'whitelist', 'blacklist',
     ];
 
     /**
      * @var string[]
      */
     const LIST_ITEMS_ALLOWED_KEYS = [
-        'itemRuleSet', 'minOccur', 'maxOccur', 'allowUnnestedSingle',
+        'itemRules', 'minOccur', 'maxOccur', 'allowUnnestedSingle',
     ];
 
 
