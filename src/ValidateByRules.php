@@ -229,18 +229,18 @@ class ValidateByRules
                     // Only used when working on tableElements|listItems.
                     break;
                 case 'alternativeEnum':
-                    // No need to check for falsy nor non-array $args;
+                    // No need to check for falsy nor non-array;
                     // ValidationRuleSet do that.
                     $alternative_enum = $ruleValue;
                     break;
                 case 'tableElements':
-                    // No need to check for type nor emptyness; ValidationRuleSet
-                    // do that, and makes it array.
+                    // No need to check for type; ValidationRuleSet do that,
+                    // and makes it object.
                     $table_elements = $ruleValue;
                     break;
                 case 'listItems':
                     // No need to check for type; ValidationRuleSet do that,
-                    // and makes it a ValidationRuleSet.
+                    // and makes it object.
                     $list_items = $ruleValue;
                     break;
                 default:
@@ -334,12 +334,16 @@ class ValidateByRules
         // declared tableElements out of list validation.
         $element_list_skip_keys = [];
         if ($table_elements) {
-            // Iterate array|object separately, don't want to clone object to array.
+
+            // @todo: do tableElements subsidary flags.
+
+            // Iterate array|object separately, don't want to clone object
+            // to array (nor vice versa).
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
-                    foreach ($table_elements as $key => $element_rule_set) {
+                    foreach ($table_elements->elements as $key => $element_rule_set) {
                         if ($is_array ? !array_key_exists($key, $subject) : !$subject->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -368,7 +372,7 @@ class ValidateByRules
                     break;
                 default:
                     // Object.
-                    foreach ($table_elements as $key => $element_rule_set) {
+                    foreach ($table_elements->elements as $key => $element_rule_set) {
                         if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -398,6 +402,9 @@ class ValidateByRules
         }
 
         if ($list_items) {
+
+            // @todo: do allowUnnestedSingle.
+
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':

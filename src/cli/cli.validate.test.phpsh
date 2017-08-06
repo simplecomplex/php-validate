@@ -119,67 +119,70 @@ function simple_complex_validate_test_cli()
             'Bicycle'
         ],
         'tableElements' => [
-            'wheels' => [
-                'integer',
-                'range' => [
-                    1,
-                    3
-                ]
-            ],
-            'saddle' => [
-                'integer',
-                'alternativeEnum' => [
-                    // Wrongly defined as nested; confused by enum which
-                    // formally requires to be nested.
-                    // But ValidationRuleSet fixes this, as it does with
-                    // the opposite for (un-nested) enum.
-                    [
-                        true,
+            'elements' => [
+                'wheels' => [
+                    'integer',
+                    'range' => [
+                        1,
+                        3
                     ]
-                ]
-            ],
-            'sound' => [
-                'string' => true,
-                'enum' => [
-                    // Counterintuitive nesting, but formally correct because
-                    // the allowed values array is second arg to the enum()
-                    // method.
-                    // ValidationRuleSet fixes un-nested instance.
-                    [
-                        'silent',
-                        'swooshy',
-                        'clattering',
-                    ]
-                ]
-            ],
-            'accessories' => [
-                'array',
-                'tableElements' => [
-                    'luggageCarrier' => [
-                        'boolean',
-                        'optional'
-                    ],
-                    'lights' => [
-                        'numeric',
-                        'optional'
-                    ]
-                ]
-            ],
-            'various' => [
-                'array',
-                'optional',
-                'alternativeEnum' => [
-                    null,
                 ],
-                'listItems' => [
-                    'minOccur' => 0,
-                    'maxOccur' => 5,
-                    'itemRuleSet' => [
-                        'string',
-                        'alternativeEnum' => [
-                            // Correctly defined as un-nested array.
+                'saddle' => [
+                    'integer',
+                    'alternativeEnum' => [
+                        // Wrongly defined as nested; confused by enum which
+                        // formally requires to be nested.
+                        // But ValidationRuleSet fixes this, as it does with
+                        // the opposite for (un-nested) enum.
+                        [
                             true,
-                            false,
+                        ]
+                    ]
+                ],
+                'sound' => [
+                    'string' => true,
+                    'enum' => [
+                        // Counterintuitive nesting, but formally correct because
+                        // the allowed values array is second arg to the enum()
+                        // method.
+                        // ValidationRuleSet fixes un-nested instance.
+                        [
+                            'silent',
+                            'swooshy',
+                            'clattering',
+                        ]
+                    ]
+                ],
+                'accessories' => [
+                    'array',
+                    'tableElements' => [
+                        'elements' => [
+                            'luggageCarrier' => [
+                                'boolean',
+                                'optional'
+                            ],
+                            'lights' => [
+                                'numeric',
+                                'optional'
+                            ]
+                        ]
+                    ]
+                ],
+                'various' => [
+                    'array',
+                    'optional',
+                    'alternativeEnum' => [
+                        null,
+                    ],
+                    'listItems' => [
+                        'maxOccur' => 5,
+                        'itemRuleSet' => [
+                            'string',
+                            'alternativeEnum' => [
+                                // Correctly defined as un-nested array.
+                                true,
+                                false,
+                            ]
                         ]
                     ]
                 ]
