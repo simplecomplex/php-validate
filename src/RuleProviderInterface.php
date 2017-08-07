@@ -9,7 +9,7 @@ namespace SimpleComplex\Validate;
 
 /**
  * Describes required properties of a class - a 'rule provider' - that can
- * provide validation rules for a ValidateByRules instance.
+ * provide validation rules for a ValidateAgainstRuleSet instance.
  *
  * Rule method directives
  * ----------------------
@@ -19,13 +19,13 @@ namespace SimpleComplex\Validate;
  * or TypeError(?).
  * II  Illegal rule method names:
  * - optional, alternativeEnum, tableElements, listItems
- * @see ValidateByRules::NON_PROVIDER_RULES
+ * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
  *
- * Referring a ValidateByRules instance is forbidden
- * -------------------------------------------------
- * Neither class nor instance can refer a ValidateByRules instance
- * because a ValidateByRules instance refers this (the rule provider);
- * circular referencing is unhealthy.
+ * Referring a ValidateAgainstRuleSet instance is forbidden
+ * --------------------------------------------------------
+ * Neither class nor instance can refer a ValidateAgainstRuleSet instance
+ * because a ValidateAgainstRuleSet instance refers this (the rule provider);
+ * mutual referencing is unhealthy.
  *
  *
  * @package SimpleComplex\Validate
@@ -33,7 +33,8 @@ namespace SimpleComplex\Validate;
 interface RuleProviderInterface
 {
     /**
-     * Methods of the class that a ValidateByRules instance should never call.
+     * Names of methods of the rule provider that a ValidateAgainstRuleSet
+     * instance should never call.
      *
      * @return array
      *
@@ -42,7 +43,7 @@ interface RuleProviderInterface
     public function getNonRuleMethods() : array;
 
     /**
-     * There must be an 'empty' method, because ValidateByRules may need it.
+     * There must be an 'empty' method; ValidateAgainstRuleSet may need it.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
@@ -55,7 +56,7 @@ interface RuleProviderInterface
     public function empty($var) : bool;
 
     /**
-     * There must be a 'nonEmpty' method, because ValidateByRules may need it.
+     * There must be a 'nonEmpty' method; ValidateAgainstRuleSet may need it.
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
      *
@@ -68,7 +69,7 @@ interface RuleProviderInterface
     public function nonEmpty($var) : bool;
 
     /**
-     * There must be an 'enum' method, because ValidateByRules may need it.
+     * There must be an 'enum' method; ValidateAgainstRuleSet may need it.
      *
      * Compares type strict, and allowed values must be scalar or null.
      *

@@ -99,8 +99,8 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * assessed directly (without isset()) and ii. that the (at)property
  * documentation would be formally correct (not ...|undefined).
  * The downside would be deteriorated performance.
- * The class is primarily aimed at ValidateByRules' use. Convenience of access
- * for other purposes is not a priority.
+ * The class is primarily aimed at ValidateAgainstRuleSet' use. Convenience
+ * of access for other purposes is not a priority.
  *
  *
  * @package SimpleComplex\Validate
@@ -148,7 +148,7 @@ class ValidationRuleSet
                             . ' must be array (of secondary rule method arguments).'
                         );
                     default:
-                        if (in_array($rule, ValidateByRules::NON_PROVIDER_RULES)) {
+                        if (in_array($rule, ValidateAgainstRuleSet::NON_PROVIDER_RULES)) {
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
                                 . ' cannot be defined via numeric key and bucket value,'
@@ -519,7 +519,7 @@ class ValidationRuleSet
      *
      * Helper method. Has to be set on other class than Validate
      * (because Validate can 'see' it's own protected methods)
-     * and ValidateByRules (because that's marked as internal).
+     * and ValidateAgainstRuleSet (because that's marked as internal).
      *
      * @see Validate
      *

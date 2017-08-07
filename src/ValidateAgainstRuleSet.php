@@ -40,13 +40,13 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  *
  * @package SimpleComplex\Validate
  */
-class ValidateByRules
+class ValidateAgainstRuleSet
 {
     /**
      * Reference to first object instantiated via the getInstance() method,
      * no matter which parent/child class the method was/is called on.
      *
-     * @var ValidateByRules
+     * @var ValidateAgainstRuleSet
      */
     protected static $instance;
 
@@ -57,7 +57,7 @@ class ValidateByRules
      *
      * @param mixed ...$constructorParams
      *
-     * @return ValidateByRules
+     * @return ValidateAgainstRuleSet
      *      static, really, but IDE might not resolve that.
      */
     public static function getInstance(...$constructorParams)
@@ -126,7 +126,7 @@ class ValidateByRules
      *      The (most of the) methods of the Validate instance will be
      *      the rules available.
      * @param array $options {
-     *      @var bool recordFailure Default: false.
+     *      @var bool recordFailure  Default: false.
      * }
      */
     public function __construct(

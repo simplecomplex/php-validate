@@ -34,7 +34,8 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * A rule method is not allowed to have more than 5 parameters,
  * that is: 1 for the subject to validate and max. 4 secondary
  * (specifying) parameters.
- * ValidateByRules::challenge() will err when given more than 4 secondary args.
+ * ValidateAgainstRuleSet::challenge() will err when given a rule
+ * with more than 4 secondary args.
  *
  * Rule methods invalid arg checks
  * -------------------------------
@@ -82,7 +83,8 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Methods of this class that a ValidateByRules instance should never call.
+     * Methods of this class that a ValidateAgainstRuleSet instance
+     * should never call.
      *
      * Does not contain __construct nor __call; would be slightly paranoid.
      *
@@ -145,11 +147,11 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * By design, ValidateByRules::challenge() should not be able to call
+     * By design, ValidateAgainstRuleSet::challenge() should not be able to call
      * a non-existent method of this class.
      * But external call to Validate::noSuchRule() is somewhat expectable.
      *
-     * @see ValidateByRules::challenge()
+     * @see ValidateAgainstRuleSet::challenge()
      *
      * @param string $name
      * @param array $arguments
@@ -168,11 +170,6 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules.
      *
-     * If arg ruleSet isn't ValidationRuleSet
-     *
-     * Reuses the same ValidateByRules instance on every call.
-     * Instance saved on ValidateByRules class, not here.
-     *
      * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
      *
@@ -183,10 +180,10 @@ class Validate implements RuleProviderInterface
      */
     public function challenge($subject, $ruleSet) : bool
     {
-        // Re-uses instance on ValidateByRules rules.
-        // Since we pass this object to the ValidateByRules instance,
-        // we shan't refer the ValidateByRules instance directly.
-        return ValidateByRules::getInstance(
+        // Re-uses instance on ValidateAgainstRuleSet rules.
+        // Since we pass this object to the ValidateAgainstRuleSet instance,
+        // we shan't refer the ValidateAgainstRuleSet instance directly.
+        return ValidateAgainstRuleSet::getInstance(
             $this
         )->challenge($subject, $ruleSet);
     }
@@ -194,7 +191,7 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules, recording validation failures.
      *
-     * Creates a new ValidateByRules instance on every call.
+     * Creates a new ValidateAgainstRuleSet instance on every call.
      *
      * @code
      * $good_bike = Validate::make()->challengeRecording($bike, $rules);
@@ -216,7 +213,7 @@ class Validate implements RuleProviderInterface
      */
     public function challengeRecording($subject, $ruleSet)
     {
-        $validate_by_rules = new ValidateByRules($this, [
+        $validate_by_rules = new ValidateAgainstRuleSet($this, [
             'recordFailure' => true,
         ]);
 
