@@ -113,6 +113,140 @@ function simple_complex_validate_test_cli()
     /** @var \Psr\Log\LoggerInterface $logger */
     $logger = $container->get('logger');
 
+    /*
+    $bogus_array = new \SimpleComplex\Utils\BogusArray([
+        'hello',
+    ]);
+    $logger->debug('Bogus array:' . "\n" . $inspect->variable([
+            'traversable' => $bogus_array instanceof \Traversable,
+            'to object' => (object) $bogus_array,
+            'to array' => (array) $bogus_array,
+            'empty' => empty($bogus_array),
+        ]));
+    $empty_bogus_array = new \SimpleComplex\Utils\BogusArray();
+    $logger->debug('Empty bogus array:' . "\n" . $inspect->variable([
+            'empty' => empty($empty_bogus_array),
+        ]));
+
+    $array_object = new ArrayObject();
+    $array_object[] = 'hello';
+    $logger->debug('ArrayObject:' . "\n" . $inspect->variable([
+            'traversable' => $array_object instanceof \Traversable,
+            'to object' => (object) $array_object,
+            'to array' => (array) $array_object,
+        ]));
+    return;
+    */
+
+    /*
+    $validate = new Validate();
+
+    $object = new stdClass();
+    $logger->debug('Plain object empty:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new stdClass();
+    $object->{'0'} = 'hello';
+    $logger->debug('Plain object indexed:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new stdClass();
+    $object->first = 'hello';
+    $logger->debug('Plain object keyed:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+
+    $object = new \ArrayObject();
+    $logger->debug('ArrayObject empty:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new \ArrayObject();
+    $object[] = 'hello';
+    $logger->debug('ArrayObject indexed:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new \ArrayObject();
+    $object['first'] = 'hello';
+    $logger->debug('ArrayObject keyed:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new \SimpleComplex\Utils\BogusArray();
+    $logger->debug('BogusArray empty:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+    $object = new \SimpleComplex\Utils\BogusArray();
+    $object['first'] = 'hello';
+    $logger->debug('BogusArray keyed:' . "\n" . $inspect->variable([
+            'empty' => $validate->empty($object),
+            'nonEmpty' => $validate->nonEmpty($object),
+            'container' => $validate->container($object),
+            'iterable' => $validate->iterable($object),
+            'loopable' => $validate->loopable($object),
+            'indexedIterable' => $validate->indexedIterable($object),
+            'keyedIterable' => $validate->keyedIterable($object),
+            'indexedLoopable' => $validate->indexedLoopable($object),
+            'keyedLoopable' => $validate->keyedLoopable($object),
+        ]));
+
+    return;
+    */
+
 
     $ruleSet = [
         'class' => [
@@ -192,6 +326,7 @@ function simple_complex_validate_test_cli()
             ]
         ]
     ];
+
 
     $ruleSet = new ValidationRuleSet($ruleSet);
     $logger->debug('Validation rule set:' . "\n" . $inspect->variable($ruleSet));

@@ -13,7 +13,7 @@ namespace SimpleComplex\Validate;
  *
  * Rule method directives
  * ----------------------
- * I  Type declaring the $var parameter is illegal.
+ * I  Type declaring the $subject parameter is illegal.
  * Because until everybody uses strict type mode, the outcome of passing an
  * argument of other type to a type declared parameter is ambiguous; coercion
  * or TypeError(?).
@@ -43,39 +43,39 @@ interface RuleProviderInterface
     public function getNonRuleMethods() : array;
 
     /**
-     * There must be an 'empty' method; ValidateAgainstRuleSet may need it.
+     * Subject is falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
-     * @param mixed $var
+     * @param mixed $subject
      *
      * @return bool
      *
      * @see Validate::empty()
      */
-    public function empty($var) : bool;
+    public function empty($subject) : bool;
 
     /**
-     * There must be a 'nonEmpty' method; ValidateAgainstRuleSet may need it.
+     * Subject is not falsy or array|object is non-empty.
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
      *
-     * @param mixed $var
+     * @param mixed $subject
      *
      * @return bool
      *
      * @see Validate::nonEmpty()
      */
-    public function nonEmpty($var) : bool;
+    public function nonEmpty($subject) : bool;
 
     /**
-     * There must be an 'enum' method; ValidateAgainstRuleSet may need it.
+     * Checks for equality against a list of values.
      *
      * Compares type strict, and allowed values must be scalar or null.
      *
      * The method must log or throw exception if arg allowedValues isn't a non-empty array.
      *
-     * @param mixed $var
+     * @param mixed $subject
      * @param array $allowedValues
      *      [
      *          0: some scalar
@@ -87,15 +87,14 @@ interface RuleProviderInterface
      *
      * @see Validate::enum()
      */
-    public function enum($var, array $allowedValues) : bool;
+    public function enum($subject, array $allowedValues) : bool;
 
     /**
-     * Object or array.
+     * Array or object.
      *
-     * Must return string (array|arrayAccess|traversable|object) on pass,
-     * boolean false on validation failure.
+     * 'arrayAccess' is a Traversable ArrayAccess object.
      *
-     * @param mixed $var
+     * @param mixed $subject
      *
      * @return string|bool
      *      String (array|arrayAccess|traversable|object) on pass,
@@ -103,15 +102,14 @@ interface RuleProviderInterface
      *
      * @see Validate::container()
      */
-    public function container($var);
+    public function container($subject);
 
     /**
-     * Iterable object or array.
+     * Array or Traversable object.
      *
-     * Must return string (array|arrayAccess|traversable) on pass,
-     * boolean false on validation failure.
+     * 'arrayAccess' is a Traversable ArrayAccess object.
      *
-     * @param mixed $var
+     * @param mixed $subject
      *
      * @return string|bool
      *      String (array|arrayAccess|traversable) on pass,
@@ -119,5 +117,20 @@ interface RuleProviderInterface
      *
      * @see Validate::iterable()
      */
-    public function iterable($var);
+    public function iterable($subject);
+
+    /**
+     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * @param mixed $subject
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable) on pass,
+     *      boolean false on validation failure.
+     *
+     * @see Validate::loopable()
+     */
+    public function loopable($subject);
 }

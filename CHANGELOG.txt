@@ -1,6 +1,9 @@
 SimpleComplex/Validate 1.x, 2017-08-06
 --------------------------------------
 - Renamed class ValidateAgainstRuleSet; from ValidateByRules.
+- Fixed that empty() didn't handle Traversable and ArrayAccess correctly at all.
+- 'loopable' is 'iterable' that allows non-Traversable object
+  except if (also) ArrayAccess.
 
 SimpleComplex/Validate 1.x, 2017-08-06
 --------------------------------------

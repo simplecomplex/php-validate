@@ -314,9 +314,9 @@ class ValidateAgainstRuleSet
             return true;
         }
 
-        // Do 'tableElements'.
-        // Check that subject is an object or array, and get which type.
-        $container_type = $this->ruleProvider->container($subject);
+        // Prepare for 'tableElements' and/or 'listItems'.
+        // Check that subject is a loopable container.
+        $container_type = $this->ruleProvider->loopable($subject);
         if (!$container_type) {
             // A-OK: one should - for convenience - be allowed to use
             // the 'tableElements' and/or 'list_item_prototype' rule, without
@@ -351,20 +351,19 @@ class ValidateAgainstRuleSet
                     case 'array':
                         $subject_keys = array_keys($subject);
                         break;
+                    /**
+                     * Traversable ArrayAccess.
+                     * @see Validate::container()
+                     */
                     case 'arrayAccess':
-                        if (method_exists($subject, 'getArrayCopy')) {
+                        if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
                             $subject_keys = array_keys($subject->getArrayCopy());
                         } else {
-                            // ArrayAccess itself (unlike ArrayObject)
-                            // specifies no means of getting keys.
-                            if ($this->recordFailure) {
-                                // @todo: ArrayAccess (object)?
-                                $this->record[] = $keyPath . ': tableElements '
-                                    . ($exclusive ? 'exclusive' : ($whitelist ? 'whitelist' : 'blacklist'))
-                                    . ' - subject class ' . get_class($subject)
-                                    . ' (\ArrayAccess) specifies no means of getting keys';
+                            // ArrayAccess itself specifies no means of getting
+                            // keys. Unlikely meeting such class, but anyway.
+                            foreach ($subject as $key => $ignore) {
+                                $subject_keys[] = $key;
                             }
-                            return false;
                         }
                         break;
                     default:
@@ -437,7 +436,7 @@ class ValidateAgainstRuleSet
                     }
                     break;
                 default:
-                    // Object.
+                    // Traversable, object.
                     foreach ($table_elements->rulesByElements as $key => $element_rule_set) {
                         if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.

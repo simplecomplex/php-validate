@@ -233,7 +233,12 @@ class Validate implements RuleProviderInterface
     // Type indifferent.--------------------------------------------------------
 
     /**
+     * Subject is falsy or array|object is empty.
+     *
      * NB: Stringed zero - '0' - is _not_ empty.
+     *
+     * ArrayAccess that is neither Countable nor Traversable fails validation,
+     * because no means of accessing it's content.
      *
      * @param mixed $subject
      *
@@ -245,18 +250,36 @@ class Validate implements RuleProviderInterface
             // Stringed zero - '0' - is not empty.
             return $subject !== '0';
         }
-        if ($subject instanceof \ArrayAccess) {
-            // @todo: does that work?
-            return !((array) $subject);
-        }
         if (is_object($subject)) {
+            if ($subject instanceof \Countable) {
+                return !count($subject);
+            }
+            if ($subject instanceof \Traversable) {
+                if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
+                    return !array_keys($subject->getArrayCopy());
+                }
+                // Have to iterate; horrible.
+                $keys = [];
+                foreach ($subject as $k => $ignore) {
+                    $keys[] = $k;
+                }
+                return !$keys;
+            }
+            if ($subject instanceof \ArrayAccess) {
+                return false;
+            }
             return !get_object_vars($subject);
         }
         return false;
     }
 
     /**
+     * Subject is not falsy or array|object is non-empty.
+     *
      * NB: Stringed zero - '0' - _is_ non-empty.
+     *
+     * ArrayAccess that is neither Countable nor Traversable fails validation,
+     * because no means of accessing it's content.
      *
      * @param mixed $subject
      *
@@ -264,6 +287,12 @@ class Validate implements RuleProviderInterface
      */
     public function nonEmpty($subject) : bool
     {
+        if (
+            $subject instanceof \ArrayAccess
+            && !($subject instanceof \Countable) && !($subject instanceof \Traversable)
+        ) {
+            return false;
+        }
         return !$this->empty($subject);
     }
 
@@ -439,11 +468,13 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Object or array.
+     * Array or object.
      *
      * Superset of all other object and array type(ish) checkers; here:
-     * - iterable, indexedIterable, keyedIterable, class,
-     *   array, indexedArray, keyedArray
+     * - iterable, loopable, indexedIterable, keyedIterable, indexedLoopable,
+     *   keyedLoopable, class, array, indexedArray, keyedArray
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
      *
      * @param mixed $subject
      *
@@ -463,9 +494,15 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Iterable object or array.
+     * Array or Traversable object.
      *
-     * @param $subject
+     * Not very useful because stdClass _is_ iterable.
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * @see Validate::loopable()
+     *
+     * @param mixed $subject
      *
      * @return string|bool
      *      String (array|arrayAccess|traversable) on pass,
@@ -481,48 +518,53 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Empty or indexed array, or empty or indexed ArrayAccess object.
+     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
      *
-     * An ArrayAccess object which is neither \Countable, nor \ArrayObject
-     * or \ArrayIterator, will fail this validation.
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * Counter to iterable loopable allows non-Traversable object,
+     * except if (also) ArrayAccess.
+     *
+     * Non-Traversable ArrayAccess is (hopefully) the only relevant container
+     * class/interface that isn't iterable.
      *
      * @param $subject
      *
      * @return string|bool
-     *      String (array|arrayAccess) on pass,
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function loopable($subject)
+    {
+        // Only difference vs container() is that non-Traversable ArrayAccess
+        // doesn't pass here.
+        return is_array($subject) ? 'array' : (
+            $subject && is_object($subject) ? (
+                $subject instanceof \Traversable ? (
+                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+                ) : (
+                    $subject instanceof \ArrayAccess ? false : 'object'
+                )
+            ) : false
+        );
+    }
+
+    /**
+     * Empty or indexed iterable.
+     *
+     * @param $subject
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable) on pass,
      *      boolean false on validation failure.
      */
     public function indexedIterable($subject)
     {
-        if (is_array($subject)) {
-            if (!$subject || ctype_digit(join('', array_keys($subject)))) {
-                return 'array';
-            }
-            return false;
-        }
-        if ($subject && $subject instanceof \ArrayAccess) {
-            if ($subject instanceof \Countable && !count($subject)) {
-                return 'arrayAccess';
-            }
-            if (
-                ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator)
-                && ctype_digit(join('', array_keys($subject->getArrayCopy())))
-            ) {
-                return 'arrayAccess';
-            }
-            // An ArrayAccess object which is neither \Countable, nor
-            // \ArrayObject or \ArrayIterator, must fail because we can't
-            // access it's index/keys en bloc (only via foreach).
-        }
-        return false;
+        return static::indexedOrKeyedContainer($subject, false, false);
     }
 
     /**
-     * Empty or keyed array, or empty or keyed ArrayAccess object,
-     * or non-ArrayAccess Traversable.
-     *
-     * An ArrayAccess object which is neither \Countable, nor \ArrayObject
-     * or \ArrayIterator, will fail this validation.
+     * Empty or keyed iterable.
      *
      * @param $subject
      *
@@ -532,31 +574,35 @@ class Validate implements RuleProviderInterface
      */
     public function keyedIterable($subject)
     {
-        if (is_array($subject)) {
-            if (!$subject || !ctype_digit(join('', array_keys($subject)))) {
-                return 'array';
-            }
-            return false;
-        }
-        if ($subject && $subject instanceof \Traversable) {
-            if ($subject instanceof \ArrayAccess) {
-                if ($subject instanceof \Countable && !count($subject)) {
-                    return 'arrayAccess';
-                }
-                if (
-                    ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator)
-                    && !ctype_digit(join('', array_keys($subject->getArrayCopy())))
-                ) {
-                    return 'arrayAccess';
-                }
-                // An ArrayAccess object which is neither \Countable, nor
-                // \ArrayObject or \ArrayIterator, must fail because we can't
-                // access it's index/keys en bloc (only via foreach).
-            } else {
-                return 'traversable';
-            }
-        }
-        return false;
+        return static::indexedOrKeyedContainer($subject, false, true);
+    }
+
+    /**
+     * Empty or indexed loopable.
+     *
+     * @param $subject
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function indexedLoopable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, true, false);
+    }
+
+    /**
+     * Empty or keyed loopable.
+     *
+     * @param $subject
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function keyedLoopable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, true, true);
     }
 
     /**
@@ -1562,5 +1608,72 @@ class Validate implements RuleProviderInterface
             !!filter_var($v, FILTER_VALIDATE_EMAIL)
             && !!preg_match('/\.[a-zA-Z\d]+$/', $v)
         );
+    }
+
+
+    // Helpers.-----------------------------------------------------------------
+
+    /**
+     * @see Validate::indexedIterable()
+     * @see Validate::indexedLoopable()
+     * @see Validate::keyedIterable()
+     * @see Validate::keyedLoopable()
+     *
+     * @param mixed $subject
+     * @param bool $loopable
+     * @param bool $keyed
+     *
+     * @return string|bool
+     *      String on pass, false on failure.
+     *
+     * @throws InvalidArgumentException
+     *      Logical error, arg kind not supported.
+     */
+    protected static function indexedOrKeyedContainer($subject, bool $loopable, bool $keyed)
+    {
+        if (is_array($subject)) {
+            if (!$subject) {
+                return 'array';
+            }
+            return ctype_digit(join('', array_keys($subject))) ?
+                (!$keyed ? 'array' : false) : ($keyed ? 'array' : false);
+        }
+        if ($subject && is_object($subject)) {
+            if ($subject instanceof \Traversable) {
+                if ($subject instanceof \Countable && !count($subject)) {
+                    return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
+                }
+                if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
+                    $keys = array_keys($subject->getArrayCopy());
+                    if (!$keys) {
+                        return 'arrayAccess';
+                    }
+                    return ctype_digit(join('', $keys)) ?
+                        (!$keyed ? 'arrayAccess' : false) : ($keyed ? 'arrayAccess' : false);
+                } else {
+                    // Have to iterate; horrible.
+                    $keys = [];
+                    foreach ($subject as $k => $ignore) {
+                        $keys[] = $k;
+                    }
+                    if (!$keys) {
+                        return 'traversable';
+                    }
+                    return ctype_digit(join('', $keys)) ?
+                        (!$keyed ? 'traversable' : false) : ($keyed ? 'traversable' : false);
+                }
+            } elseif ($loopable) {
+                if (!($subject instanceof \ArrayAccess) && $subject instanceof \Countable && !count($subject)) {
+                    return 'object';
+                }
+                $keys = array_keys(get_object_vars($subject));
+                if (!$keys) {
+                    return 'object';
+                }
+                return ctype_digit(join('', $keys)) ?
+                    (!$keyed ? 'object' : false) : ($keyed ? 'object' : false);
+            }
+        }
+        return false;
     }
 }
