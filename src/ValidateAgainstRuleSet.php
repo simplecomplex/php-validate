@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Utils\Utils;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -182,8 +183,7 @@ class ValidateAgainstRuleSet
             return $this->internalChallenge(0, '', $subject, $ruleSet);
         } elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
-                'Arg rules type[' . (!is_object($ruleSet) ? gettype($ruleSet) : get_class($ruleSet))
-                . '] is not ValidationRuleSet|array|object.'
+                'Arg rules type[' . Utils::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
         }
         // Convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet,
@@ -322,7 +322,7 @@ class ValidateAgainstRuleSet
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': tableElements - ' . gettype($subject) . ' is not a container';
+                $this->record[] = $keyPath . ': tableElements - ' . Utils::getType($subject) . ' is not a container';
             }
             return false;
         }
@@ -358,9 +358,10 @@ class ValidateAgainstRuleSet
                             // ArrayAccess itself (unlike ArrayObject)
                             // specifies no means of getting keys.
                             if ($this->recordFailure) {
+                                // @todo: ArrayAccess (object)?
                                 $this->record[] = $keyPath . ': tableElements '
                                     . ($exclusive ? 'exclusive' : ($whitelist ? 'whitelist' : 'blacklist'))
-                                    . ' - subject class ' . gettype($subject)
+                                    . ' - subject class ' . get_class($subject)
                                     . ' (\ArrayAccess) specifies no means of getting keys';
                             }
                             return false;

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Utils\Utils;
 use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
@@ -245,6 +246,7 @@ class Validate implements RuleProviderInterface
             return $subject !== '0';
         }
         if ($subject instanceof \ArrayAccess) {
+            // @todo: does that work?
             return !((array) $subject);
         }
         if (is_object($subject)) {
@@ -295,8 +297,7 @@ class Validate implements RuleProviderInterface
             ++$i;
             if ($allowed !== null && !is_scalar($allowed)) {
                 throw new InvalidArgumentException(
-                    'Arg allowedValues bucket ' . $i . ' type['
-                    . (!is_object($allowed) ? gettype($allowed) : get_class($allowed)) . '] is not scalar or null.'
+                    'Arg allowedValues bucket ' . $i . ' type[' . Utils::getType($allowed) . '] is not scalar or null.'
                 );
             }
             if ($subject === $allowed) {
@@ -879,9 +880,7 @@ class Validate implements RuleProviderInterface
     public function min($subject, $min) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException(
-                'Arg min type[' . (!is_object($min) ? gettype($min) : get_class($min)) . '] is not integer or float.'
-            );
+            throw new InvalidArgumentException('Arg min type[' . Utils::getType($min) . '] is not integer or float.');
         }
         return $subject >= $min;
     }
@@ -910,9 +909,7 @@ class Validate implements RuleProviderInterface
     public function max($subject, $max) : bool
     {
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException(
-                'Arg max type[' . (!is_object($max) ? gettype($max) : get_class($max)) . '] is not integer or float.'
-            );
+            throw new InvalidArgumentException('Arg max type[' . Utils::getType($max) . '] is not integer or float.');
         }
         return $subject <= $max;
     }
@@ -945,14 +942,10 @@ class Validate implements RuleProviderInterface
     public function range($subject, $min, $max) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException(
-                'Arg min type[' . (!is_object($max) ? gettype($min) : get_class($min)) . '] is not integer or float.'
-            );
+            throw new InvalidArgumentException('Arg min type[' . Utils::getType($min) . '] is not integer or float.');
         }
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException(
-                'Arg max type[' . (!is_object($max) ? gettype($max) : get_class($max)) . '] is not integer or float.'
-            );
+            throw new InvalidArgumentException('Arg max type[' . Utils::getType($max) . '] is not integer or float.');
         }
         if ($max < $min) {
             throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than arg min[' .  $min . '].');

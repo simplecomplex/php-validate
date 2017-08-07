@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Utils\Utils;
 use SimpleComplex\Utils\Dependency;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
@@ -186,7 +187,7 @@ class ValidationRuleSet
                     if (!$args || !is_array($args)) {
                         throw new InvalidRuleException(
                             'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                            . '] type[' . static::phpType($args) . '] is not non-empty array.'
+                            . '] type[' . Utils::getType($args) . '] is not non-empty array.'
                         );
                     }
                     // Allow defining alternativeEnum as nested array, because
@@ -206,7 +207,7 @@ class ValidationRuleSet
                         if ($allowed !== null && !is_scalar($allowed)) {
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                                . '] allowed values bucket[' . $i . '] type[' . static::phpType($allowed)
+                                . '] allowed values bucket[' . $i . '] type[' . Utils::getType($allowed)
                                 . '] is not scalar or null.'
                             );
                         }
@@ -224,7 +225,7 @@ class ValidationRuleSet
                         $ruleValue = (object) $ruleValue;
                     } elseif (!is_object($ruleValue)) {
                         $msg = 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth
-                            . '] type[' . static::phpType($ruleValue) . '] is not a array|object.';
+                            . '] type[' . Utils::getType($ruleValue) . '] is not a array|object.';
                         $container = Dependency::container();
                         if ($container->has('logger')) {
                             if ($container->has('inspector')) {
@@ -266,7 +267,7 @@ class ValidationRuleSet
                             if (!is_bool($ruleValue->exclusive)) {
                                 throw new InvalidRuleException(
                                     'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                    . ' bucket \'exclusive\' type[' . static::phpType($ruleValue->exclusive)
+                                    . ' bucket \'exclusive\' type[' . Utils::getType($ruleValue->exclusive)
                                     . '] is not boolean.'
                                 );
                             } elseif ($ruleValue->exclusive) {
@@ -281,7 +282,7 @@ class ValidationRuleSet
                                     throw new InvalidRuleException(
                                         'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
                                         . ' bucket \'' . $list_key . '\' type['
-                                        . static::phpType($ruleValue->{$list_key}) . '] is not array.'
+                                        . Utils::getType($ruleValue->{$list_key}) . '] is not array.'
                                     );
                                 } elseif ($ruleValue->{$list_key}) {
                                     $has_lists[] = $list_key;
@@ -308,7 +309,7 @@ class ValidationRuleSet
                             $ruleValue->rulesByElements = (object) $ruleValue->rulesByElements;
                         } elseif (!is_object($ruleValue->rulesByElements)) {
                             $msg = 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
-                                . ' bucket \'rulesByElements\' type[' . static::phpType($ruleValue->rulesByElements)
+                                . ' bucket \'rulesByElements\' type[' . Utils::getType($ruleValue->rulesByElements)
                                 . '] is not a array|object.';
                             $container = Dependency::container();
                             if ($container->has('logger')) {
@@ -334,7 +335,7 @@ class ValidationRuleSet
                                         );
                                     } else {
                                         throw new InvalidRuleException(
-                                            'Element rule set type[' . static::phpType($subRuleSet)
+                                            'Element rule set type[' . Utils::getType($subRuleSet)
                                             . '] is not ValidationRuleSet|array|object.'
                                         );
                                     }
@@ -389,7 +390,7 @@ class ValidationRuleSet
                                     throw new InvalidRuleException(
                                         'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
                                         . ' bucket \'' . $occur_key . '\' type['
-                                        . static::phpType($ruleValue->{$occur_key}) . ']'
+                                        . Utils::getType($ruleValue->{$occur_key}) . ']'
                                         . (!is_int($ruleValue->{$occur_key}) ? '' :
                                             ' value[' . $ruleValue->{$occur_key} . ']')
                                         . ' is not non-negative integer.'
@@ -425,7 +426,7 @@ class ValidationRuleSet
                             } else {
                                 throw new InvalidRuleException(
                                     'Non-provider validation rule[listItems] at depth[' .  $depth
-                                    . '] \'itemRules\' bucket type[' . static::phpType($ruleValue->itemRules)
+                                    . '] \'itemRules\' bucket type[' . Utils::getType($ruleValue->itemRules)
                                     . '] is not ValidationRuleSet|array|object.'
                                 );
                             }
@@ -450,7 +451,7 @@ class ValidationRuleSet
 
                     if (!is_bool($args) && !is_array($args)) {
                         throw new InvalidRuleException(
-                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] type[' . static::phpType($args)
+                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] type[' . Utils::getType($args)
                             . '] is not boolean or array.'
                         );
                     }
@@ -462,7 +463,7 @@ class ValidationRuleSet
                             if (!$args || !is_array($args)) {
                                 throw new InvalidRuleException(
                                     'Validation rule[enum] at depth[' .  $depth
-                                    . '] type[' . static::phpType($args) . '] is not non-empty array.'
+                                    . '] type[' . Utils::getType($args) . '] is not non-empty array.'
                                 );
                             }
                             // Allow defining enum as un-nested array, because
@@ -481,7 +482,7 @@ class ValidationRuleSet
                                 if ($allowed !== null && !is_scalar($allowed)) {
                                     throw new InvalidRuleException(
                                         'Validation rule[enum] at depth[' .  $depth . '] allowed values bucket['
-                                        . $i . '] type[' . static::phpType($allowed) . '] is not scalar or null.'
+                                        . $i . '] type[' . Utils::getType($allowed) . '] is not scalar or null.'
                                     );
                                 }
                             }
@@ -543,18 +544,5 @@ class ValidationRuleSet
             get_class_methods(get_class($provider)),
             $provider->getNonRuleMethods()
         );
-    }
-
-    /**
-     * Get subject class name or (non-object) type.
-     *
-     * @param mixed $subject
-     *
-     * @return string
-     */
-    protected static function phpType($subject)
-    {
-        // Wonder why PHP doesn't provide such a function.
-        return !is_object($subject) ? gettype($subject) : get_class($subject);
     }
 }
