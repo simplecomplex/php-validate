@@ -1,9 +1,11 @@
 <?php
-
-declare(strict_types=1);
-/*
- * Scalar parameter type declaration is a no-go until everything is strict (coercion or TypeError?).
+/**
+ * SimpleComplex PHP Validate
+ * @link      https://github.com/simplecomplex/php-validate
+ * @copyright Copyright (c) 2017 Jacob Friis Mathiasen
+ * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
+declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
@@ -20,13 +22,6 @@ namespace SimpleComplex\Validate;
  * II  Illegal rule method names:
  * - optional, alternativeEnum, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
- *
- * Referring a ValidateAgainstRuleSet instance is forbidden
- * --------------------------------------------------------
- * Neither class nor instance can refer a ValidateAgainstRuleSet instance
- * because a ValidateAgainstRuleSet instance refers this (the rule provider);
- * mutual referencing is unhealthy.
- *
  *
  * @package SimpleComplex\Validate
  */

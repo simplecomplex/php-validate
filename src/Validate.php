@@ -102,6 +102,22 @@ class Validate implements RuleProviderInterface
         'challengeRecording',
     ];
 
+
+    /**
+     * Instance vars are not allowed to have state
+     * -------------------------------------------
+     * because that could affect the challenge() method, making calls leak state
+     * to eachother.
+     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
+     * requested and returned instance are effectively identical.
+     *
+     * Var unicode do not infringe that principle, because Unicode instances
+     * have no state. Neither do nonRuleMethods.
+     *
+     * @see Validate::challenge()
+     * @see ValidateAgainstRuleSet::getInstance()
+     */
+
     /**
      * @var Unicode
      */
@@ -170,6 +186,9 @@ class Validate implements RuleProviderInterface
 
     /**
      * Validate by a list of rules.
+     *
+     * Reuses the same ValidateAgainstRuleSet across Validate instances
+     * and calls to this method.
      *
      * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
@@ -616,7 +635,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Is object and is of that class or has it as ancestor.
+     * Is object and is of that class or interface, or has it as ancestor.
      *
      * @uses is_a()
      *

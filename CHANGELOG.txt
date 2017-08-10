@@ -1,3 +1,13 @@
+SimpleComplex/Validate 1.x, 2017-08-10
+--------------------------------------
+- ValidateAgainstRuleSet::getInstance() must refer and return by rule provider
+  class name, because otherwise there's no guarantee that requested and returned
+  instance are effectively identical.
+- Validate is not allowed to have state, because challenge() calls otherwise
+  could leak state to eachother.
+- ValidateAgainstRuleSet is not allowed to have state (except when recording),
+  because that would void ::getInstance() warranty.
+
 SimpleComplex/Validate 1.x, 2017-08-06
 --------------------------------------
 - Renamed class ValidateAgainstRuleSet; from ValidateByRules.

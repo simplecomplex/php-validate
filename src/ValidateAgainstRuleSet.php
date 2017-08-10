@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Utils\Utils;
+use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -45,29 +46,43 @@ class ValidateAgainstRuleSet
 {
     /**
      * Reference to first object instantiated via the getInstance() method,
+     * using a specific rule provider,
      * no matter which parent/child class the method was/is called on.
      *
      * @var ValidateAgainstRuleSet
      */
-    protected static $instance;
+    protected static $instanceByValidateClass = [];
 
     /**
-     * First object instantiated via this method, disregarding class called on.
+     * First object instantiated via this method, using that rule provider,
+     * disregarding which ValidateAgainstRuleSet class called on.
+     *
+     * Does not allow constructor $options argument because that would affect
+     * instance state, voiding the warranty that the requested and referred
+     * returned instances are effectively identical.
      *
      * @see Validate::challenge()
      *
-     * @param mixed ...$constructorParams
+     * @param RuleProviderInterface $ruleProvider
      *
      * @return ValidateAgainstRuleSet
      *      static, really, but IDE might not resolve that.
+     *
+     * @throws BadMethodCallException
+     *      If passed more than one argument.
      */
-    public static function getInstance(...$constructorParams)
+    public static function getInstance(RuleProviderInterface $ruleProvider)
     {
-        // Unsure about null ternary ?? for class and instance vars.
-        if (!static::$instance) {
-            static::$instance = new static(...$constructorParams);
+        if (func_num_args() > 1) {
+            throw new BadMethodCallException(
+                'Method allows only one argument (a rule provider), passing options would void warranty'
+                . ' that requested and returned instance are effectvely identical, saw secondary argument type['
+                . Utils::getType(func_get_arg(1)) . '].'
+            );
         }
-        return static::$instance;
+        $provider_class = get_class($ruleProvider);
+        return static::$instanceByValidateClass[$provider_class] ??
+            (static::$instanceByValidateClass[$provider_class] = new static($ruleProvider));
     }
 
     /**
@@ -94,6 +109,20 @@ class ValidateAgainstRuleSet
         'tableElements',
         'listItems',
     ];
+
+
+    /**
+     * Instance vars are not allowed to have state
+     * -------------------------------------------
+     * unless related to recording.
+     * Because all Validate instances reuse the same instance of this class,
+     * for every call to Validate::challenge().
+     *
+     * Vars ruleProvider and ruleMethods do not infringe that principle.
+     *
+     * @see Validate::challenge()
+     * @see Validate::challengeRecording()
+     */
 
     /**
      * The (most of the) methods of the Validate instance will be the rules
@@ -130,12 +159,7 @@ class ValidateAgainstRuleSet
      *      @var bool recordFailure  Default: false.
      * }
      */
-    public function __construct(
-        RuleProviderInterface $ruleProvider,
-        array $options = [
-            'recordFailure' => false,
-        ]
-    ) {
+    public function __construct(RuleProviderInterface $ruleProvider, array $options = []) {
         $this->ruleProvider = $ruleProvider;
         $this->recordFailure = !empty($options['recordFailure']);
     }
