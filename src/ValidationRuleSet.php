@@ -228,8 +228,8 @@ class ValidationRuleSet
                             . '] type[' . Utils::getType($ruleValue) . '] is not a array|object.';
                         $container = Dependency::container();
                         if ($container->has('logger')) {
-                            if ($container->has('inspector')) {
-                                $inspection = $container->get('inspector')->variable();
+                            if ($container->has('inspect')) {
+                                $inspection = $container->get('inspect')->variable();
                             } else {
                                 $inspection = 'Keys['
                                     . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
@@ -313,8 +313,8 @@ class ValidationRuleSet
                                 . '] is not a array|object.';
                             $container = Dependency::container();
                             if ($container->has('logger')) {
-                                if ($container->has('inspector')) {
-                                    $inspection = $container->get('inspector')->variable();
+                                if ($container->has('inspect')) {
+                                    $inspection = $container->get('inspect')->variable();
                                 } else {
                                     $inspection = 'Keys['
                                         . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
@@ -349,8 +349,8 @@ class ValidationRuleSet
                                 . '] is not a valid rule set.';
                             $container = Dependency::container();
                             if ($container->has('logger')) {
-                                if ($container->has('inspector')) {
-                                    $inspection = $container->get('inspector')->variable();
+                                if ($container->has('inspect')) {
+                                    $inspection = $container->get('inspect')->variable();
                                 } else {
                                     $inspection = 'Current rule set keys['
                                         . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
