@@ -44,7 +44,7 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * must check those arguments for type/emptyness and throw exception
  * on such error.
  *
- * @dependency-injection-container validator
+ * @dependency-injection-container validate
  *      Suggested ID of a global Validate instance.
  *
  * @package SimpleComplex\Validate

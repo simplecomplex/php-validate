@@ -528,7 +528,7 @@ class ValidationRuleSet
      * @uses Validate::getNonRuleMethods()
      *
      * @param RuleProviderInterface|null $ruleProvider
-     *      Default: dependency container ID 'validator' or Validate::getInstance().
+     *      Default: dependency container ID 'validate' or Validate::getInstance().
      *
      * @return array
      */
@@ -536,7 +536,7 @@ class ValidationRuleSet
     {
         if (!$ruleProvider) {
             $container = Dependency::container();
-            $provider = $container->has('validator') ? $container->get('validator') : Validate::getInstance();
+            $provider = $container->has('validate') ? $container->get('validate') : Validate::getInstance();
         } else {
             $provider = $ruleProvider;
         }
