@@ -49,7 +49,7 @@ class ValidateAgainstRuleSet
      * using a specific rule provider,
      * no matter which parent/child class the method was/is called on.
      *
-     * @var ValidateAgainstRuleSet
+     * @var ValidateAgainstRuleSet[]
      */
     protected static $instanceByValidateClass = [];
 
