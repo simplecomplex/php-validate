@@ -167,6 +167,9 @@ class ValidateAgainstRuleSet
     /**
      * Use Validate::challenge() instead of this.
      *
+     * @see Validate::challenge()
+     * @see Validate::challengeRecording()
+     *
      * @code
      * // Validate a value which should be an integer zero thru two.
      * $validate->ruleSet($some_input, [

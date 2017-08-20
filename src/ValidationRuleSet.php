@@ -123,8 +123,15 @@ class ValidationRuleSet
      *
      * @throws InvalidRuleException
      */
-    public function __construct($rules, array $ruleMethodsAvailable = [], $depth = 0)
+    public function __construct($rules = [], array $ruleMethodsAvailable = [], $depth = 0)
     {
+        /**
+         * Constructor has no required parameters, to allow casting to it.
+         * @see Utils::cast()
+         */
+        if (!$rules) {
+            return;
+        }
         $rule_methods = $ruleMethodsAvailable ? $ruleMethodsAvailable : static::ruleMethodsAvailable();
 
         $rules_found = [];
