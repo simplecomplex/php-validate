@@ -326,12 +326,13 @@ class ValidateAgainstRuleSet
                     return true;
                 }
                 if ($this->recordFailure) {
-                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum';
+                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum - saw type '
+                        . Utils::getType($subject);
                 }
                 return false;
             }
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': ' . join(', ', $record);
+                $this->record[] = $keyPath . ': ' . join(', ', $record) . ' - saw type ' . Utils::getType($subject);
             }
             return false;
         }

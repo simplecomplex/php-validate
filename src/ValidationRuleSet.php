@@ -236,7 +236,7 @@ class ValidationRuleSet
                         $container = Dependency::container();
                         if ($container->has('logger')) {
                             if ($container->has('inspect')) {
-                                $inspection = $container->get('inspect')->variable();
+                                $inspection = $container->get('inspect')->variable($rules);
                             } else {
                                 $inspection = 'Keys['
                                     . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
@@ -321,7 +321,7 @@ class ValidationRuleSet
                             $container = Dependency::container();
                             if ($container->has('logger')) {
                                 if ($container->has('inspect')) {
-                                    $inspection = $container->get('inspect')->variable();
+                                    $inspection = $container->get('inspect')->variable($rules);
                                 } else {
                                     $inspection = 'Keys['
                                         . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
@@ -352,12 +352,13 @@ class ValidationRuleSet
                             unset($subRuleSet);
                         } catch (\Throwable $xc) {
                             $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth
-                                . '] element index[' . $index . '] name[' . $name . ']'
-                                . '] is not a valid rule set.';
+                                . '] element index[' . $index . '] name[' . $name
+                                . '] is not a valid rule set, reason:';
                             $container = Dependency::container();
                             if ($container->has('logger')) {
                                 if ($container->has('inspect')) {
-                                    $inspection = $container->get('inspect')->variable();
+                                    $inspection = 'Current rule set:'
+                                        . "\n" . $container->get('inspect')->variable($rules)->toString(false);
                                 } else {
                                     $inspection = 'Current rule set keys['
                                         . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
