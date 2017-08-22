@@ -1,6 +1,8 @@
 SimpleComplex/Validate 1.x, 2017-08-22
 --------------------------------------
 - Validate recording do (at least) log failing subject's type.
+- Validate->numeric() didn't accept leading hyphen, and (not really a bug)
+  simple emptyness checks relied on ctype_digit().
 
 SimpleComplex/Validate 1.x, 2017-08-20
 --------------------------------------

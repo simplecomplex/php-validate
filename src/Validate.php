@@ -711,6 +711,9 @@ class Validate implements RuleProviderInterface
     /**
      * Integer, float or stringed integer/float (but not e-notation).
      *
+     * Contrary to PHP native is_numeric() this method doesn't allow
+     * leading plus nor leading space.
+     *
      * @code
      * $numeric = $validate->numeric($weakly_typed_input);
      * switch('' . $numeric) {
@@ -746,9 +749,30 @@ class Validate implements RuleProviderInterface
      */
     public function numeric($subject)
     {
+        // Why not native is_numeric()?
+        // Native is_numeric() accepts (at least) e/E notation,
+        // leading plus and leading space.
+        // And (no blame ;-) it doesn't return type on success.
         $v = '' . $subject;
+        $le = strlen($v);
+        if (!$le) {
+            return false;
+        }
+        // Remove leading hyphen, for later digital check.
+        if ($v{0} === '-') {
+            $v = substr($v, 1);
+            --$le;
+            if (!$le) {
+                return false;
+            }
+        }
         $float = false;
+        // Remove dot, for later digital check.
         if (strpos($v, '.') !== false) {
+            if ($le == 1) {
+                return false;
+            }
+            // Allow only single dot.
             $count = 0;
             $v = str_replace('.', '', $v, $count);
             if ($count != 1) {
