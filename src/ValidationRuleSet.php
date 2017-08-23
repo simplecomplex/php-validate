@@ -522,6 +522,10 @@ class ValidationRuleSet
         'itemRules', 'minOccur', 'maxOccur',
     ];
 
+    /**
+     * @var array
+     */
+    protected static $rulesByProviderClass = [];
 
     /**
      * List rule methods made available by a rule provider.
@@ -548,9 +552,12 @@ class ValidationRuleSet
         } else {
             $provider = $ruleProvider;
         }
-        return array_diff(
-            get_class_methods(get_class($provider)),
-            $provider->getNonRuleMethods()
-        );
+        $class_provider = get_class($provider);
+        return static::$rulesByProviderClass[$class_provider] ?? (
+                $rulesByProviderClass[$class_provider] = array_diff(
+                    get_class_methods($class_provider),
+                    $provider->getNonRuleMethods()
+                )
+            );
     }
 }
