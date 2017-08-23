@@ -84,10 +84,12 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Don't ever access this - call getNonRuleMethods() instead.
+     *
+     * @see Validate::getNonRuleMethods()
+     *
      * Methods of this class that a ValidateAgainstRuleSet instance
      * should never call.
-     *
-     * Does not contain __construct nor __call; would be slightly paranoid.
      *
      * @var array
      */
@@ -124,6 +126,8 @@ class Validate implements RuleProviderInterface
     protected $unicode;
 
     /**
+     * @see Validate::getNonRuleMethods()
+     *
      * @var array
      */
     protected $nonRuleMethods = [];
@@ -138,27 +142,27 @@ class Validate implements RuleProviderInterface
         if (!$this->unicode) {
             $this->unicode = Unicode::getInstance();
         }
-
-        // Business.------------------------------------------------------------
-        $this->nonRuleMethods = self::NON_RULE_METHODS;
-        /* // Extending class must merge non-rule-methods class constants.
-         * $parent_class = get_parent_class();
-         * if (defined($parent_class . '::NON_RULE_METHODS')) {
-         *   $this->nonRuleMethods = array_merge(
-         *     $this->nonRuleMethods,
-         *     constant($parent_class . '::NON_RULE_METHODS')
-         *   );
-         * }
-         */
     }
 
     /**
+     * Get list of methods of this class that are validation rule methods.
+     *
+     * Extending class declaring more non-rule methods must override this method.
+     *
      * @return array
      */
     public function getNonRuleMethods() : array
     {
         if (!$this->nonRuleMethods) {
+            // Root class does.
             $this->nonRuleMethods = self::NON_RULE_METHODS;
+            // Extending class declaring non-rule methods should do:
+            //$this->nonRuleMethods = array_unique(
+            //    array_merge(
+            //        parent::getNonRuleMethods(),
+            //        self::NON_RULE_METHODS
+            //    )
+            //);
         }
         return $this->nonRuleMethods;
     }
