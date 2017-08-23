@@ -1,6 +1,7 @@
 SimpleComplex/Validate 1.x, 2017-08-22
 --------------------------------------
 - Validate constructor do not have to populate non-rule methods instance var.
+- Validate getInstance() must be class aware.
 
 SimpleComplex/Validate 1.x, 2017-08-22
 --------------------------------------

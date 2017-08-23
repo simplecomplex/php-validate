@@ -52,35 +52,32 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
 class Validate implements RuleProviderInterface
 {
     /**
-     * Reference to first object instantiated via the getInstance() method,
-     * no matter which parent/child class the method was/is called on.
+     * Extending class must not override this variable.
      *
-     * @var Validate
+     * @var Validate[]
+     * @final
      */
-    protected static $instance;
+    protected static $instanceByClass;
 
     /**
-     * First object instantiated via this method, disregarding class called on.
+     * Class-aware factory method.
+     *
+     * First object instantiated via this method, being class of class called on.
      *
      * Consider using a dependency injection container instead.
-     *
      * @see \SimpleComplex\Utils\Dependency
      * @see \Slim\Container
      *
      * @param mixed ...$constructorParams
      *      Validate child class constructor may have parameters.
      *
-     * @return Validate
-     *      static, really, but IDE might not resolve that.
+     * @return Validate|static
      */
     public static function getInstance(...$constructorParams)
     {
-        // Unsure about null ternary ?? for class and instance vars.
-        if (!static::$instance) {
-            // Validate child class constructor may have parameters.
-            static::$instance = new static(...$constructorParams);
-        }
-        return static::$instance;
+        $class = get_called_class();
+        return static::$instanceByClass[$class] ??
+            (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
     /**
