@@ -326,13 +326,24 @@ class ValidateAgainstRuleSet
                     return true;
                 }
                 if ($this->recordFailure) {
+                    $v = null;
+                    if (is_scalar($subject)) {
+                        $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
+                            (substr($subject, 50) . '...(truncated)');
+                    }
                     $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum - saw type '
-                        . Utils::getType($subject);
+                        . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
                 }
                 return false;
             }
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': ' . join(', ', $record) . ' - saw type ' . Utils::getType($subject);
+                $v = null;
+                if (is_scalar($subject)) {
+                    $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
+                        (substr($subject, 50) . '...(truncated)');
+                }
+                $this->record[] = $keyPath . ': ' . join(', ', $record) . ' - saw type ' . Utils::getType($subject)
+                    . ($v === null ? '' : (' value ' . $v));
             }
             return false;
         }
