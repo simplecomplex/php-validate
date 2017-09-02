@@ -539,7 +539,7 @@ class ValidationRuleSet
      * @uses get_class_methods()
      * @uses Validate::getNonRuleMethods()
      *
-     * @param RuleProviderInterface|null $ruleProvider
+     * @param Interfaces\RuleProviderInterface|null $ruleProvider
      *      Default: dependency container ID 'validate' or Validate::getInstance().
      *
      * @return array

@@ -1,3 +1,7 @@
+SimpleComplex/Validate 1.x, 2017-09-02
+--------------------------------------
+- Interfaces moved to sub dir/namespace.
+
 SimpleComplex/Validate 1.x, 2017-08-31
 --------------------------------------
 - challengeRecording: record invalid value when scalar.

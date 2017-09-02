@@ -11,6 +11,7 @@ namespace SimpleComplex\Validate;
 
 use SimpleComplex\Utils\Utils;
 use SimpleComplex\Utils\Unicode;
+use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 

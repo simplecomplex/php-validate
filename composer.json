@@ -17,8 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "SimpleComplex\\Validate\\": "src/",
-            "SimpleComplex\\Validate\\Exception\\": "src/Exception/"
+            "SimpleComplex\\Validate\\": "src/"
         }
     }
 }

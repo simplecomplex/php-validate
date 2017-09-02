@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\Interfaces;
 
 /**
  * Describes required properties of a class - a 'rule provider' - that can
