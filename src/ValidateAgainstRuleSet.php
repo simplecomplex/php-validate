@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Utils\Utils;
+use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
