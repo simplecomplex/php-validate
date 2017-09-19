@@ -1089,12 +1089,19 @@ class Validate implements RuleProviderInterface
     public function unicodePrintable($subject) : bool
     {
         $v = '' . $subject;
-        return $v === '' ? true :
-            (
-                !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW))
-                // Prefix space to avoid expensive type check (boolean false).
-                && !strpos(' ' . $v, chr(127))
-            );
+        if ($v === '') {
+            return true;
+        }
+        // filter_var() is not so picky about it's return value :-(
+        if (
+            !($filtered = filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW))
+            || !is_string($filtered)
+        ) {
+            return false;
+        }
+        return !strcmp($v, $filtered)
+            // Prefix space to avoid expensive type check (boolean false).
+            && !strpos(' ' . $v, chr(127));
     }
 
     /**
@@ -1250,11 +1257,19 @@ class Validate implements RuleProviderInterface
     public function asciiPrintable($subject) : bool
     {
         $v = '' . $subject;
-        return $v === '' ? true : (
-            !strcmp($v, !!filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
+        if ($v === '') {
+            return true;
+        }
+        // filter_var() is not so picky about it's return value :-(
+        if (
+            !($filtered = filter_var($v, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH))
+            || !is_string($filtered)
+        ) {
+            return false;
+        }
+        return !strcmp($v, $filtered)
             // Prefix space to avoid expensive type check (boolean false).
-            && !strpos(' ' . $v, chr(127))
-        );
+            && !strpos(' ' . $v, chr(127));
     }
 
     /**
