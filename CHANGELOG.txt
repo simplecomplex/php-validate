@@ -1,41 +1,41 @@
-SimpleComplex/Validate 2.x, 2018-03-26
+SimpleComplex/Validate 1.x, 2018-03-26
 --------------------------------------
 - empty() shan't check for ArrayObject|ArrayIterator upon checkíng for Countable
   because they are both Countable.
 
-SimpleComplex/Validate 2.x, 2017-09-24
+SimpleComplex/Validate 1.x, 2017-09-24
 --------------------------------------
 - Release 1.0.
 
-SimpleComplex/Validate 2.x, 2017-09-17
+SimpleComplex/Validate 1.x, 2017-09-17
 --------------------------------------
 - Don't cast filter_var() to boolean when filtering (not validating); doh.
 
-SimpleComplex/Validate 2.x, 2017-09-02
+SimpleComplex/Validate 1.x, 2017-09-02
 --------------------------------------
 - Interfaces moved to sub dir/namespace.
 
-SimpleComplex/Validate 2.x, 2017-08-31
+SimpleComplex/Validate 1.x, 2017-08-31
 --------------------------------------
 - challengeRecording: record invalid value when scalar.
 
-SimpleComplex/Validate 2.x, 2017-08-22
+SimpleComplex/Validate 1.x, 2017-08-22
 --------------------------------------
 - Validate constructor do not have to populate non-rule methods instance var.
 - Validate getInstance() must be class aware.
 
-SimpleComplex/Validate 2.x, 2017-08-22
+SimpleComplex/Validate 1.x, 2017-08-22
 --------------------------------------
 - Validate recording do (at least) log failing subject's type.
 - Validate->numeric() didn't accept leading hyphen, and (not really a bug)
   simple emptyness checks relied on ctype_digit().
 
-SimpleComplex/Validate 2.x, 2017-08-20
+SimpleComplex/Validate 1.x, 2017-08-20
 --------------------------------------
 - ValidationRuleSet constructor shan't have any required parameters,
   to allow Utils::cast()'ing to it.
 
-SimpleComplex/Validate 2.x, 2017-08-10
+SimpleComplex/Validate 1.x, 2017-08-10
 --------------------------------------
 - ValidateAgainstRuleSet::getInstance() must refer and return by rule provider
   class name, because otherwise there's no guarantee that requested and returned
@@ -45,14 +45,14 @@ SimpleComplex/Validate 2.x, 2017-08-10
 - ValidateAgainstRuleSet is not allowed to have state (except when recording),
   because that would void ::getInstance() warranty.
 
-SimpleComplex/Validate 2.x, 2017-08-06
+SimpleComplex/Validate 1.x, 2017-08-06
 --------------------------------------
 - Renamed class ValidateAgainstRuleSet; from ValidateByRules.
 - Fixed that empty() didn't handle Traversable and ArrayAccess correctly at all.
 - 'loopable' is 'iterable' that allows non-Traversable object
   except if (also) ArrayAccess.
 
-SimpleComplex/Validate 2.x, 2017-08-06
+SimpleComplex/Validate 1.x, 2017-08-06
 --------------------------------------
 - Non-provider rule listItems replaces listItemPrototype.
 - Fixed that optional is to be ignored for root ruleSet; not the opposite.
@@ -63,7 +63,7 @@ SimpleComplex/Validate 2.x, 2017-08-06
   that awful XML pattern. Users must instead use two (similar) rule sets.
 - Implemented tableElements subsidary rules exclusive, whitelist, blacklist.
 
-SimpleComplex/Validate 2.x, 2017-08-05
+SimpleComplex/Validate 1.x, 2017-08-05
 --------------------------------------
 - Validation rule set class.
 - All type et al checks moved from internal challenge method
