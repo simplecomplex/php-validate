@@ -276,15 +276,14 @@ class Validate implements RuleProviderInterface
                 return !count($subject);
             }
             if ($subject instanceof \Traversable) {
-                if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
-                    return !array_keys($subject->getArrayCopy());
-                }
+                // No need to check/use ArrayObject|ArrayIterator, because
+                // they are both Countable.
+
                 // Have to iterate; horrible.
-                $keys = [];
-                foreach ($subject as $k => $ignore) {
-                    $keys[] = $k;
+                foreach ($subject as $ignore) {
+                    return false;
                 }
-                return !$keys;
+                return true;
             }
             if ($subject instanceof \ArrayAccess) {
                 return false;
