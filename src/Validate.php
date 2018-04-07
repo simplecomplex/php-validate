@@ -277,7 +277,7 @@ class Validate implements RuleProviderInterface
             }
             if ($subject instanceof \Traversable) {
                 // No need to check/use ArrayObject|ArrayIterator, because
-                // they are both Countable.
+                // they are both Countable (checked before this check).
 
                 // Have to iterate; horrible.
                 foreach ($subject as $ignore) {
