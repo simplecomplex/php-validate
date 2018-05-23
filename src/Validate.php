@@ -1559,6 +1559,7 @@ class Validate implements RuleProviderInterface
      * to become space when URL decoding.
      *
      * YYYY-MM-DDTHH:ii(:ss)?(.mmmmmmmmm)?(Z|+00:?(00)?)
+     * The format is supported by native \DateTime constructor.
      *
      * @see Validate::string()
      *
@@ -1581,6 +1582,7 @@ class Validate implements RuleProviderInterface
      * Iso-8601 date which misses timezone indication.
      *
      * YYYY-MM-DD
+     * The format is supported by native \DateTime constructor.
      *
      * @see Validate::string()
      *
