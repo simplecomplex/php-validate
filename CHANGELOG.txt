@@ -1,3 +1,7 @@
+SimpleComplex/Validate 1.x, 2018-05-25
+--------------------------------------
+- Datetime ISO-8601 rules with timezone vs. UTC (Z), and Datetime ISO-8601 local.
+
 SimpleComplex/Validate 1.x, 2018-05-21
 --------------------------------------
 - Prepare for tests.
