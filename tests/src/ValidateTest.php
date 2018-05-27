@@ -298,23 +298,26 @@ class ValidateTest extends TestCase
         '2018-05-27' => 'ISO-8601 date no zone',
         '2018-05-27 08:56' => 'ISO-8601 datetime (HH:II) no zone',
         '2018-05-27 08:56:17' => 'ISO-8601 datetime (HH:II:SS) no zone',
-        '2018-05-27 08:56:17.123456' => 'ISO-8601 datetime (HH:II:SS.mmmmmm) no zone',
+        '2018-05-27 08:56:17.123456' => 'ISO-8601 datetime (HH:II:SS.micro) no zone',
+        '2018-05-27 08:56:17.123456789' => 'ISO-8601 datetime (HH:II:SS.nano) no zone',
         '2018-05-27Z' => 'ISO-8601 date UTC',
         '2018-05-27T06:56Z' => 'ISO-8601 datetime (HH:II) UTC',
         '2018-05-27T06:56:17Z' => 'ISO-8601 datetime (HH:II:SS) UTC',
-        '2018-05-27T06:56:17.123456Z' => 'ISO-8601 datetime (HH:II:SS.mmmmmm) UTC',
+        '2018-05-27T06:56:17.123456Z' => 'ISO-8601 datetime (HH:II:SS.micro) UTC',
+        '2018-05-27T06:56:17.123456789Z' => 'ISO-8601 datetime (HH:II:SS.nano) UTC',
         '2018-05-27+02:00' => 'ISO-8601 date +02',
         '2018-05-27T08:56+02:00' => 'ISO-8601 datetime (HH:II) +02',
         '2018-05-27T08:56:17+02:00' => 'ISO-8601 datetime (HH:II:SS) +02',
-        '2018-05-27T08:56:17.123456+02:00' => 'ISO-8601 datetime (HH:II:SS.mmmmmm) +02',
+        '2018-05-27T08:56:17.123456+02:00' => 'ISO-8601 datetime (HH:II:SS.micro) +02',
+        '2018-05-27T08:56:17.123456789+02:00' => 'ISO-8601 datetime (HH:II:SS.nano) +02',
         '2018-05-27 00:00' => 'ISO-8601 ambiguous datetime local or date +0 no-sign',
         '2018-05-27T06:56 00:00' => 'ISO-8601 datetime (HH:II) +0 no-sign',
         '2018-05-27T06:56:17 00:00' => 'ISO-8601 datetime (HH:II:SS) +0 no-sign',
-        '2018-05-27T06:56:17.123456 00:00' => 'ISO-8601 datetime (HH:II:SS.mmmmmm) +0 no-sign',
+        '2018-05-27T06:56:17.123456 00:00' => 'ISO-8601 datetime (HH:II:SS.micro) +0 no-sign',
         '2018-05-27-01:30' => 'ISO-8601 date -01:30',
         '2018-05-27T05:26-01:30' => 'ISO-8601 datetime (HH:II) -01:30',
         '2018-05-27T05:26:17-01:30' => 'ISO-8601 datetime (HH:II:SS) -01:30',
-        '2018-05-27T05:26:17.123456-01:30' => 'ISO-8601 datetime (HH:II:SS.mmmmmm) -01:30',
+        '2018-05-27T05:26:17.123456-01:30' => 'ISO-8601 datetime (HH:II:SS.micro) -01:30',
     ];
 
     /**
@@ -356,9 +359,12 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 date no zone':
                 case 'ISO-8601 datetime (HH:II) no zone':
                 case 'ISO-8601 datetime (HH:II:SS) no zone':
-                case 'ISO-8601 datetime (HH:II:SS.mmmmmm) no zone':
+                case 'ISO-8601 datetime (HH:II:SS.micro) no zone':
+                case 'ISO-8601 datetime (HH:II:SS.nano) no zone':
                 case 'ISO-8601 date UTC':
+                case 'ISO-8601 datetime (HH:II:SS.nano) UTC':
                 case 'ISO-8601 date +02':
+                case 'ISO-8601 datetime (HH:II:SS.nano) +02':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
                 case 'ISO-8601 date -01:30':
                     $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
@@ -367,6 +373,13 @@ class ValidateTest extends TestCase
                     $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
+        $subject_by_descr = array_flip(static::DATE_SUBJECTS);
+        $this->assertTrue(
+            $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) UTC'], 9)
+        );
+        $this->assertTrue(
+            $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) +02'], 9)
+        );
     }
 
     /**
@@ -410,12 +423,15 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 date no zone':
                 case 'ISO-8601 datetime (HH:II) no zone':
                 case 'ISO-8601 datetime (HH:II:SS) no zone':
-                case 'ISO-8601 datetime (HH:II:SS.mmmmmm) no zone':
+                case 'ISO-8601 datetime (HH:II:SS.micro) no zone':
+                case 'ISO-8601 datetime (HH:II:SS.nano) no zone':
                 case 'ISO-8601 date UTC':
                 case 'ISO-8601 datetime (HH:II) UTC':
                 case 'ISO-8601 datetime (HH:II:SS) UTC':
-                case 'ISO-8601 datetime (HH:II:SS.mmmmmm) UTC':
+                case 'ISO-8601 datetime (HH:II:SS.micro) UTC':
+                case 'ISO-8601 datetime (HH:II:SS.nano) UTC':
                 case 'ISO-8601 date +02':
+                case 'ISO-8601 datetime (HH:II:SS.nano) +02':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
                 case 'ISO-8601 date -01:30':
                     $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
@@ -424,6 +440,10 @@ class ValidateTest extends TestCase
                     $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
+        $subject_by_descr = array_flip(static::DATE_SUBJECTS);
+        $this->assertTrue(
+            $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) +02'], 9)
+        );
     }
 
     /**
@@ -442,12 +462,16 @@ class ValidateTest extends TestCase
                 // Inverted true/false.
                 case 'ISO-8601 datetime (HH:II) UTC':
                 case 'ISO-8601 datetime (HH:II:SS) UTC':
-                case 'ISO-8601 datetime (HH:II:SS.mmmmmm) UTC':
+                case 'ISO-8601 datetime (HH:II:SS.micro) UTC':
                     $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
                     break;
                 default:
                     $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
+        $subject_by_descr = array_flip(static::DATE_SUBJECTS);
+        $this->assertTrue(
+            $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) UTC'], 9)
+        );
     }
 }

@@ -1,8 +1,12 @@
+NB: next release must be new major version because ISO-8601 rules renamed.
+
 SimpleComplex/Validate 1.x, 2018-05-27
 --------------------------------------
 - Date/Datetime rules have to be named using strict acronym camelCasing because
-  native \DateTime does (setISODate()).
-- NB: next release must be new major version.
+  native \DateTime does (setISODate());
+  renamed dateISO8601Local and dateTimeISO8601.
+- ISO-8601 datetime rules allowing sub seconds must default to max 6 digits,
+  otherwise native \DateTime will fail.
 
 SimpleComplex/Validate 1.x, 2018-05-25
 --------------------------------------

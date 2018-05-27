@@ -1574,29 +1574,39 @@ class Validate implements RuleProviderInterface
 
     /**
      * ISO-8601 datetime timestamp, which doesn't require seconds,
-     * and allows no or 1 through 9 decimals of seconds.
+     * and allows no or some decimals of seconds.
      *
      * Positive timezone may be indicated by plus or space, because plus tends
      * to become space when URL decoding.
      *
-     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,9})?(Z|+HH:?(II)?)
+     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?(Z|+HH:?(II)?)
      * The format is supported by native \DateTime constructor.
      *
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
+     * @param int $subSeconds
+     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Zero: none.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISO8601($subject) : bool
+    public function dateTimeISO8601($subject, int $subSeconds = 6) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
+        if ($subSeconds < 0) {
+            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
-        return strlen($v) <= 35
+        return strlen($v) <= 26 + $subSeconds
             && !!preg_match(
-                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[ \+\-]\d{2}:?\d{0,2})$/',
+                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?(Z|[ \+\-]\d{2}:?\d{0,2})$/',
                 $v
             );
     }
@@ -1625,55 +1635,75 @@ class Validate implements RuleProviderInterface
 
     /**
      * ISO-8601 datetime timestamp with timezone marker, which doesn't require
-     * seconds, and allows no or 1 through 9 decimals of seconds.
+     * seconds, and allows no or some decimals of seconds.
      *
      * Positive timezone may be indicated by plus or space, because plus tends
      * to become space when URL decoding.
      *
-     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,9})?+HH(:II)?
+     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?+HH(:II)?
      * The format is supported by native \DateTime constructor.
      *
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
+     * @param int $subSeconds
+     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Zero: none.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISO8601Zonal($subject) : bool
+    public function dateTimeISO8601Zonal($subject, int $subSeconds = 6) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
+        if ($subSeconds < 0) {
+            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
         return strlen($v) <= 35
             && !!preg_match(
-                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?[ \+\-]\d{2}(:\d{2})?$/',
+                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?[ \+\-]\d{2}(:\d{2})?$/',
                 $v
             );
     }
 
     /**
      * ISO-8601 datetime timestamp UTC, which doesn't require seconds,
-     * and allows no or 1 through 9 decimals of seconds.
+     * and allows no or some decimals of seconds.
      *
-     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,9})?Z
+     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?Z
      * The format is supported by native \DateTime constructor.
      *
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
+     * @param int $subSeconds
+     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Zero: none.
      *
      * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISOUTC($subject) : bool
+    public function dateTimeISOUTC($subject, int $subSeconds = 6) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
+        if ($subSeconds < 0) {
+            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
         return strlen($v) <= 30
             && !!preg_match(
-                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?Z$/',
+                '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?Z$/',
                 $v
             );
     }
