@@ -1552,6 +1552,25 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * ISO-8601 date which misses timezone indication.
+     *
+     * YYYY-MM-DD
+     * The format is supported by native \DateTime constructor.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     *
+     * @return bool
+     */
+    public function dateIso8601Local($subject) : bool
+    {
+        $v = '' . $subject;
+        return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
+    }
+
+    /**
      * ISO-8601 datetime timestamp, which doesn't require seconds,
      * and allows no or 1 through 9 decimals of seconds.
      *
@@ -1579,6 +1598,26 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * ISO-8601 datetime which misses timezone indication, doesn't require
+     * seconds, and forbids decimals of seconds.
+     *
+     * YYYY-MM-DD HH:II(:SS)?
+     * The format is supported by native \DateTime constructor.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     *
+     * @return bool
+     */
+    public function dateTimeIso8601Local($subject) : bool
+    {
+        $v = '' . $subject;
+        return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
+    }
+
+    /**
      * ISO-8601 datetime timestamp with timezone marker, which doesn't require
      * seconds, and allows no or 1 through 9 decimals of seconds.
      *
@@ -1595,7 +1634,7 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIso8601Zoned($subject) : bool
+    public function dateTimeIso8601Zonal($subject) : bool
     {
         $v = '' . $subject;
         return strlen($v) <= 35
@@ -1627,44 +1666,6 @@ class Validate implements RuleProviderInterface
                 '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?Z$/',
                 $v
             );
-    }
-
-    /**
-     * ISO-8601 date which misses timezone indication.
-     *
-     * YYYY-MM-DD
-     * The format is supported by native \DateTime constructor.
-     *
-     * @see Validate::string()
-     *
-     * @param mixed $subject
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function dateIso8601Local($subject) : bool
-    {
-        $v = '' . $subject;
-        return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
-    }
-
-    /**
-     * ISO-8601 datetime which misses timezone indication.
-     *
-     * YYYY-MM-DD HH:II(:SS)?
-     * The format is supported by native \DateTime constructor.
-     *
-     * @see Validate::string()
-     *
-     * @param mixed $subject
-     *      Checked stringified.
-     *
-     * @return bool
-     */
-    public function dateTimeIso8601Local($subject) : bool
-    {
-        $v = '' . $subject;
-        return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
     }
 
 
