@@ -1564,8 +1564,10 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateIso8601Local($subject) : bool
+    public function dateISO8601Local($subject) : bool
     {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
         $v = '' . $subject;
         return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
     }
@@ -1587,8 +1589,10 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIso8601($subject) : bool
+    public function dateTimeISO8601($subject) : bool
     {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
         $v = '' . $subject;
         return strlen($v) <= 35
             && !!preg_match(
@@ -1611,8 +1615,10 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIso8601Local($subject) : bool
+    public function dateTimeISO8601Local($subject) : bool
     {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
         $v = '' . $subject;
         return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
     }
@@ -1634,8 +1640,10 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIso8601Zonal($subject) : bool
+    public function dateTimeISO8601Zonal($subject) : bool
     {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
         $v = '' . $subject;
         return strlen($v) <= 35
             && !!preg_match(
@@ -1658,8 +1666,10 @@ class Validate implements RuleProviderInterface
      *
      * @return bool
      */
-    public function dateTimeIsoUtc($subject) : bool
+    public function dateTimeISOUTC($subject) : bool
     {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
         $v = '' . $subject;
         return strlen($v) <= 30
             && !!preg_match(

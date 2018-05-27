@@ -1,3 +1,9 @@
+SimpleComplex/Validate 1.x, 2018-05-27
+--------------------------------------
+- Date/Datetime rules have to be named using strict acronym camelCasing because
+  native \DateTime does (setISODate()).
+- NB: next release must be new major version.
+
 SimpleComplex/Validate 1.x, 2018-05-25
 --------------------------------------
 - Datetime ISO-8601 rules with timezone vs. UTC (Z), and Datetime ISO-8601 local.

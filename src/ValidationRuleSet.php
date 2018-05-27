@@ -113,6 +113,16 @@ class ValidationRuleSet
      */
 
     /**
+     * New rule name by old rule name.
+     *
+     * @var string[]
+     */
+    const RULES_RENAMED = [
+        'dateIso8601Local' => 'dateISO8601Local',
+        'dateTimeIso8601' => 'dateTimeISO8601',
+    ];
+
+    /**
      * Validation rule set.
      *
      * @see ValidationRuleSet::ruleMethodsAvailable()
@@ -165,10 +175,15 @@ class ValidationRuleSet
                             );
                         }
                         if (!in_array($rule, $rule_methods)) {
-                            throw new InvalidRuleException(
-                                'Non-existent validation rule[' . $rule . '] at depth[' .  $depth . '],'
-                                . ' was attempted to be defined via numeric key and bucket value.'
-                            );
+                            if (isset(static::RULES_RENAMED[$rule])) {
+                                $rule = static::RULES_RENAMED[$rule];
+                            }
+                            else {
+                                throw new InvalidRuleException(
+                                    'Non-existent validation rule[' . $rule . '] at depth[' .  $depth . '],'
+                                    . ' was attempted to be defined via numeric key and bucket value.'
+                                );
+                            }
                         }
                         // Could check whether the rule method has secondary paramaters, like
                         //if ((new \ReflectionMethod($ruleProvider, $rule))->getNumberOfParameters() > 1) {
@@ -452,9 +467,14 @@ class ValidationRuleSet
                     }
                     // Check rule method existance.
                     if (!in_array($rule, $rule_methods)) {
-                        throw new InvalidRuleException(
-                            'Non-existent validation rule[' . $rule . '] at depth[' .  $depth . '].'
-                        );
+                        if (isset(static::RULES_RENAMED[$rule])) {
+                            $rule = static::RULES_RENAMED[$rule];
+                        }
+                        else {
+                            throw new InvalidRuleException(
+                                'Non-existent validation rule[' . $rule . '] at depth[' . $depth . '].'
+                            );
+                        }
                     }
 
                     if (!is_bool($args) && !is_array($args)) {

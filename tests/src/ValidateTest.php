@@ -318,15 +318,15 @@ class ValidateTest extends TestCase
     ];
 
     /**
-     * @see Validate::dateIso8601Local()
+     * @see Validate::dateISO8601Local()
      *
      * @see ValidateTest::testInstantiation()
      */
-    public function testDateIso8601Local()
+    public function testDateISO8601Local()
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateIso8601Local';
+        $method = 'dateISO8601Local';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
@@ -341,15 +341,15 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeIso8601()
+     * @see Validate::dateTimeISO8601()
      *
      * @see ValidateTest::testInstantiation()
      */
-    public function testDateTimeIso8601()
+    public function testDateTimeISO8601()
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateTimeIso8601';
+        $method = 'dateTimeISO8601';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
@@ -370,15 +370,15 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeIso8601Local()
+     * @see Validate::dateTimeISO8601Local()
      *
      * @see ValidateTest::testInstantiation()
      */
-    public function testDateTimeIso8601Local()
+    public function testDateTimeISO8601Local()
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateTimeIso8601Local';
+        $method = 'dateTimeISO8601Local';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
@@ -395,15 +395,15 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeIso8601Zonal()
+     * @see Validate::dateTimeISO8601Zonal()
      *
      * @see ValidateTest::testInstantiation()
      */
-    public function testDateTimeIso8601Zonal()
+    public function testDateTimeISO8601Zonal()
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateTimeIso8601Zonal';
+        $method = 'dateTimeISO8601Zonal';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
@@ -427,15 +427,15 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeIsoUtc()
+     * @see Validate::dateTimeISOUTC()
      *
      * @see ValidateTest::testInstantiation()
      */
-    public function testDateTimeIsoUtc()
+    public function testDateTimeISOUTC()
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateTimeIsoUtc';
+        $method = 'dateTimeISOUTC';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
