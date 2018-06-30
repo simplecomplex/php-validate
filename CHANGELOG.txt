@@ -1,3 +1,7 @@
+SimpleComplex/Validate 2.x, 2018-06-30
+--------------------------------------
+- Minor test fix; requires Utils >=1.7.2.
+
 SimpleComplex/Validate 2.x, 2018-06-03
 --------------------------------------
 - Release 2.0.
