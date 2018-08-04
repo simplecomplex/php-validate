@@ -713,7 +713,7 @@ class Validate implements RuleProviderInterface
      * Integer, float or stringed integer/float (but not e-notation).
      *
      * Contrary to PHP native is_numeric() this method doesn't allow
-     * leading plus nor leading space.
+     * leading plus nor leading space nor e-notation.
      *
      * @code
      * $numeric = $validate->numeric($weakly_typed_input);
@@ -1573,7 +1573,44 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 datetime timestamp, which doesn't require seconds,
+     * ISO-8601 time timestamp, which doesn't require seconds,
+     * and allows no or some decimals of seconds.
+     *
+     * Doesn't allow any kind of timezone indication.
+     *
+     * HH:ii(:ss)?(.m{1,N})?
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     * @param int $subSeconds
+     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Zero: none.
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg subSeconds not non-negative.
+     */
+    public function timeISO8601($subject, int $subSeconds = 6) : bool
+    {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
+        if ($subSeconds < 0) {
+            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
+        $v = '' . $subject;
+        return strlen($v) <= 5 + $subSeconds
+            && !!preg_match(
+                '/^\d{2}:\d{2}(:\d{2}' . $m . ')?$/',
+                $v
+            );
+    }
+
+    /**
+     * Catch-all ISO-8601 datetime timestamp, which doesn't require seconds,
      * and allows no or some decimals of seconds.
      *
      * Positive timezone may be indicated by plus or space, because plus tends
