@@ -32,7 +32,7 @@ class ValidateTest extends TestCase
     public function testInstantiation()
     {
         $validate = (new BootstrapTest())->testDependencies()->get('validate');
-        $this->assertInstanceOf(Validate::class, $validate);
+        static::assertInstanceOf(Validate::class, $validate);
         return $validate;
     }
 
@@ -45,35 +45,35 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertTrue($validate->empty(null));
+        static::assertTrue($validate->empty(null));
 
-        $this->assertTrue($validate->empty(false));
-        $this->assertFalse($validate->empty(true));
+        static::assertTrue($validate->empty(false));
+        static::assertFalse($validate->empty(true));
 
-        $this->assertTrue($validate->empty(0));
-        $this->assertFalse($validate->empty(1));
+        static::assertTrue($validate->empty(0));
+        static::assertFalse($validate->empty(1));
 
-        $this->assertTrue($validate->empty(''));
-        $this->assertFalse($validate->empty(' '));
-        $this->assertFalse($validate->empty('0'));
+        static::assertTrue($validate->empty(''));
+        static::assertFalse($validate->empty(' '));
+        static::assertFalse($validate->empty('0'));
 
-        $this->assertTrue($validate->empty([]));
-        $this->assertFalse($validate->empty([0]));
+        static::assertTrue($validate->empty([]));
+        static::assertFalse($validate->empty([0]));
 
         $o = new \stdClass();
-        $this->assertTrue($validate->empty($o));
+        static::assertTrue($validate->empty($o));
         $o->a = 0;
-        $this->assertFalse($validate->empty($o));
+        static::assertFalse($validate->empty($o));
 
         $o = new \ArrayObject();
-        $this->assertTrue($validate->empty($o));
+        static::assertTrue($validate->empty($o));
         $o[0] = 0;
-        $this->assertFalse($validate->empty($o));
+        static::assertFalse($validate->empty($o));
 
         $o = new EmptyExplorable();
-        $this->assertTrue($validate->empty($o));
+        static::assertTrue($validate->empty($o));
         $o = new NonEmptyExplorable();
-        $this->assertFalse($validate->empty($o));
+        static::assertFalse($validate->empty($o));
     }
 
     /**
@@ -85,35 +85,35 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->nonEmpty(null));
+        static::assertFalse($validate->nonEmpty(null));
 
-        $this->assertFalse($validate->nonEmpty(false));
-        $this->assertTrue($validate->nonEmpty(true));
+        static::assertFalse($validate->nonEmpty(false));
+        static::assertTrue($validate->nonEmpty(true));
 
-        $this->assertFalse($validate->nonEmpty(0));
-        $this->assertTrue($validate->nonEmpty(1));
+        static::assertFalse($validate->nonEmpty(0));
+        static::assertTrue($validate->nonEmpty(1));
 
-        $this->assertFalse($validate->nonEmpty(''));
-        $this->assertTrue($validate->nonEmpty(' '));
-        $this->assertTrue($validate->nonEmpty('0'));
+        static::assertFalse($validate->nonEmpty(''));
+        static::assertTrue($validate->nonEmpty(' '));
+        static::assertTrue($validate->nonEmpty('0'));
 
-        $this->assertFalse($validate->nonEmpty([]));
-        $this->assertTrue($validate->nonEmpty([0]));
+        static::assertFalse($validate->nonEmpty([]));
+        static::assertTrue($validate->nonEmpty([0]));
 
         $o = new \stdClass();
-        $this->assertFalse($validate->nonEmpty($o));
+        static::assertFalse($validate->nonEmpty($o));
         $o->a = 0;
-        $this->assertTrue($validate->nonEmpty($o));
+        static::assertTrue($validate->nonEmpty($o));
 
         $o = new \ArrayObject();
-        $this->assertFalse($validate->nonEmpty($o));
+        static::assertFalse($validate->nonEmpty($o));
         $o[0] = 0;
-        $this->assertTrue($validate->nonEmpty($o));
+        static::assertTrue($validate->nonEmpty($o));
 
         $o = new EmptyExplorable();
-        $this->assertFalse($validate->nonEmpty($o));
+        static::assertFalse($validate->nonEmpty($o));
         $o = new NonEmptyExplorable();
-        $this->assertTrue($validate->nonEmpty($o));
+        static::assertTrue($validate->nonEmpty($o));
     }
 
     /**
@@ -125,20 +125,20 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->enum([], [[]]));
+        static::assertFalse($validate->enum([], [[]]));
         $o = new \stdClass();
-        $this->assertFalse($validate->enum($o, [$o]));
+        static::assertFalse($validate->enum($o, [$o]));
 
-        $this->assertFalse($validate->enum(null, [0]));
-        $this->assertFalse($validate->enum(false, [0]));
-        $this->assertFalse($validate->enum(true, [0]));
+        static::assertFalse($validate->enum(null, [0]));
+        static::assertFalse($validate->enum(false, [0]));
+        static::assertFalse($validate->enum(true, [0]));
 
-        $this->assertTrue($validate->enum(null, [null, false, true]));
-        $this->assertTrue($validate->enum(false, [null, false, true]));
-        $this->assertTrue($validate->enum(true, [null, false, true]));
+        static::assertTrue($validate->enum(null, [null, false, true]));
+        static::assertTrue($validate->enum(false, [null, false, true]));
+        static::assertTrue($validate->enum(true, [null, false, true]));
 
-        $this->assertTrue($validate->enum(0, [0]));
-        $this->assertFalse($validate->enum('0', [0]));
+        static::assertTrue($validate->enum(0, [0]));
+        static::assertFalse($validate->enum('0', [0]));
     }
 
     /**
@@ -150,13 +150,13 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertTrue($validate->regex(null, '//'));
-        $this->assertTrue($validate->regex(false, '//'));
-        $this->assertTrue($validate->regex(true, '/1/'));
+        static::assertTrue($validate->regex(null, '//'));
+        static::assertTrue($validate->regex(false, '//'));
+        static::assertTrue($validate->regex(true, '/1/'));
 
-        $this->assertTrue($validate->regex('a', '/a/'));
-        $this->assertFalse($validate->regex('a', '/b/'));
-        $this->assertFalse($validate->regex('a', '/\d/'));
+        static::assertTrue($validate->regex('a', '/a/'));
+        static::assertFalse($validate->regex('a', '/b/'));
+        static::assertFalse($validate->regex('a', '/\d/'));
     }
 
     /**
@@ -168,13 +168,13 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->boolean(null));
-        $this->assertTrue($validate->boolean(false));
-        $this->assertTrue($validate->boolean(true));
+        static::assertFalse($validate->boolean(null));
+        static::assertTrue($validate->boolean(false));
+        static::assertTrue($validate->boolean(true));
 
-        $this->assertFalse($validate->boolean(0));
-        $this->assertFalse($validate->boolean('0'));
-        $this->assertFalse($validate->boolean('a'));
+        static::assertFalse($validate->boolean(0));
+        static::assertFalse($validate->boolean('0'));
+        static::assertFalse($validate->boolean('a'));
     }
 
     /**
@@ -186,24 +186,24 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->number(null));
-        $this->assertFalse($validate->number(false));
-        $this->assertFalse($validate->number(true));
+        static::assertFalse($validate->number(null));
+        static::assertFalse($validate->number(false));
+        static::assertFalse($validate->number(true));
 
-        $this->assertSame('integer', $validate->number(0));
-        $this->assertSame('float', $validate->number(0.0));
-        $this->assertSame('integer', $validate->number(1));
-        $this->assertSame('float', $validate->number(1.0));
-        $this->assertSame('integer', $validate->number(PHP_INT_MAX));
+        static::assertSame('integer', $validate->number(0));
+        static::assertSame('float', $validate->number(0.0));
+        static::assertSame('integer', $validate->number(1));
+        static::assertSame('float', $validate->number(1.0));
+        static::assertSame('integer', $validate->number(PHP_INT_MAX));
         if (defined('PHP_FLOAT_MAX')) {
-            $this->assertSame('float', $validate->number(constant('PHP_FLOAT_MAX')));
+            static::assertSame('float', $validate->number(constant('PHP_FLOAT_MAX')));
         }
-        $this->assertFalse($validate->number('0'));
-        $this->assertFalse($validate->number('a'));
+        static::assertFalse($validate->number('0'));
+        static::assertFalse($validate->number('a'));
         $o = new Stringable();
         $o->property = 0;
-        $this->assertFalse($validate->number($o));
-        $this->assertFalse($validate->number('' . $o));
+        static::assertFalse($validate->number($o));
+        static::assertFalse($validate->number('' . $o));
     }
 
     /**
@@ -215,24 +215,24 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->integer(null));
-        $this->assertFalse($validate->integer(false));
-        $this->assertFalse($validate->integer(true));
+        static::assertFalse($validate->integer(null));
+        static::assertFalse($validate->integer(false));
+        static::assertFalse($validate->integer(true));
 
-        $this->assertTrue($validate->integer(0));
-        $this->assertFalse($validate->integer(0.0));
-        $this->assertTrue($validate->integer(1));
-        $this->assertFalse($validate->integer(1.0));
-        $this->assertTrue($validate->integer(PHP_INT_MAX));
+        static::assertTrue($validate->integer(0));
+        static::assertFalse($validate->integer(0.0));
+        static::assertTrue($validate->integer(1));
+        static::assertFalse($validate->integer(1.0));
+        static::assertTrue($validate->integer(PHP_INT_MAX));
         if (defined('PHP_FLOAT_MAX')) {
-            $this->assertFalse($validate->integer(constant('PHP_FLOAT_MAX')));
+            static::assertFalse($validate->integer(constant('PHP_FLOAT_MAX')));
         }
-        $this->assertFalse($validate->integer('0'));
-        $this->assertFalse($validate->integer('a'));
+        static::assertFalse($validate->integer('0'));
+        static::assertFalse($validate->integer('a'));
         $o = new Stringable();
         $o->property = 0;
-        $this->assertFalse($validate->integer($o));
-        $this->assertFalse($validate->integer('' . $o));
+        static::assertFalse($validate->integer($o));
+        static::assertFalse($validate->integer('' . $o));
     }
 
     /**
@@ -244,24 +244,24 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->float(null));
-        $this->assertFalse($validate->float(false));
-        $this->assertFalse($validate->float(true));
+        static::assertFalse($validate->float(null));
+        static::assertFalse($validate->float(false));
+        static::assertFalse($validate->float(true));
 
-        $this->assertFalse($validate->float(0));
-        $this->assertTrue($validate->float(0.0));
-        $this->assertFalse($validate->float(1));
-        $this->assertTrue($validate->float(1.0));
-        $this->assertFalse($validate->float(PHP_INT_MAX));
+        static::assertFalse($validate->float(0));
+        static::assertTrue($validate->float(0.0));
+        static::assertFalse($validate->float(1));
+        static::assertTrue($validate->float(1.0));
+        static::assertFalse($validate->float(PHP_INT_MAX));
         if (defined('PHP_FLOAT_MAX')) {
-            $this->assertTrue($validate->float(constant('PHP_FLOAT_MAX')));
+            static::assertTrue($validate->float(constant('PHP_FLOAT_MAX')));
         }
-        $this->assertFalse($validate->float('0'));
-        $this->assertFalse($validate->float('a'));
+        static::assertFalse($validate->float('0'));
+        static::assertFalse($validate->float('a'));
         $o = new Stringable();
         $o->property = 0;
-        $this->assertFalse($validate->float($o));
-        $this->assertFalse($validate->float('' . $o));
+        static::assertFalse($validate->float($o));
+        static::assertFalse($validate->float('' . $o));
     }
 
     /**
@@ -273,24 +273,24 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $this->assertFalse($validate->string(null));
-        $this->assertFalse($validate->string(false));
-        $this->assertFalse($validate->string(true));
+        static::assertFalse($validate->string(null));
+        static::assertFalse($validate->string(false));
+        static::assertFalse($validate->string(true));
 
-        $this->assertFalse($validate->string(0));
-        $this->assertFalse($validate->string(0.0));
-        $this->assertFalse($validate->string(1));
-        $this->assertFalse($validate->string(1.0));
-        $this->assertFalse($validate->string(PHP_INT_MAX));
+        static::assertFalse($validate->string(0));
+        static::assertFalse($validate->string(0.0));
+        static::assertFalse($validate->string(1));
+        static::assertFalse($validate->string(1.0));
+        static::assertFalse($validate->string(PHP_INT_MAX));
         if (defined('PHP_FLOAT_MAX')) {
-            $this->assertFalse($validate->string(constant('PHP_FLOAT_MAX')));
+            static::assertFalse($validate->string(constant('PHP_FLOAT_MAX')));
         }
-        $this->assertTrue($validate->string('0'));
-        $this->assertTrue($validate->string('a'));
+        static::assertTrue($validate->string('0'));
+        static::assertTrue($validate->string('a'));
         $o = new Stringable();
         $o->property = 0;
-        $this->assertFalse($validate->string($o));
-        $this->assertTrue($validate->string('' . $o));
+        static::assertFalse($validate->string($o));
+        static::assertTrue($validate->string('' . $o));
     }
 
 
@@ -335,10 +335,10 @@ class ValidateTest extends TestCase
             switch ($description) {
                 // Inverted true/false.
                 case 'ISO-8601 date no zone':
-                    $this->assertTrue($validate->{$method}($subject));
+                    static::assertTrue($validate->{$method}($subject));
                     break;
                 default:
-                    $this->assertFalse($validate->{$method}($subject));
+                    static::assertFalse($validate->{$method}($subject));
             }
         }
     }
@@ -367,17 +367,17 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 datetime (HH:II:SS.nano) +02':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
                 case 'ISO-8601 date -01:30':
-                    $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
                     break;
                 default:
-                    $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
         $subject_by_descr = array_flip(static::DATE_SUBJECTS);
-        $this->assertTrue(
+        static::assertTrue(
             $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) UTC'], 9)
         );
-        $this->assertTrue(
+        static::assertTrue(
             $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) +02'], 9)
         );
     }
@@ -399,10 +399,10 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 datetime (HH:II) no zone':
                 case 'ISO-8601 datetime (HH:II:SS) no zone':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
-                    $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
                     break;
                 default:
-                    $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
     }
@@ -434,14 +434,14 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 datetime (HH:II:SS.nano) +02':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
                 case 'ISO-8601 date -01:30':
-                    $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
                     break;
                 default:
-                    $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
         $subject_by_descr = array_flip(static::DATE_SUBJECTS);
-        $this->assertTrue(
+        static::assertTrue(
             $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) +02'], 9)
         );
     }
@@ -463,14 +463,14 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 datetime (HH:II) UTC':
                 case 'ISO-8601 datetime (HH:II:SS) UTC':
                 case 'ISO-8601 datetime (HH:II:SS.micro) UTC':
-                    $this->assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
                     break;
                 default:
-                    $this->assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
             }
         }
         $subject_by_descr = array_flip(static::DATE_SUBJECTS);
-        $this->assertTrue(
+        static::assertTrue(
             $validate->{$method}($subject_by_descr['ISO-8601 datetime (HH:II:SS.nano) UTC'], 9)
         );
     }

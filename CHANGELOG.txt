@@ -1,3 +1,7 @@
+SimpleComplex/Validate 2.x, 2019-01-04
+--------------------------------------
+- phpunit's assert... methods are static, not instance methods.
+
 SimpleComplex/Validate 2.x, 2018-08-04
 --------------------------------------
 - timeISO8601().
