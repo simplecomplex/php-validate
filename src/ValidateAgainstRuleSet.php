@@ -221,7 +221,7 @@ class ValidateAgainstRuleSet
             0,
             '',
             $subject,
-            new ValidationRuleSet($ruleSet)
+            new ValidationRuleSet($ruleSet, $this->ruleMethods, $this->ruleProvider->getTypeMethods())
         );
     }
 

@@ -38,6 +38,15 @@ interface RuleProviderInterface
     public function getNonRuleMethods() : array;
 
     /**
+     * Lists rule methods that explicitly promise to check the subject's type.
+     *
+     * @return array
+     *
+     * @see Validate::getTypeMethods()
+     */
+    public function getTypeMethods() : array;
+
+    /**
      * Subject is falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.

@@ -132,15 +132,25 @@ class ValidationRuleSet
     /**
      * Validation rule set.
      *
+     * Checks validity of arg rules, recursively.
+     *
+     * Ensures that the rule set contains at least one type checking rule
+     * (using 'string' as fallback),
+     * and places that rule as first in the set.
+     *
+     * Converts descendant rule sets to ValidationRuleSet.
+     *
      * @see ValidationRuleSet::ruleMethodsAvailable()
+     * @see ValidationRuleSet::typeMethodsAvailable()
      *
      * @param array|object $rules
-     * @param array $ruleMethodsAvailable
+     * @param array $ruleMethods
+     * @param array $typeMethods
      * @param int $depth
      *
      * @throws InvalidRuleException
      */
-    public function __construct($rules = [], array $ruleMethodsAvailable = [], $depth = 0)
+    public function __construct($rules = [], array $ruleMethods = [], array $typeMethods = [], $depth = 0)
     {
         /**
          * Constructor has no required parameters, to allow casting to it.
@@ -149,9 +159,55 @@ class ValidationRuleSet
         if (!$rules) {
             return;
         }
-        $rule_methods = $ruleMethodsAvailable ? $ruleMethodsAvailable : static::ruleMethodsAvailable();
+        $is_object = false;
+        if (!is_array($rules)) {
+            if (is_object($rules)) {
+                $is_object = true;
+            }
+            else {
+                throw new \InvalidArgumentException(
+                    'Arg rules at depth[' .  $depth . '] type[' . Utils::getType($rules) . '] is not array|object.'
+                );
+            }
+        }
+
+        $rule_methods = $ruleMethods ? $ruleMethods : static::ruleMethodsAvailable();
+        $type_methods = $typeMethods ? $typeMethods : static::typeMethodsAvailable();
 
         $rules_found = [];
+
+        // Ensure that there's a type checking method,
+        // and that it goes at the top; before rules that don't type check.
+        $type_rules_found = array_intersect($type_methods, array_keys(!$is_object ? $rules : get_object_vars($rules)));
+        $skip_type_rule = null;
+        if (!$type_rules_found) {
+            // Declare dynamically.
+            $this->string = true;
+        }
+        else {
+            $type_rule_name = reset($type_rules_found);
+            // No type rule is allowed to take other arguments than the subject,
+            // except the 'class' rule.
+            if ($type_rule_name == 'class') {
+                // Insert 'object' rule instead of moving 'class' rule, because
+                // we want the 'class' rule to be checked (like any other rule).
+                // Declare dynamically.
+                $this->object = true;
+                $skip_type_rule = 'object';
+            }
+            else {
+                // Remove from passed rule
+                if (!$is_object) {
+                    $type_rule_value = $rules[$type_rule_name];
+                } else {
+                    $type_rule_value = $rules->{$type_rule_name};
+                }
+                // Declare dynamically.
+                $this->{$type_rule_name} = $type_rule_value;
+                $skip_type_rule = $type_rule_name;
+            }
+            unset($type_rule_name, $type_rule_value);
+        }
 
         foreach ($rules as $ruleKey => &$ruleValue) {
             unset($args);
@@ -206,13 +262,19 @@ class ValidationRuleSet
                 $args = $ruleValue;
             }
 
+            if ($skip_type_rule && $rule == $skip_type_rule) {
+                continue;
+            }
+
             switch ($rule) {
                 case 'optional':
                     if ($depth && $args) {
+                        // Declare dynamically.
                         $this->optional = true;
                     }
                     break;
                 case 'allowNull':
+                    // Declare dynamically.
                     $this->allowNull = true;
                     break;
 
@@ -245,6 +307,7 @@ class ValidationRuleSet
                             );
                         }
                     }
+                    // Declare dynamically.
                     $this->alternativeEnum =& $allowed_values;
                     unset($allowed_values, $allowed);
                     break;
@@ -363,8 +426,9 @@ class ValidationRuleSet
                                 ++$index;
                                 if (!($subRuleSet instanceof ValidationRuleSet)) {
                                     if (is_array($subRuleSet) || is_object($subRuleSet)) {
+                                        // new ValidationRuleSet(.
                                         $subRuleSet = new static(
-                                            $subRuleSet, $rule_methods, $depth + 1
+                                            $subRuleSet, $rule_methods, $type_methods, $depth + 1
                                         );
                                     } else {
                                         throw new InvalidRuleException(
@@ -400,6 +464,7 @@ class ValidationRuleSet
                                 'Non-provider validation rule[tableElements] at depth[' .  $depth . '] is empty.'
                             );
                         }
+                        // Declare dynamically.
                         $this->tableElements = $ruleValue;
                     }
                     // listItems.
@@ -454,8 +519,9 @@ class ValidationRuleSet
                         }
                         if (!($ruleValue->itemRules instanceof ValidationRuleSet)) {
                             if (is_array($ruleValue->itemRules) || is_object($ruleValue->itemRules)) {
+                                // new ValidationRuleSet(.
                                 $ruleValue->itemRules = new static(
-                                    $ruleValue->itemRules, $rule_methods, $depth + 1
+                                    $ruleValue->itemRules, $rule_methods, $type_methods, $depth + 1
                                 );
                             } else {
                                 throw new InvalidRuleException(
@@ -465,6 +531,7 @@ class ValidationRuleSet
                                 );
                             }
                         }
+                        // Declare dynamically.
                         $this->listItems = $ruleValue;
                     }
                     break;
@@ -525,12 +592,14 @@ class ValidationRuleSet
                                     );
                                 }
                             }
+                            // Declare dynamically.
                             $this->enum = [
                                 $allowed_values
                             ];
                             unset($allowed_values, $allowed);
                             break;
                         default:
+                            // Declare dynamically.
                             $this->{$rule} = $args;
                     }
             }
@@ -590,5 +659,29 @@ class ValidationRuleSet
                     $provider->getNonRuleMethods()
                 )
             );
+    }
+
+    /**
+     * Lists rule methods by a rule provider that explicitly promise to check
+     * the subject's type.
+     *
+     * @see Validate
+     *
+     * @uses Validate::getTypeMethods()
+     *
+     * @param Interfaces\RuleProviderInterface|null $ruleProvider
+     *      Default: dependency container ID 'validate' or Validate::getInstance().
+     *
+     * @return array
+     */
+    public static function typeMethodsAvailable(/*?RuleProviderInterface*/ $ruleProvider = null)
+    {
+        if (!$ruleProvider) {
+            $container = Dependency::container();
+            $provider = $container->has('validate') ? $container->get('validate') : Validate::getInstance();
+        } else {
+            $provider = $ruleProvider;
+        }
+        return $provider->getTypeMethods();
     }
 }

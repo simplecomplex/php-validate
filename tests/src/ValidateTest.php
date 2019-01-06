@@ -123,7 +123,7 @@ class ValidateTest extends TestCase
 
         // Non-parameterized rule methods.
         $simple_rule_methods = ValidationRuleSet::ruleMethodsAvailable($validate);
-        $parameterized_methods = $validate->getParameterizedMethods();
+        $parameterized_methods = $validate->getParameterMethods();
         $simple_rule_methods =  array_diff($simple_rule_methods, array_keys($parameterized_methods));
         foreach ($parameterized_methods as $rule => $required) {
             if (!$required) {

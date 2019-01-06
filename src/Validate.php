@@ -97,10 +97,48 @@ class Validate implements RuleProviderInterface
         '__construct',
         'make',
         'getNonRuleMethods',
-        'getParameterizedMethods',
+        'getTypeMethods',
+        'getParameterMethods',
         '__call',
         'challenge',
         'challengeRecording',
+    ];
+
+    /**
+     * Methods that explicitly promise to check the subject's type.
+     *
+     * If a validation rule set doesn't contain any of these methods
+     * then it will be considered a string and checked as such.
+     *
+     * No type rule is allowed to take other arguments than the subject,
+     * except the 'class' rule.
+     *
+     * @see ValidationRuleSet::__construct()
+     *
+     * @var string[]
+     */
+    const TYPE_METHODS = [
+        'boolean',
+        'bit',
+        'number',
+        'integer',
+        'float',
+        'string',
+        'null',
+        'resource',
+        'numeric',
+        'digital',
+        'object',
+        'class',
+        'array',
+        'container',
+        'iterable',
+        'loopable',
+        'indexedIterable',
+        'keyedIterable',
+        'indexedLoopable',
+        'keyedLoopable',
+        'indexedArray',
     ];
 
     /**
@@ -108,15 +146,14 @@ class Validate implements RuleProviderInterface
      *
      * The arguments are required if the method bucket is true.
      *
-     * @see Validate::getParameterizedMethods()
+     * @see Validate::getParameterMethods()
      *
      * @var bool[]
      */
-    const PARAMETERIZED_METHODS = [
+    const PARAMETER_METHODS = [
         'enum' => true,
         'regex' => true,
         'class' => true,
-        'hex' => false,
         'min' => true,
         'max' => true,
         'range' => true,
@@ -124,6 +161,7 @@ class Validate implements RuleProviderInterface
         'unicodeMinLength' => true,
         'unicodeMaxLength' => true,
         'unicodeExactLength' => true,
+        'hex' => false,
         //'asciiMultiLine' => false,
         'minLength' => true,
         'maxLength' => true,
@@ -168,11 +206,18 @@ class Validate implements RuleProviderInterface
     protected $nonRuleMethods = [];
 
     /**
-     * @see Validate::getParameterizedMethods()
+     * @see Validate::getTypeMethods()
      *
      * @var array
      */
-    protected $parameterizedMethods = [];
+    protected $typeMethods = [];
+
+    /**
+     * @see Validate::getParameterMethods()
+     *
+     * @var array
+     */
+    protected $parameterMethods = [];
 
     /**
      * @see Validate::getInstance()
@@ -186,7 +231,8 @@ class Validate implements RuleProviderInterface
         }
 
         // self:: to allow extending class to define more such methods.
-        $this->parameterizedMethods = self::PARAMETERIZED_METHODS;
+        $this->typeMethods = self::TYPE_METHODS;
+        $this->parameterMethods = self::PARAMETER_METHODS;
     }
 
     /**
@@ -213,15 +259,30 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Get list of methods of this class that are validation rule methods.
+     * Lists rule methods that explicitly promise to check the subject's type.
+     *
+     * If a validation rule set doesn't contain any of these methods
+     * then it will be considered a string and checked as such.
      *
      * Extending class declaring more non-rule methods must override this method.
      *
      * @return array
      */
-    public function getParameterizedMethods() : array
+    public function getTypeMethods() : array
     {
-        return $this->parameterizedMethods;
+        return $this->typeMethods;
+    }
+
+    /**
+     * Lists rule methods that are validation rule methods.
+     *
+     * Extending class declaring more non-rule methods must override this method.
+     *
+     * @return array
+     */
+    public function getParameterMethods() : array
+    {
+        return $this->parameterMethods;
     }
 
     /**
@@ -453,6 +514,7 @@ class Validate implements RuleProviderInterface
      * Boolean or integer 0|1.
      *
      * @param $subject
+     *      bool|int to pass validation.
      *
      * @return bool
      */
@@ -482,6 +544,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::range()
      *
      * @param mixed $subject
+     *      int|float to pass validation.
      *
      * @return string|bool
      *      String (integer|float) on pass, boolean false on failure.
@@ -567,226 +630,6 @@ class Validate implements RuleProviderInterface
         return is_resource($subject);
     }
 
-    /**
-     * Array or object.
-     *
-     * Superset of all other object and array type(ish) checkers; here:
-     * - iterable, loopable, indexedIterable, keyedIterable, indexedLoopable,
-     *   keyedLoopable, class, array, indexedArray, keyedArray
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function container($subject)
-    {
-        return is_array($subject) ? 'array' : (
-            $subject && is_object($subject) ? (
-                $subject instanceof \Traversable ? (
-                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-                ) : 'object'
-            ) : false
-        );
-    }
-
-    /**
-     * Array or Traversable object.
-     *
-     * Not very useful because stdClass _is_ iterable.
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
-     *
-     * @see Validate::loopable()
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     */
-    public function iterable($subject)
-    {
-        return is_array($subject) ? 'array' : (
-            $subject && $subject instanceof \Traversable ? (
-                $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-            ) : false
-        );
-    }
-
-    /**
-     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
-     *
-     * Counter to iterable loopable allows non-Traversable object,
-     * except if (also) ArrayAccess.
-     *
-     * Non-Traversable ArrayAccess is (hopefully) the only relevant container
-     * class/interface that isn't iterable.
-     *
-     * @param $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function loopable($subject)
-    {
-        // Only difference vs container() is that non-Traversable ArrayAccess
-        // doesn't pass here.
-        return is_array($subject) ? 'array' : (
-            $subject && is_object($subject) ? (
-                $subject instanceof \Traversable ? (
-                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-                ) : (
-                    $subject instanceof \ArrayAccess ? false : 'object'
-                )
-            ) : false
-        );
-    }
-
-    /**
-     * Empty or indexed iterable.
-     *
-     * @param $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     */
-    public function indexedIterable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, false, false);
-    }
-
-    /**
-     * Empty or keyed iterable.
-     *
-     * @param $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     */
-    public function keyedIterable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, false, true);
-    }
-
-    /**
-     * Empty or indexed loopable.
-     *
-     * @param $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function indexedLoopable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, true, false);
-    }
-
-    /**
-     * Empty or keyed loopable.
-     *
-     * @param $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function keyedLoopable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, true, true);
-    }
-
-    /**
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function object($subject) : bool
-    {
-        return $subject && is_object($subject);
-    }
-
-    /**
-     * Is object and is of that class or interface, or has it as ancestor.
-     *
-     * @uses is_a()
-     *
-     * @param mixed $subject
-     * @param string $className
-     *
-     * @return bool
-     *
-     * @throws InvalidArgumentException
-     *      Arg className empty.
-     */
-    public function class($subject, string $className) : bool
-    {
-        if (!$className) {
-            throw new InvalidArgumentException('Arg className is empty.');
-        }
-        return $subject && is_object($subject) && is_a($subject, $className);
-    }
-
-    /**
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function array($subject) : bool
-    {
-        return is_array($subject);
-    }
-
-    /**
-     * Empty array or numerically indexed array.
-     *
-     * Does not check if the array's index is complete and correctly sequenced.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     *      True: empty array, or all keys are integers.
-     */
-    public function indexedArray($subject) : bool
-    {
-        if (!is_array($subject)) {
-            return false;
-        }
-        if (!$subject) {
-            return true;
-        }
-        return ctype_digit(join('', array_keys($subject)));
-    }
-
-    /**
-     * Empty array or keyed array.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     *      True: empty array, or at least one key is not integer.
-     */
-    public function keyedArray($subject) : bool
-    {
-        if (!is_array($subject)) {
-            return false;
-        }
-        if (!$subject) {
-            return true;
-        }
-        return !ctype_digit(join('', array_keys($subject)));
-    }
-
-
     // Numbers or stringed numbers.---------------------------------------------
 
     /**
@@ -830,7 +673,7 @@ class Validate implements RuleProviderInterface
      */
     public function numeric($subject)
     {
-        if ($subject === null) {
+        if (!is_int($subject) && !is_float($subject) && !is_string($subject)) {
             return false;
         }
         // Why not native is_numeric()?
@@ -895,7 +738,7 @@ class Validate implements RuleProviderInterface
      */
     public function digital($subject) : bool
     {
-        if ($subject === null) {
+        if (!is_int($subject) && !is_string($subject)) {
             return false;
         }
         // Yes, ctype_... returns fals on ''.
@@ -914,32 +757,234 @@ class Validate implements RuleProviderInterface
         return false;
     }*/
 
+
+    // Containers.--------------------------------------------------------------
+
     /**
-     * Hexadeximal number (string).
-     *
      * @param mixed $subject
-     *      Checked stringified.
-     * @param string $case
-     *      Values: lower|upper, otherwise ignored.
      *
      * @return bool
-     *      False on empty.
      */
-    public function hex($subject, string $case = '') : bool
+    public function object($subject) : bool
     {
-        if ($subject === null) {
+        return $subject && is_object($subject);
+    }
+
+    /**
+     * Is object and is of that class or interface, or has it as ancestor.
+     *
+     * @uses is_a()
+     *
+     * @param mixed $subject
+     *      object to pass validation.
+     * @param string $className
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg className empty.
+     */
+    public function class($subject, string $className) : bool
+    {
+        if (!$className) {
+            throw new InvalidArgumentException('Arg className is empty.');
+        }
+        return $subject && is_object($subject) && is_a($subject, $className);
+    }
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function array($subject) : bool
+    {
+        return is_array($subject);
+    }
+
+    /**
+     * Array or object.
+     *
+     * Superset of all other object and array type(ish) checkers; here:
+     * - iterable, loopable, indexedIterable, keyedIterable, indexedLoopable,
+     *   keyedLoopable, class, array, indexedArray, keyedArray
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * @param mixed $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function container($subject)
+    {
+        return is_array($subject) ? 'array' : (
+            $subject && is_object($subject) ? (
+                $subject instanceof \Traversable ? (
+                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+                ) : 'object'
+            ) : false
+        );
+    }
+
+    /**
+     * Array or Traversable object.
+     *
+     * Not very useful because stdClass _is_ iterable.
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * @see Validate::loopable()
+     *
+     * @param mixed $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable) on pass,
+     *      boolean false on validation failure.
+     */
+    public function iterable($subject)
+    {
+        return is_array($subject) ? 'array' : (
+            $subject && $subject instanceof \Traversable ? (
+                $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+            ) : false
+        );
+    }
+
+    /**
+     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
+     *
+     * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * Counter to iterable loopable allows non-Traversable object,
+     * except if (also) ArrayAccess.
+     *
+     * Non-Traversable ArrayAccess is (hopefully) the only relevant container
+     * class/interface that isn't iterable.
+     *
+     * @param $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function loopable($subject)
+    {
+        // Only difference vs container() is that non-Traversable ArrayAccess
+        // doesn't pass here.
+        return is_array($subject) ? 'array' : (
+            $subject && is_object($subject) ? (
+                $subject instanceof \Traversable ? (
+                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+                ) : (
+                    $subject instanceof \ArrayAccess ? false : 'object'
+                )
+            ) : false
+        );
+    }
+
+    /**
+     * Empty or indexed iterable.
+     *
+     * @param $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable) on pass,
+     *      boolean false on validation failure.
+     */
+    public function indexedIterable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, false, false);
+    }
+
+    /**
+     * Empty or keyed iterable.
+     *
+     * @param $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable) on pass,
+     *      boolean false on validation failure.
+     */
+    public function keyedIterable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, false, true);
+    }
+
+    /**
+     * Empty or indexed loopable.
+     *
+     * @param $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function indexedLoopable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, true, false);
+    }
+
+    /**
+     * Empty or keyed loopable.
+     *
+     * @param $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function keyedLoopable($subject)
+    {
+        return static::indexedOrKeyedContainer($subject, true, true);
+    }
+
+    /**
+     * Empty array or numerically indexed array.
+     *
+     * Does not check if the array's index is complete and correctly sequenced.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     *      True: empty array, or all keys are integers.
+     */
+    public function indexedArray($subject) : bool
+    {
+        if (!is_array($subject)) {
             return false;
         }
-        switch ($case) {
-            case 'lower':
-                $v = '' . $subject;
-                return $v === '' ? false : !!preg_match('/^[a-f\d]+$/', '' . $v);
-            case 'upper':
-                $v = '' . $subject;
-                return $v === '' ? false : !!preg_match('/^[A-F\d]+$/', '' . $v);
+        if (!$subject) {
+            return true;
         }
-        // Yes, ctype_... returns false on ''.
-        return !!ctype_xdigit('' . $subject);
+        return ctype_digit(join('', array_keys($subject)));
+    }
+
+    /**
+     * Empty array or keyed array.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     *      True: empty array, or at least one key is not integer.
+     */
+    public function keyedArray($subject) : bool
+    {
+        if (!is_array($subject)) {
+            return false;
+        }
+        if (!$subject) {
+            return true;
+        }
+        return !ctype_digit(join('', array_keys($subject)));
     }
 
 
@@ -1342,6 +1387,34 @@ class Validate implements RuleProviderInterface
 
 
     // ASCII string secondaries.------------------------------------------------
+
+    /**
+     * Hexadeximal number (string).
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
+     *
+     * @return bool
+     *      False on empty.
+     */
+    public function hex($subject, string $case = '') : bool
+    {
+        if ($subject === null) {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $v = '' . $subject;
+                return $v === '' ? false : !!preg_match('/^[a-f\d]+$/', '' . $v);
+            case 'upper':
+                $v = '' . $subject;
+                return $v === '' ? false : !!preg_match('/^[A-F\d]+$/', '' . $v);
+        }
+        // Yes, ctype_... returns false on ''.
+        return !!ctype_xdigit('' . $subject);
+    }
 
     /**
      * Full ASCII; 0-127.
