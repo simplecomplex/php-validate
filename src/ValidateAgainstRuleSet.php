@@ -382,7 +382,8 @@ class ValidateAgainstRuleSet
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': tableElements - ' . Utils::getType($subject) . ' is not a container';
+                $this->record[] = $keyPath . ': tableElements - ' . Utils::getType($subject)
+                    . ' is not a loopable container';
             }
             return false;
         }

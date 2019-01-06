@@ -144,6 +144,7 @@ class ValidationRuleSet
      * @see ValidationRuleSet::typeMethodsAvailable()
      *
      * @param array|object $rules
+     *      ArrayAccess is not supported.
      * @param array $ruleMethods
      * @param array $typeMethods
      * @param int $depth
@@ -162,11 +163,17 @@ class ValidationRuleSet
         $is_object = false;
         if (!is_array($rules)) {
             if (is_object($rules)) {
+                if ($rules instanceof \ArrayAccess) {
+                    throw new \InvalidArgumentException(
+                        'Arg rules at depth[' . $depth . '] type[' . Utils::getType($rules)
+                        . '] \ArrayAccess is not supported.'
+                    );
+                }
                 $is_object = true;
             }
             else {
                 throw new \InvalidArgumentException(
-                    'Arg rules at depth[' .  $depth . '] type[' . Utils::getType($rules) . '] is not array|object.'
+                    'Arg rules at depth[' . $depth . '] type[' . Utils::getType($rules) . '] is not array|object.'
                 );
             }
         }
@@ -178,6 +185,8 @@ class ValidationRuleSet
 
         // Ensure that there's a type checking method,
         // and that it goes at the top; before rules that don't type check.
+        // NB: Not reliable if $rules is array having numerically indexed rules
+        // (bucket value name of rule).
         $type_rules_found = array_intersect($type_methods, array_keys(!$is_object ? $rules : get_object_vars($rules)));
         $skip_type_rule = null;
         if (!$type_rules_found) {
@@ -206,7 +215,7 @@ class ValidationRuleSet
                 $this->{$type_rule_name} = $type_rule_value;
                 $skip_type_rule = $type_rule_name;
             }
-            unset($type_rule_name, $type_rule_value);
+            unset($type_rules_found, $type_rule_name, $type_rule_value);
         }
 
         foreach ($rules as $ruleKey => &$ruleValue) {
