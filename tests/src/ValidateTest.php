@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use SimpleComplex\Tests\Utils\BootstrapTest;
 
 use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\ValidationRuleSet;
 
 /**
  * @code
@@ -116,6 +117,91 @@ class ValidateTest extends TestCase
         static::assertTrue($validate->nonEmpty($o));
     }
 
+    public function testNull()
+    {
+        $validate = $this->testInstantiation();
+
+        // Non-parameterized rule methods.
+        $simple_rule_methods = ValidationRuleSet::ruleMethodsAvailable($validate);
+        $parameterized_methods = $validate->getParameterizedMethods();
+        $simple_rule_methods =  array_diff($simple_rule_methods, array_keys($parameterized_methods));
+        foreach ($parameterized_methods as $rule => $required) {
+            if (!$required) {
+                $simple_rule_methods[] = $rule;
+            }
+        }
+
+        foreach ($simple_rule_methods as $rule) {
+            switch ($rule) {
+                case 'empty':
+                case 'null':
+                    static::assertTrue($validate->{$rule}(null), 'Rule method (true): ' . $rule);
+                    break;
+                default:
+                    static::assertFalse($validate->{$rule}(null), 'Rule method (false): ' . $rule);
+            }
+        }
+
+        /**
+        'enum' => true,
+        'regex' => true,
+        'class' => true,
+        'hex' => false,
+        'min' => true,
+        'max' => true,
+        'range' => true,
+        'unicodeMultiLine' => false,
+        'unicodeMinLength' => true,
+        'unicodeMaxLength' => true,
+        'unicodeExactLength' => true,
+        //'asciiMultiLine' => false,
+        'minLength' => true,
+        'maxLength' => true,
+        'exactLength' => true,
+        'alphaNum' => false,
+        'name' => false,
+        'snakeName' => false,
+        'lispName' => false,
+        'uuid' => false,
+        'timeISO8601' => false,
+        'dateTimeISO8601' => false,
+        'dateTimeISO8601Zonal' => false,
+        'dateTimeISOUTC' => false,
+         */
+
+        // enum.
+        static::assertFalse($validate->enum(null, [1]), 'Rule method (false): ' . 'enum');
+        static::assertTrue($validate->enum(null, [1, null]), 'Rule method (true): ' . 'enum');
+
+
+        static::assertFalse($validate->regex(null, '/./'), 'Rule method (false): ' . 'regex');
+        static::assertFalse($validate->class(null, \stdClass::class), 'Rule method (false): ' . 'class');
+
+        static::assertFalse($validate->min(null, 0), 'Rule method (false): ' . 'min');
+        static::assertFalse($validate->max(null, 0), 'Rule method (false): ' . 'max');
+        static::assertFalse($validate->range(null, 0, 1), 'Rule method (false): ' . 'range');
+
+        static::assertFalse($validate->unicodeMinLength(null, 0), 'Rule method (false): ' . 'unicodeMinLength');
+        static::assertFalse($validate->unicodeMaxLength(null, 0), 'Rule method (false): ' . 'unicodeMaxLength');
+        static::assertFalse($validate->unicodeExactLength(null, 0), 'Rule method (false): ' . 'unicodeExactLength');
+    }
+
+
+    public function testAllowNull()
+    {
+        $validate = $this->testInstantiation();
+
+        $ruleSet = new ValidationRuleSet([
+            'nonNegative' => true,
+        ]);
+        static::assertFalse($validate->challenge(null, $ruleSet), 'Rule method (false): ' . 'nonNegative');
+        $ruleSet = new ValidationRuleSet([
+            'nonNegative' => true,
+            'allowNull' => true,
+        ]);
+        static::assertTrue($validate->challenge(null, $ruleSet), 'Rule method (true): ' . 'nonNegative');
+    }
+
     /**
      * @see Validate::enum()
      *
@@ -150,7 +236,8 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        static::assertTrue($validate->regex(null, '//'));
+        static::assertFalse($validate->regex(null, '/0/'));
+
         static::assertTrue($validate->regex(false, '//'));
         static::assertTrue($validate->regex(true, '/1/'));
 

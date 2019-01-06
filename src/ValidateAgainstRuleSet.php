@@ -106,6 +106,7 @@ class ValidateAgainstRuleSet
      */
     const NON_PROVIDER_RULES = [
         'optional',
+        'allowNull',
         'alternativeEnum',
         'tableElements',
         'listItems',
@@ -249,12 +250,16 @@ class ValidateAgainstRuleSet
         }
 
         $rules_found = [];
+        $allowNull = false;
         $alternative_enum = $table_elements = $list_items = null;
         foreach ($ruleSet as $ruleKey => $ruleValue) {
             switch ($ruleKey) {
                 case 'optional':
                     // Do nothing, ignore here.
                     // Only used when working on tableElements|listItems.
+                    break;
+                case 'allowNull':
+                    $allowNull = true;
                     break;
                 case 'alternativeEnum':
                     // No need to check for falsy nor non-array;
@@ -285,36 +290,51 @@ class ValidateAgainstRuleSet
         // Roll it.
         $failed = false;
         $record = [];
-        foreach ($rules_found as $rule => $args) {
-            // We expect more boolean trues than arrays;
-            // few Validate methods take secondary args.
-            if ($args === true) {
-                if (!$this->ruleProvider->{$rule}($subject)) {
-                    $failed = true;
-                    if ($this->recordFailure) {
-                        $record[] = $rule;
-                    }
-                    break;
-                }
-            } elseif ($rule == 'enum') {
-                // Use own pre-checked enum() because ValidationRuleSet checks
-                // that all allowed values are scalar|null.
-                if (!$this->preCheckedEnum($subject, $args[0])) {
-                    $failed = true;
-                    if ($this->recordFailure) {
-                        $record[] = $rule;
-                    }
-                    break;
-                }
+
+        if ($subject === null) {
+            if ($allowNull) {
+                return true;
             }
-            // No need to check for falsy nor non-array $args;
-            // ValidationRuleSet do that.
-            elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
+            // If enum rule, then that may allow null.
+            if (!property_exists($ruleSet, 'enum')) {
+                // Continue to alternativeEnum check.
                 $failed = true;
-                if ($this->recordFailure) {
-                    $record[] = $rule;
+            }
+            // Otherwise let enum rule in ruleSet iteration do validation.
+        }
+
+        if (!$failed) {
+            foreach ($rules_found as $rule => $args) {
+                // We expect more boolean trues than arrays;
+                // few Validate methods take secondary args.
+                if ($args === true) {
+                    if (!$this->ruleProvider->{$rule}($subject)) {
+                        $failed = true;
+                        if ($this->recordFailure) {
+                            $record[] = $rule;
+                        }
+                        break;
+                    }
+                } elseif ($rule == 'enum') {
+                    // Use own pre-checked enum() because ValidationRuleSet checks
+                    // that all allowed values are scalar|null.
+                    if (!$this->preCheckedEnum($subject, $args[0])) {
+                        $failed = true;
+                        if ($this->recordFailure) {
+                            $record[] = $rule;
+                        }
+                        break;
+                    }
                 }
-                break;
+                // No need to check for falsy nor non-array $args;
+                // ValidationRuleSet do that.
+                elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
+                    $failed = true;
+                    if ($this->recordFailure) {
+                        $record[] = $rule;
+                    }
+                    break;
+                }
             }
         }
 

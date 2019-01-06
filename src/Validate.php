@@ -89,7 +89,7 @@ class Validate implements RuleProviderInterface
      * Methods of this class that a ValidateAgainstRuleSet instance
      * should never call.
      *
-     * @var array
+     * @var string[]
      */
     const NON_RULE_METHODS = [
         'getInstance',
@@ -97,9 +97,46 @@ class Validate implements RuleProviderInterface
         '__construct',
         'make',
         'getNonRuleMethods',
+        'getParameterizedMethods',
         '__call',
         'challenge',
         'challengeRecording',
+    ];
+
+    /**
+     * Methods of this class that takes more arguments than just the subject.
+     *
+     * The arguments are required if the method bucket is true.
+     *
+     * @see Validate::getParameterizedMethods()
+     *
+     * @var bool[]
+     */
+    const PARAMETERIZED_METHODS = [
+        'enum' => true,
+        'regex' => true,
+        'class' => true,
+        'hex' => false,
+        'min' => true,
+        'max' => true,
+        'range' => true,
+        'unicodeMultiLine' => false,
+        'unicodeMinLength' => true,
+        'unicodeMaxLength' => true,
+        'unicodeExactLength' => true,
+        //'asciiMultiLine' => false,
+        'minLength' => true,
+        'maxLength' => true,
+        'exactLength' => true,
+        'alphaNum' => false,
+        'name' => false,
+        'snakeName' => false,
+        'lispName' => false,
+        'uuid' => false,
+        'timeISO8601' => false,
+        'dateTimeISO8601' => false,
+        'dateTimeISO8601Zonal' => false,
+        'dateTimeISOUTC' => false,
     ];
 
 
@@ -131,6 +168,13 @@ class Validate implements RuleProviderInterface
     protected $nonRuleMethods = [];
 
     /**
+     * @see Validate::getParameterizedMethods()
+     *
+     * @var array
+     */
+    protected $parameterizedMethods = [];
+
+    /**
      * @see Validate::getInstance()
      */
     public function __construct()
@@ -140,6 +184,9 @@ class Validate implements RuleProviderInterface
         if (!$this->unicode) {
             $this->unicode = Unicode::getInstance();
         }
+
+        // self:: to allow extending class to define more such methods.
+        $this->parameterizedMethods = self::PARAMETERIZED_METHODS;
     }
 
     /**
@@ -163,6 +210,18 @@ class Validate implements RuleProviderInterface
             //);
         }
         return $this->nonRuleMethods;
+    }
+
+    /**
+     * Get list of methods of this class that are validation rule methods.
+     *
+     * Extending class declaring more non-rule methods must override this method.
+     *
+     * @return array
+     */
+    public function getParameterizedMethods() : array
+    {
+        return $this->parameterizedMethods;
     }
 
     /**
@@ -254,7 +313,7 @@ class Validate implements RuleProviderInterface
     // Type indifferent.--------------------------------------------------------
 
     /**
-     * Subject is falsy or array|object is empty.
+     * Subject is null, falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
@@ -372,6 +431,9 @@ class Validate implements RuleProviderInterface
         if (!$pattern) {
             throw new InvalidArgumentException('Arg pattern is empty.');
         }
+        if ($subject === null) {
+            return false;
+        }
         return !!preg_match($pattern, '' . $subject);
     }
 
@@ -385,6 +447,24 @@ class Validate implements RuleProviderInterface
     public function boolean($subject) : bool
     {
         return is_bool($subject);
+    }
+
+    /**
+     * Boolean or integer 0|1.
+     *
+     * @param $subject
+     *
+     * @return bool
+     */
+    public function bit($subject) : bool
+    {
+        if (is_bool($subject)) {
+            return true;
+        }
+        if (is_int($subject)) {
+            return $subject == 0 || $subject == 1;
+        }
+        return false;
     }
 
     /**
@@ -750,6 +830,9 @@ class Validate implements RuleProviderInterface
      */
     public function numeric($subject)
     {
+        if ($subject === null) {
+            return false;
+        }
         // Why not native is_numeric()?
         // Native is_numeric() accepts (at least) e/E notation,
         // leading plus and leading space.
@@ -812,6 +895,9 @@ class Validate implements RuleProviderInterface
      */
     public function digital($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         // Yes, ctype_... returns fals on ''.
         return ctype_digit('' . $subject);
     }
@@ -841,6 +927,9 @@ class Validate implements RuleProviderInterface
      */
     public function hex($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         switch ($case) {
             case 'lower':
                 $v = '' . $subject;
@@ -871,6 +960,9 @@ class Validate implements RuleProviderInterface
      */
     public function bit32($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         return $subject >= -2147483648 && $subject <= 2147483647;
     }
 
@@ -889,6 +981,9 @@ class Validate implements RuleProviderInterface
      */
     public function bit64($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         return $subject >= -9223372036854775808 && $subject <= 9223372036854775807;
     }
 
@@ -925,7 +1020,7 @@ class Validate implements RuleProviderInterface
      */
     public function nonNegative($subject) : bool
     {
-        return $subject >= 0;
+        return $subject !== null && $subject >= 0;
     }
 
     /**
@@ -972,6 +1067,9 @@ class Validate implements RuleProviderInterface
         if (!is_int($min) && !is_float($min)) {
             throw new InvalidArgumentException('Arg min type[' . Utils::getType($min) . '] is not integer or float.');
         }
+        if ($subject === null) {
+            return false;
+        }
         return $subject >= $min;
     }
 
@@ -1000,6 +1098,9 @@ class Validate implements RuleProviderInterface
     {
         if (!is_int($max) && !is_float($max)) {
             throw new InvalidArgumentException('Arg max type[' . Utils::getType($max) . '] is not integer or float.');
+        }
+        if ($subject === null) {
+            return false;
         }
         return $subject <= $max;
     }
@@ -1040,6 +1141,9 @@ class Validate implements RuleProviderInterface
         if ($max < $min) {
             throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than arg min[' .  $min . '].');
         }
+        if ($subject === null) {
+            return false;
+        }
         return $subject >= $min && $subject <= $max;
     }
 
@@ -1061,6 +1165,9 @@ class Validate implements RuleProviderInterface
      */
     public function unicode($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? true :
             // The PHP regex u modifier forces the whole subject to be evaluated
@@ -1087,6 +1194,9 @@ class Validate implements RuleProviderInterface
      */
     public function unicodePrintable($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return true;
@@ -1120,6 +1230,9 @@ class Validate implements RuleProviderInterface
      */
     public function unicodeMultiLine($subject, $noCarriageReturn = false) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         // Remove newline chars before checking if printable.
         return $this->unicodePrintable(
             str_replace(
@@ -1152,6 +1265,9 @@ class Validate implements RuleProviderInterface
         if ($min < 0) {
             throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
         }
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return $min == 0;
@@ -1180,6 +1296,9 @@ class Validate implements RuleProviderInterface
     {
         if ($max < 0) {
             throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
+        }
+        if ($subject === null) {
+            return false;
         }
         $v = '' . $subject;
         if ($v === '') {
@@ -1211,6 +1330,9 @@ class Validate implements RuleProviderInterface
         if ($exact < 0) {
             throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
         }
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return $exact == 0;
@@ -1236,6 +1358,9 @@ class Validate implements RuleProviderInterface
      */
     public function ascii($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? true : !!preg_match('/^[[:ascii:]]+$/', $v);
     }
@@ -1255,6 +1380,9 @@ class Validate implements RuleProviderInterface
      */
     public function asciiPrintable($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return true;
@@ -1287,6 +1415,9 @@ class Validate implements RuleProviderInterface
      */
     public function asciiMultiLine($subject, $noCarriageReturn = false) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         // Remove newline chars before checking if printable.
         return $this->asciiPrintable(
             str_replace(
@@ -1314,6 +1445,9 @@ class Validate implements RuleProviderInterface
      */
     public function minLength($subject, int $min) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         if ($min < 0) {
             throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
         }
@@ -1337,6 +1471,9 @@ class Validate implements RuleProviderInterface
      */
     public function maxLength($subject, int $max) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         if ($max < 0) {
             throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
         }
@@ -1360,6 +1497,9 @@ class Validate implements RuleProviderInterface
      */
     public function exactLength($subject, int $exact) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         if ($exact < 0) {
             throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
         }
@@ -1384,6 +1524,9 @@ class Validate implements RuleProviderInterface
      */
     public function alphaNum($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return false;
@@ -1419,6 +1562,9 @@ class Validate implements RuleProviderInterface
      */
     public function name($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return false;
@@ -1452,6 +1598,9 @@ class Validate implements RuleProviderInterface
      */
     public function snakeName($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return false;
@@ -1485,6 +1634,9 @@ class Validate implements RuleProviderInterface
      */
     public function lispName($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return false;
@@ -1519,6 +1671,9 @@ class Validate implements RuleProviderInterface
      */
     public function uuid($subject, string $case = '') : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         if (strlen($v) != 36) {
             return false;
@@ -1548,6 +1703,9 @@ class Validate implements RuleProviderInterface
      */
     public function base64($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $subject);
     }
 
@@ -1568,6 +1726,9 @@ class Validate implements RuleProviderInterface
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
     }
@@ -1599,6 +1760,9 @@ class Validate implements RuleProviderInterface
 
         if ($subSeconds < 0) {
             throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        if ($subject === null) {
+            return false;
         }
         $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
@@ -1639,6 +1803,9 @@ class Validate implements RuleProviderInterface
         if ($subSeconds < 0) {
             throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
         }
+        if ($subject === null) {
+            return false;
+        }
         $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
         return strlen($v) <= 26 + $subSeconds
@@ -1666,6 +1833,9 @@ class Validate implements RuleProviderInterface
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
     }
@@ -1699,6 +1869,9 @@ class Validate implements RuleProviderInterface
 
         if ($subSeconds < 0) {
             throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
+        }
+        if ($subject === null) {
+            return false;
         }
         $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
@@ -1736,6 +1909,9 @@ class Validate implements RuleProviderInterface
         if ($subSeconds < 0) {
             throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
         }
+        if ($subject === null) {
+            return false;
+        }
         $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
         return strlen($v) <= 30
@@ -1760,6 +1936,9 @@ class Validate implements RuleProviderInterface
      */
     public function plainText($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? true : !strcmp($v, strip_tags($v));
     }
@@ -1772,6 +1951,9 @@ class Validate implements RuleProviderInterface
      */
     public function ipAddress($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
     }
@@ -1784,6 +1966,9 @@ class Validate implements RuleProviderInterface
      */
     public function url($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
     }
@@ -1796,6 +1981,9 @@ class Validate implements RuleProviderInterface
      */
     public function httpUrl($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? false : (
             strpos($v, 'http') === 0
@@ -1811,6 +1999,9 @@ class Validate implements RuleProviderInterface
      */
     public function email($subject) : bool
     {
+        if ($subject === null) {
+            return false;
+        }
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
         $v = '' . $subject;
         return $v === '' ? false : (

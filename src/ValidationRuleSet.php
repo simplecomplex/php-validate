@@ -42,6 +42,13 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *      Only declared if relevant, otherwise undefined.
  *
  *
+ * @property boolean|undefined $allowNull
+ *      Flags that the element is allowed to be null.
+ *      Null is not the same as non-existent (optional).
+ *
+ *      Only declared if relevant, otherwise undefined.
+ *
+ *
  * @property array|undefined $alternativeEnum
  *      List of alternative valid values used if subject doesn't comply with
  *      other - typically type checking - rules.
@@ -152,11 +159,12 @@ class ValidationRuleSet
                 // Bucket is simply the name of a rule; key is int, value is the rule.
                 $rule = $ruleValue;
                 $args = true;
-                // The only non-provider rules supported is 'optional';
+                // The only non-provider rules supported are 'optional' and 'allowNull';
                 // the others cannot be boolean.
                 // And only provider rules having no parameters are legal here.
                 switch ($rule) {
                     case 'optional':
+                    case 'allowNull':
                         break;
                     case 'enum':
                         throw new InvalidRuleException(
@@ -203,6 +211,9 @@ class ValidationRuleSet
                     if ($depth && $args) {
                         $this->optional = true;
                     }
+                    break;
+                case 'allowNull':
+                    $this->allowNull = true;
                     break;
 
                 case 'alternativeEnum':

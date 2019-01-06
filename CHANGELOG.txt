@@ -1,3 +1,9 @@
+SimpleComplex/Validate 2.x, 2019-01-06
+--------------------------------------
+- No rules methods but 'empty' and 'null' must allow (pass) null.
+- New non-rule method 'allowNull', for nested (object|array bucket) elements.
+- New rule method 'bit'.
+
 SimpleComplex/Validate 2.x, 2019-01-04
 --------------------------------------
 - phpunit's assert... methods are static, not instance methods.

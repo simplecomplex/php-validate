@@ -39,6 +39,7 @@ Rule sets are defined in JSON (readable and portable), and cached as PHP ```Vali
 Multi-dimensional object/array rule sets support a little more than proper validation rules.
 
 - **optional**: the bucket is allowed to be missing
+- **allowNull**: the value is allowed to be null
 - **alternativeEnum**: list of alternative (scalar|null) values that should make a subject pass,  
 even though another rule is violated
 - **tableElements**: the subject (an object|array) must contain these keys,  
@@ -149,6 +150,9 @@ $rule_set = [
             'various' => [
                 'array',
                 'optional',
+                // allowNull and alternativeEnum with null
+                // are two ways of allowing null.
+                'allowNull' => true,
                 'alternativeEnum' => [
                     null,
                 ],
