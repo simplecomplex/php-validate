@@ -673,7 +673,13 @@ class Validate implements RuleProviderInterface
      */
     public function numeric($subject)
     {
-        if (!is_int($subject) && !is_float($subject) && !is_string($subject)) {
+        if (is_int($subject)) {
+            return 'integer';
+        }
+        if (is_float($subject)) {
+            return 'float';
+        }
+        if (!is_string($subject)) {
             return false;
         }
         // Why not native is_numeric()?
@@ -738,7 +744,10 @@ class Validate implements RuleProviderInterface
      */
     public function digital($subject) : bool
     {
-        if (!is_int($subject) && !is_string($subject)) {
+        if (is_int($subject)) {
+            return true;
+        }
+        if (!is_string($subject)) {
             return false;
         }
         // Yes, ctype_... returns fals on ''.
