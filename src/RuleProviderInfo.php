@@ -16,6 +16,11 @@ use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
  * Helper object for ValidationRuleSet, holding the rule provider and additional
  * info about that.
  *
+ * Why not simply set rule-methods and type-methods lists on Validate object?
+ * --------------------------------------------------------------------------
+ * The properties would have to be public. Public properties on a Validate
+ * object is not acceptable.
+ *
  * @see ValidationRuleSet
  * @see ValidateAgainstRuleSet
  *
