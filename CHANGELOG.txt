@@ -2,6 +2,7 @@ SimpleComplex/Validate 2.x, 2019-01-07
 --------------------------------------
 - ValidationRuleSet constructor's second argument is (preferably) now
   a rule provider or a rule provider info object; not rule-methods-available.
+- ValidationRuleSet::ruleMethodsAvailable() is now deprecated.
 
 SimpleComplex/Validate 2.x, 2019-01-06
 --------------------------------------
