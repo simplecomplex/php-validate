@@ -204,8 +204,10 @@ class ValidateAgainstRuleSet
     {
         // Init, really.
         // List rule methods made available by the rule provider.
+        $provider_info = null;
         if (!$this->ruleMethods) {
-            $this->ruleMethods = ValidationRuleSet::ruleMethodsAvailable($this->ruleProvider);
+            $provider_info = new RuleProviderInfo($this->ruleProvider);
+            $this->ruleMethods = $provider_info->ruleMethods;
         }
 
         if ($ruleSet instanceof ValidationRuleSet) {
@@ -221,7 +223,7 @@ class ValidateAgainstRuleSet
             0,
             '',
             $subject,
-            new ValidationRuleSet($ruleSet, $this->ruleMethods, $this->ruleProvider->getTypeMethods())
+            new ValidationRuleSet($ruleSet, $provider_info ?? new RuleProviderInfo($this->ruleProvider))
         );
     }
 

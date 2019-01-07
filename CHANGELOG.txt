@@ -1,10 +1,14 @@
+SimpleComplex/Validate 2.x, 2019-01-07
+--------------------------------------
+- ValidationRuleSet constructor's second argument is (preferably) now
+  a rule provider or a rule provider info object; not rule-methods-available.
+
 SimpleComplex/Validate 2.x, 2019-01-06
 --------------------------------------
 - No rules methods but 'empty' and 'null' must allow (pass) null.
 - New non-rule method 'allowNull', for nested (object|array bucket) elements.
 - New rule method 'bit'.
 - Type-checking rule methods.
-- ValidationRuleSet constructor now has third parameter $typeMethods.
 
 SimpleComplex/Validate 2.x, 2019-01-04
 --------------------------------------

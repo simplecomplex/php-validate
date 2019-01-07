@@ -11,6 +11,7 @@ namespace SimpleComplex\Validate;
 
 use SimpleComplex\Utils\Utils;
 use SimpleComplex\Utils\Dependency;
+use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -140,18 +141,18 @@ class ValidationRuleSet
      *
      * Converts descendant rule sets to ValidationRuleSet.
      *
-     * @see ValidationRuleSet::ruleMethodsAvailable()
-     * @see ValidationRuleSet::typeMethodsAvailable()
+     * @see RuleProviderInfo
      *
      * @param array|object $rules
      *      ArrayAccess is not supported.
-     * @param array $ruleMethods
-     * @param array $typeMethods
+     * @param RuleProviderInterface|RuleProviderInfo|array|null $ruleProvider
+     *      Array is only for backwards compatibility (this parameter use to be
+     *      (array) $ruleMethodsAvailable), and using array elicits warning log.
      * @param int $depth
      *
      * @throws InvalidRuleException
      */
-    public function __construct($rules = [], array $ruleMethods = [], array $typeMethods = [], $depth = 0)
+    public function __construct($rules = [], $ruleProvider = null, $depth = 0)
     {
         /**
          * Constructor has no required parameters, to allow casting to it.
@@ -178,8 +179,33 @@ class ValidationRuleSet
             }
         }
 
-        $rule_methods = $ruleMethods ? $ruleMethods : static::ruleMethodsAvailable();
-        $type_methods = $typeMethods ? $typeMethods : static::typeMethodsAvailable();
+        if (!$ruleProvider) {
+            $provider_info = new RuleProviderInfo();
+        }
+        elseif ($ruleProvider instanceof RuleProviderInfo) {
+            $provider_info = $ruleProvider;
+        }
+        elseif ($ruleProvider instanceof RuleProviderInterface) {
+            $provider_info = new RuleProviderInfo($ruleProvider);
+        }
+        elseif (is_array($ruleProvider)) {
+            $provider_info = new RuleProviderInfo();
+            $container = Dependency::container();
+            if ($container->has('logger')) {
+                $msg = 'ValidationRuleSet constructor no longer supports (array) ruleMethodsAvailable as second argument';
+                if ($container->has('inspect')) {
+                    $container->get('logger')->warning($msg . "\n" . $container->get('inspect')->trace(null));
+                } else {
+                    $container->get('logger')->warning($msg . '.');
+                }
+            }
+        }
+        else {
+            throw new \InvalidArgumentException(
+                'Arg ruleProvider at depth[' . $depth . '] type[' . Utils::getType($ruleProvider)
+                . '] is not RuleProviderInterface|RuleProviderInfo|null.'
+            );
+        }
 
         $rules_found = [];
 
@@ -187,7 +213,7 @@ class ValidationRuleSet
         // and that it goes at the top; before rules that don't type check.
         // NB: Not reliable if $rules is array having numerically indexed rules
         // (bucket value name of rule).
-        $type_rules_found = array_intersect($type_methods, array_keys(!$is_object ? $rules : get_object_vars($rules)));
+        $type_rules_found = array_intersect($provider_info->typeMethods, array_keys(!$is_object ? $rules : get_object_vars($rules)));
         $skip_type_rule = null;
         if (!$type_rules_found) {
             // Declare dynamically.
@@ -247,7 +273,7 @@ class ValidationRuleSet
                                 . ' must be non-scalar.'
                             );
                         }
-                        if (!in_array($rule, $rule_methods)) {
+                        if (!in_array($rule, $provider_info->ruleMethods)) {
                             if (isset(static::RULES_RENAMED[$rule])) {
                                 $rule = static::RULES_RENAMED[$rule];
                             }
@@ -437,7 +463,7 @@ class ValidationRuleSet
                                     if (is_array($subRuleSet) || is_object($subRuleSet)) {
                                         // new ValidationRuleSet(.
                                         $subRuleSet = new static(
-                                            $subRuleSet, $rule_methods, $type_methods, $depth + 1
+                                            $subRuleSet, $provider_info, $depth + 1
                                         );
                                     } else {
                                         throw new InvalidRuleException(
@@ -530,7 +556,7 @@ class ValidationRuleSet
                             if (is_array($ruleValue->itemRules) || is_object($ruleValue->itemRules)) {
                                 // new ValidationRuleSet(.
                                 $ruleValue->itemRules = new static(
-                                    $ruleValue->itemRules, $rule_methods, $type_methods, $depth + 1
+                                    $ruleValue->itemRules, $provider_info, $depth + 1
                                 );
                             } else {
                                 throw new InvalidRuleException(
@@ -553,7 +579,7 @@ class ValidationRuleSet
                         );
                     }
                     // Check rule method existance.
-                    if (!in_array($rule, $rule_methods)) {
+                    if (!in_array($rule, $provider_info->ruleMethods)) {
                         if (isset(static::RULES_RENAMED[$rule])) {
                             $rule = static::RULES_RENAMED[$rule];
                         }
@@ -637,6 +663,10 @@ class ValidationRuleSet
     protected static $rulesByProviderClass = [];
 
     /**
+     * @deprecated Use RuleProviderInfo instead.
+     *
+     * @see RuleProviderInfo
+     *
      * List rule methods made available by a rule provider.
      *
      * Helper method. Has to be set on other class than Validate
@@ -668,29 +698,5 @@ class ValidationRuleSet
                     $provider->getNonRuleMethods()
                 )
             );
-    }
-
-    /**
-     * Lists rule methods by a rule provider that explicitly promise to check
-     * the subject's type.
-     *
-     * @see Validate
-     *
-     * @uses Validate::getTypeMethods()
-     *
-     * @param Interfaces\RuleProviderInterface|null $ruleProvider
-     *      Default: dependency container ID 'validate' or Validate::getInstance().
-     *
-     * @return array
-     */
-    public static function typeMethodsAvailable(/*?RuleProviderInterface*/ $ruleProvider = null)
-    {
-        if (!$ruleProvider) {
-            $container = Dependency::container();
-            $provider = $container->has('validate') ? $container->get('validate') : Validate::getInstance();
-        } else {
-            $provider = $ruleProvider;
-        }
-        return $provider->getTypeMethods();
     }
 }
