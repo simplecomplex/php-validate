@@ -231,7 +231,7 @@ class ValidationRuleSet
                 $skip_type_rule = 'object';
             }
             else {
-                // Remove from passed rule
+                // Insert type checking rule as first rule.
                 if (!$is_object) {
                     $type_rule_value = $rules[$type_rule_name];
                 } else {
@@ -297,6 +297,7 @@ class ValidationRuleSet
                 $args = $ruleValue;
             }
 
+            // That rule is already set.
             if ($skip_type_rule && $rule == $skip_type_rule) {
                 continue;
             }
