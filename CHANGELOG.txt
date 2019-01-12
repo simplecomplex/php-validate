@@ -3,6 +3,8 @@ SimpleComplex/Validate 2.x, 2019-01-12
 - Ensure that rule set values accord with whether rule methods accept
   (or even require) more arguments than subject self.
 - RuleProviderInterface new method getParameterMethods().
+- challengeRecording() allow for top level key-path name,
+  and record arguments passed on validation failure.
 
 SimpleComplex/Validate 2.x, 2019-01-08
 --------------------------------------

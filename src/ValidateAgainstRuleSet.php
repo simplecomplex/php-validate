@@ -192,6 +192,8 @@ class ValidateAgainstRuleSet
      *          'integer'
      *          'range': [ 0, 2 ]
      *      ]
+     * @param string $keyPath
+     *      Name of element to validate, or key path to it.
      *
      * @return bool
      *
@@ -200,7 +202,7 @@ class ValidateAgainstRuleSet
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($subject, $ruleSet)
+    public function challenge($subject, $ruleSet, string $keyPath = 'root')
     {
         // Init, really.
         // List rule methods made available by the rule provider.
@@ -211,7 +213,7 @@ class ValidateAgainstRuleSet
         }
 
         if ($ruleSet instanceof ValidationRuleSet) {
-            return $this->internalChallenge(0, '', $subject, $ruleSet);
+            return $this->internalChallenge(0, $keyPath, $subject, $ruleSet);
         } elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
                 'Arg rules type[' . Utils::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
@@ -221,7 +223,7 @@ class ValidateAgainstRuleSet
         // to secure checks.
         return $this->internalChallenge(
             0,
-            '',
+            $keyPath,
             $subject,
             new ValidationRuleSet($ruleSet, $provider_info ?? new RuleProviderInfo($this->ruleProvider))
         );
@@ -313,7 +315,7 @@ class ValidateAgainstRuleSet
                     if (!$this->ruleProvider->{$rule}($subject)) {
                         $failed = true;
                         if ($this->recordFailure) {
-                            $record[] = $rule;
+                            $record[] = $rule . '(*)';
                         }
                         break;
                     }
@@ -323,7 +325,7 @@ class ValidateAgainstRuleSet
                     if (!$this->preCheckedEnum($subject, $args[0])) {
                         $failed = true;
                         if ($this->recordFailure) {
-                            $record[] = $rule;
+                            $record[] = $rule . '(*)';
                         }
                         break;
                     }
@@ -333,7 +335,31 @@ class ValidateAgainstRuleSet
                 elseif (!$this->ruleProvider->{$rule}($subject, ...$args)) {
                     $failed = true;
                     if ($this->recordFailure) {
-                        $record[] = $rule;
+                        if ($args && is_array($args)) {
+                            $tmp = [];
+                            foreach ($args as $arg) {
+                                $arg_type = Utils::getType($arg);
+                                switch ($arg_type) {
+                                    case 'boolean':
+                                        $tmp[] = $arg ? 'true' : 'false';
+                                        break;
+                                    case 'integer':
+                                    case 'float':
+                                        $tmp[] = $arg;
+                                        break;
+                                    case 'string':
+                                        $tmp[] = "'" . $arg . "'";
+                                        break;
+                                    default:
+                                        $tmp[] = $arg_type;
+                                }
+                            }
+                            $record[] = $rule . '(*, ' . join(', ', $tmp) . ')';
+                            unset($tmp, $arg, $arg_type);
+                        }
+                        else {
+                            $record[] = $rule . '(*)';
+                        }
                     }
                     break;
                 }
@@ -354,7 +380,7 @@ class ValidateAgainstRuleSet
                         $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
                             (substr($subject, 50) . '...(truncated)');
                     }
-                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum - saw type '
+                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum(*, ...) - saw type '
                         . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
                 }
                 return false;

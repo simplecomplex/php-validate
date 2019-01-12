@@ -663,7 +663,7 @@ class ValidationRuleSet
                                         // Declare dynamically.
                                         $this->{$rule} = true;
                                     }
-                                    elseif (!$args || is_array($args)) {
+                                    elseif (!$args || !is_array($args)) {
                                         // Rule method accepts argument(s);
                                         // if not true it must be non-empty array.
                                         throw new InvalidRuleException(

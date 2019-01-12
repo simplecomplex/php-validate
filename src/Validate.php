@@ -342,6 +342,8 @@ class Validate implements RuleProviderInterface
      *
      * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
+     * @param string $keyPath
+     *      Name of element to validate, or key path to it.
      *
      * @return array {
      *      @var bool passed
@@ -351,13 +353,13 @@ class Validate implements RuleProviderInterface
      * @throws \Throwable
      *      Propagated.
      */
-    public function challengeRecording($subject, $ruleSet)
+    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root')
     {
         $validate_by_rules = new ValidateAgainstRuleSet($this, [
             'recordFailure' => true,
         ]);
 
-        $validate_by_rules->challenge($subject, $ruleSet);
+        $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
         $record = $validate_by_rules->getRecord();
 
         return [
