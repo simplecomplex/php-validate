@@ -244,6 +244,9 @@ class ValidationRuleSet
             unset($type_rules_found, $type_rule_name, $type_rule_value);
         }
 
+        // List of provider rules taking arguments.
+        $provider_parameter_methods = null;
+
         foreach ($rules as $ruleKey => &$ruleValue) {
             unset($args);
             if (ctype_digit('' . $ruleKey)) {
@@ -301,9 +304,6 @@ class ValidationRuleSet
             if ($skip_type_rule && $rule == $skip_type_rule) {
                 continue;
             }
-
-            // List of provider rules taking arguments.
-            $provider_parameter_methods = null;
 
             switch ($rule) {
                 case 'optional':
