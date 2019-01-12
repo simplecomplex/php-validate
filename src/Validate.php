@@ -274,9 +274,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists rule methods that are validation rule methods.
-     *
-     * Extending class declaring more non-rule methods must override this method.
+     * Lists rule methods that accept/require other arguments(s) than subject.
      *
      * @return array
      */

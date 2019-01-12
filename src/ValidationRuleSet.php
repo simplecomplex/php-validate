@@ -302,6 +302,9 @@ class ValidationRuleSet
                 continue;
             }
 
+            // List of provider rules taking arguments.
+            $provider_parameter_methods = null;
+
             switch ($rule) {
                 case 'optional':
                     if ($depth && $args) {
@@ -543,7 +546,7 @@ class ValidationRuleSet
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
                                 . ' positive maxOccur[' . $ruleValue->maxOccur
-                                . '] cannot be less that minOccur[' . $ruleValue->minOccur . '].'
+                                . '] cannot be less than minOccur[' . $ruleValue->minOccur . '].'
                             );
                         }
                         // itemRules.
@@ -591,13 +594,6 @@ class ValidationRuleSet
                         }
                     }
 
-                    if (!is_bool($args) && !is_array($args)) {
-                        throw new InvalidRuleException(
-                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] type[' . Utils::getType($args)
-                            . '] is not boolean or array.'
-                        );
-                    }
-
                     $rules_found[$rule] = true;
 
                     switch ($rule) {
@@ -605,7 +601,7 @@ class ValidationRuleSet
                             if (!$args || !is_array($args)) {
                                 throw new InvalidRuleException(
                                     'Validation rule[enum] at depth[' .  $depth
-                                    . '] type[' . Utils::getType($args) . '] is not non-empty array.'
+                                    . '] value type[' . Utils::getType($args) . '] is not non-empty array.'
                                 );
                             }
                             // Allow defining enum as un-nested array, because
@@ -635,8 +631,69 @@ class ValidationRuleSet
                             unset($allowed_values, $allowed);
                             break;
                         default:
-                            // Declare dynamically.
-                            $this->{$rule} = $args;
+                            // Check that rule value accords with whether
+                            // the rule method accepts or requires
+                            // more argument(s) than subject self.
+                            if ($provider_parameter_methods === null) {
+                                $provider_parameter_methods = $provider_info->ruleProvider->getParameterMethods();
+                            }
+                            $rule_takes_arguments = isset($provider_parameter_methods[$rule]);
+
+                            // Rule accept(s) more arguments than subject self.
+                            if ($rule_takes_arguments) {
+                                // Rule requires argument(s).
+                                if ($provider_parameter_methods[$rule]) {
+                                    // Rule value must be array.
+                                    if (!$args || !is_array($args)) {
+                                        throw new InvalidRuleException(
+                                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] requires more'
+                                            . ' argument(s) than subject self, and rule value type['
+                                            . Utils::getType($args) . '] is not non-empty array.'
+                                        );
+                                    }
+                                    // Rule method requires argument(s).
+                                    // Declare dynamically.
+                                    $this->{$rule} = $args;
+                                }
+                                // Rule doesn't require argument(s).
+                                else {
+                                    if ($args === true) {
+                                        // Rule method accepts argument(s), but
+                                        // none given; true as simple 'on' flag.
+                                        // Declare dynamically.
+                                        $this->{$rule} = true;
+                                    }
+                                    elseif (!$args || is_array($args)) {
+                                        // Rule method accepts argument(s);
+                                        // if not true it must be non-empty array.
+                                        throw new InvalidRuleException(
+                                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] accepts more'
+                                            . ' argument(s) than subject, but value type[' . Utils::getType($args)
+                                            . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
+                                            . ' (list of secondary argument(s)).'
+                                        );
+                                    }
+                                    else {
+                                        // Declare dynamically.
+                                        $this->{$rule} = $args;
+                                    }
+                                }
+                            }
+                            // Rule doesn't accept argument(s);
+                            // value must be boolean true.
+                            elseif ($args === true) {
+                                // Declare dynamically.
+                                $this->{$rule} = true;
+                            }
+                            else {
+                                // Rule method doesn't accept argument(s);
+                                // value should be boolean true.
+                                throw new InvalidRuleException(
+                                    'Validation rule[' . $rule . '] at depth[' .  $depth . '] doesn\'t accept'
+                                    . ' more arguments than subject self, thus value type[' . Utils::getType($args)
+                                    . '] makes no sense, value only allowed to be boolean true.'
+                                );
+                            }
                     }
             }
         }

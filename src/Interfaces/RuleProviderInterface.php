@@ -47,6 +47,15 @@ interface RuleProviderInterface
     public function getTypeMethods() : array;
 
     /**
+     * Lists rule methods that accept/require other arguments(s) than subject.
+     *
+     * @return array
+     *
+     * @see Validate::getParameterMethods()
+     */
+    public function getParameterMethods() : array;
+
+    /**
      * Subject is falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
