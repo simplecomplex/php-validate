@@ -1,3 +1,10 @@
+SimpleComplex/Validate 2.x, 2019-01-19
+--------------------------------------
+- ISO-8601 rules with subSeconds parameter now default to class constant
+  for maximum sub seconds, and sub-zero value of that parameter no longer
+  spells exception.
+- New dateISO8601() ultimate catch-all date/datetime ISO-8601.
+
 SimpleComplex/Validate 2.x, 2019-01-12
 --------------------------------------
 - Ensure that rule set values accord with whether rule methods accept

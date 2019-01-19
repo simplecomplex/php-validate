@@ -1792,7 +1792,63 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 date which misses timezone indication.
+     * Max number of datetime ISO-8601 sub seconds digits.
+     *
+     * PHP \DateTime constructor max is 8 (PHP 7.0).
+     * MS SQL date parser max is 9 (SQL Server 2017).
+     */
+    const DATETIME_ISO8601_SUBSECONDS_MAX = 8;
+
+    /**
+     * Ultimate catch-all ISO-8601 date/datetime timestamp.
+     *
+     * Positive timezone may be indicated by plus or space, because plus tends
+     * to become space when URL decoding.
+     *
+     * YYYY-MM-DD([T ]HH(:ii(:ss)?(.m{1,N})?)?(Z|[+- ]HH:?(II)?)?)?
+     * The format is supported by native \DateTime constructor.
+     *
+     * @see Validate::DATETIME_ISO8601_SUBSECONDS_MAX
+     * @see Validate::string()
+     * @see Validate::dateISO8601Local()
+     * @see Validate::dateTimeISO8601()
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     * @param int $subSeconds
+     *      Max number of sub second digits.
+     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Zero: none.
+     *
+     * @return bool
+     */
+    public function dateISO8601($subject, int $subSeconds = -1) : bool
+    {
+        // Ugly method name because \DateTime uses strict acronym camelCasing.
+
+        if ($subject === null) {
+            return false;
+        }
+        $v = '' . $subject;
+        if (strlen($v) == 10) {
+            return !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
+        }
+        if (!$subSeconds) {
+            $ss = 0;
+            $m = '';
+        } else {
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $m = '(\.\d{1,' . $ss . '})?';
+        }
+        return strlen($v) <= 26 + $ss
+            && !!preg_match(
+                '/^\d{4}\-\d{2}\-\d{2}([T ]\d{2}(:\d{2}(:\d{2}' . $m . ')?)?)?(Z|[ \+\-]\d{2}:?\d{0,2})?$/',
+                $v
+            );
+    }
+
+    /**
+     * ISO-8601 date without timezone indication.
      *
      * YYYY-MM-DD
      * The format is supported by native \DateTime constructor.
@@ -1816,39 +1872,40 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 time timestamp, which doesn't require seconds,
-     * and allows no or some decimals of seconds.
+     * ISO-8601 time timestamp without timezone indication.
      *
-     * Doesn't allow any kind of timezone indication.
+     * Doesn't require seconds. Allows no or some decimals of seconds.
      *
      * HH:ii(:ss)?(.m{1,N})?
      *
+     * @see Validate::DATETIME_ISO8601_SUBSECONDS_MAX
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
      * @param int $subSeconds
-     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Max number of sub second digits.
+     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
-     *
-     * @throws InvalidArgumentException
-     *      Arg subSeconds not non-negative.
      */
-    public function timeISO8601($subject, int $subSeconds = 6) : bool
+    public function timeISO8601($subject, int $subSeconds = -1) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
-        if ($subSeconds < 0) {
-            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
-        }
         if ($subject === null) {
             return false;
         }
-        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
-        return strlen($v) <= 5 + $subSeconds
+        if (!$subSeconds) {
+            $ss = 0;
+            $m = '';
+        } else {
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $m = '(\.\d{1,' . $ss . '})?';
+        }
+        return strlen($v) <= 9 + $ss
             && !!preg_match(
                 '/^\d{2}:\d{2}(:\d{2}' . $m . ')?$/',
                 $v
@@ -1856,41 +1913,44 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Catch-all ISO-8601 datetime timestamp, which doesn't require seconds,
-     * and allows no or some decimals of seconds.
+     * Catch-all ISO-8601 datetime timestamp with timezone indication.
+     *
+     * Doesn't require seconds. Allows no or some decimals of seconds.
      *
      * Positive timezone may be indicated by plus or space, because plus tends
      * to become space when URL decoding.
      *
-     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?(Z|+HH:?(II)?)
+     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?(Z|[+- ]HH:?(II)?)
      * The format is supported by native \DateTime constructor.
      *
+     * @see Validate::DATETIME_ISO8601_SUBSECONDS_MAX
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
      * @param int $subSeconds
-     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Max number of sub second digits.
+     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
-     *
-     * @throws InvalidArgumentException
-     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISO8601($subject, int $subSeconds = 6) : bool
+    public function dateTimeISO8601($subject, int $subSeconds = -1) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
-        if ($subSeconds < 0) {
-            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
-        }
         if ($subject === null) {
             return false;
         }
-        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
-        return strlen($v) <= 26 + $subSeconds
+        if (!$subSeconds) {
+            $ss = 0;
+            $m = '';
+        } else {
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $m = '(\.\d{1,' . $ss . '})?';
+        }
+        return strlen($v) <= 26 + $ss
             && !!preg_match(
                 '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?(Z|[ \+\-]\d{2}:?\d{0,2})$/',
                 $v
@@ -1898,8 +1958,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 datetime which misses timezone indication, doesn't require
-     * seconds, and forbids decimals of seconds.
+     * ISO-8601 datetime without timezone indication.
+     *
+     * Doesn't require seconds. Forbids decimals of seconds.
      *
      * YYYY-MM-DD HH:II(:SS)?
      * The format is supported by native \DateTime constructor.
@@ -1923,41 +1984,44 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 datetime timestamp with timezone marker, which doesn't require
-     * seconds, and allows no or some decimals of seconds.
+     * ISO-8601 datetime timestamp with timezone marker.
+     *
+     * Doesn't require seconds. Allows no or some decimals of seconds.
      *
      * Positive timezone may be indicated by plus or space, because plus tends
      * to become space when URL decoding.
      *
-     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?+HH(:II)?
+     * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?[+- ]HH(:II)?
      * The format is supported by native \DateTime constructor.
      *
+     * @see Validate::DATETIME_ISO8601_SUBSECONDS_MAX
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
      * @param int $subSeconds
-     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Max number of sub second digits.
+     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
-     *
-     * @throws InvalidArgumentException
-     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISO8601Zonal($subject, int $subSeconds = 6) : bool
+    public function dateTimeISO8601Zonal($subject, int $subSeconds = -1) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
-        if ($subSeconds < 0) {
-            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
-        }
         if ($subject === null) {
             return false;
         }
-        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
-        return strlen($v) <= 35
+        if (!$subSeconds) {
+            $ss = 0;
+            $m = '';
+        } else {
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $m = '(\.\d{1,' . $ss . '})?';
+        }
+        return strlen($v) <= 26 + $ss
             && !!preg_match(
                 '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?[ \+\-]\d{2}(:\d{2})?$/',
                 $v
@@ -1965,38 +2029,41 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * ISO-8601 datetime timestamp UTC, which doesn't require seconds,
-     * and allows no or some decimals of seconds.
+     * ISO-8601 datetime timestamp UTC with Z marker.
+     *
+     * Doesn't require seconds. Allows no or some decimals of seconds.
      *
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?Z
      * The format is supported by native \DateTime constructor.
      *
+     * @see Validate::DATETIME_ISO8601_SUBSECONDS_MAX
      * @see Validate::string()
      *
      * @param mixed $subject
      *      Checked stringified.
      * @param int $subSeconds
-     *      Max number of sub second digits; default 6 (micro; for \DateTime).
+     *      Max number of sub second digits.
+     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
-     *
-     * @throws InvalidArgumentException
-     *      Arg subSeconds not non-negative.
      */
-    public function dateTimeISOUTC($subject, int $subSeconds = 6) : bool
+    public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool
     {
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
-        if ($subSeconds < 0) {
-            throw new InvalidArgumentException('Arg $subSeconds[' . $subSeconds . '] cannot be less than zero.');
-        }
         if ($subject === null) {
             return false;
         }
-        $m = !$subSeconds ? '' : '(\.\d{1,' . $subSeconds . '})?';
         $v = '' . $subject;
-        return strlen($v) <= 30
+        if (!$subSeconds) {
+            $ss = 0;
+            $m = '';
+        } else {
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $m = '(\.\d{1,' . $ss . '})?';
+        }
+        return strlen($v) <= 21 + $ss
             && !!preg_match(
                 '/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}(:\d{2}' . $m . ')?Z$/',
                 $v

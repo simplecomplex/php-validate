@@ -12,6 +12,8 @@ namespace SimpleComplex\Tests\Validate;
 use PHPUnit\Framework\TestCase;
 use SimpleComplex\Tests\Utils\BootstrapTest;
 
+use SimpleComplex\Tests\Validate\TestHelper;
+use SimpleComplex\Utils\Time;
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\ValidationRuleSet;
 
@@ -408,6 +410,31 @@ class ValidateTest extends TestCase
     ];
 
     /**
+     * @see Validate::dateISO8601()
+     *
+     * @see ValidateTest::testInstantiation()
+     */
+    public function testDateISO8601()
+    {
+        $validate = $this->testInstantiation();
+
+        $method = 'dateISO8601';
+
+        foreach (static::DATE_SUBJECTS as $subject => $description) {
+            switch ($description) {
+                case 'ISO-8601 datetime (HH:II:SS.nano) no zone':
+                case 'ISO-8601 datetime (HH:II:SS.nano) UTC':
+                case 'ISO-8601 datetime (HH:II:SS.nano) +02':
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
+                    break;
+                default:
+                    // Inverted true/false.
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
+            }
+        }
+    }
+
+    /**
      * @see Validate::dateISO8601Local()
      *
      * @see ValidateTest::testInstantiation()
@@ -422,10 +449,10 @@ class ValidateTest extends TestCase
             switch ($description) {
                 // Inverted true/false.
                 case 'ISO-8601 date no zone':
-                    static::assertTrue($validate->{$method}($subject));
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
                     break;
                 default:
-                    static::assertFalse($validate->{$method}($subject));
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
             }
         }
     }
@@ -454,10 +481,10 @@ class ValidateTest extends TestCase
                 case 'ISO-8601 datetime (HH:II:SS.nano) +02':
                 case 'ISO-8601 ambiguous datetime local or date +0 no-sign':
                 case 'ISO-8601 date -01:30':
-                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertFalse($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
                     break;
                 default:
-                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description);
+                    static::assertTrue($validate->{$method}($subject), $method . '(): ' . $description . ' - ' . $subject);
             }
         }
         $subject_by_descr = array_flip(static::DATE_SUBJECTS);
