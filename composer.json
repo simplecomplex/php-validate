@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "simplecomplex/utils": "^1.7.2 || dev-develop"
+        "simplecomplex/utils": "^1.11 || dev-develop"
     },
     "suggest": {
         "simplecomplex/inspect": "Great for logging; better variable dumps and traces."

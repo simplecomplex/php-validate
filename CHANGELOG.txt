@@ -1,3 +1,8 @@
+SimpleComplex/Validate 2.x, 2019-01-21
+--------------------------------------
+- Depends on Utils >=1.11, because ValidationFailureException does.
+- Release 2.3.
+
 SimpleComplex/Validate 2.x, 2019-01-19
 --------------------------------------
 - ISO-8601 rules with subSeconds parameter now default to class constant
