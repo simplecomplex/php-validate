@@ -1666,6 +1666,42 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Camel cased name: starts with alpha, followed by alphanum.
+     *
+     * @see Validate::string()
+     *
+     * @param mixed $subject
+     *      Checked stringified.
+     * @param string $case
+     *      Values: lower|upper, otherwise ignored.
+     *
+     * @return bool
+     *      False on empty.
+     */
+    public function camelName($subject, string $case = '') : bool
+    {
+        if ($subject === null) {
+            return false;
+        }
+        $v = '' . $subject;
+        if ($v === '') {
+            return false;
+        }
+        switch ($case) {
+            case 'lower':
+                $regex = '/^[a-z][a-zA-Z\d]*$/';
+                break;
+            case 'upper':
+                $regex = '/^[A-Z][a-zA-Z\d]*$/';
+                break;
+            default:
+                $regex = '/^[a-zA-Z][a-zA-Z\d]*$/';
+                break;
+        }
+        return !!preg_match($regex, $v);
+    }
+
+    /**
      * Snake cased name: starts with alpha, followed by alphanum/underscore.
      *
      * @see Validate::string()
@@ -1702,7 +1738,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lisp cased name: starts with alpha, followed by alphanum/hyphen.
+     * Lisp cased name: starts with alpha, followed by alphanum/dash.
      *
      * @see Validate::string()
      *
