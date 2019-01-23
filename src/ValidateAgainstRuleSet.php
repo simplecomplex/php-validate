@@ -50,8 +50,6 @@ class ValidateAgainstRuleSet
      * using a specific rule provider,
      * no matter which parent/child class the method was/is called on.
      *
-     * @see ValidationRuleSet::RECURSION_LIMIT
-     *
      * @var ValidateAgainstRuleSet[]
      */
     protected static $instanceByValidateClass = [];
@@ -96,6 +94,8 @@ class ValidateAgainstRuleSet
      * But circular references within the rule set - or a programmatic error
      * in this library - could (without this hardcoded limit) result in
      * perpetual recursion.
+     *
+     * @see ValidationRuleSet::RECURSION_LIMIT
      *
      * @var int
      */
