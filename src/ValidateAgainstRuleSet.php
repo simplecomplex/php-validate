@@ -381,16 +381,18 @@ class ValidateAgainstRuleSet
                 if ($this->preCheckedEnum($subject, $alternative_enum)) {
                     return true;
                 }
-                if ($this->recordFailure) {
-                    $v = null;
-                    if (is_scalar($subject)) {
-                        $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
-                            (substr($subject, 50) . '...(truncated)');
+                if (!$alternative_rule_set) {
+                    if ($this->recordFailure) {
+                        $v = null;
+                        if (is_scalar($subject)) {
+                            $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
+                                (substr($subject, 50) . '...(truncated)');
+                        }
+                        $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum(*, ...) - saw type '
+                            . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
                     }
-                    $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum(*, ...) - saw type '
-                        . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
+                    return false;
                 }
-                return false;
             }
             if ($alternative_rule_set) {
                 return $this->internalChallenge($depth + 1, $keyPath, $subject, $alternative_rule_set);
