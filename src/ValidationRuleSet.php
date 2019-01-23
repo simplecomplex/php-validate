@@ -13,6 +13,7 @@ use SimpleComplex\Utils\Utils;
 use SimpleComplex\Utils\Dependency;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
+use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
  * Validation rule set.
@@ -58,6 +59,11 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  *      Only declared if relevant, otherwise undefined.
  *
+ * @property ValidationRuleSet|undefined $alternativeRuleSet
+ *      Alternative rule set used if subject doesn't comply with
+ *      other - typically type checking - rules and/or alternativeEnum.
+ *
+ *      Only declared if relevant, otherwise undefined.
  *
  * @property object|undefined $tableElements {
  *      @var object $rulesByElements
@@ -117,8 +123,37 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 class ValidationRuleSet
 {
     /**
-     * @see ValidationRuleSet::NON_PROVIDER_RULES
+     * Recursion emergency brake.
+     *
+     * Ideally the depth of a rule set describing objects/arrays having nested
+     * objects/arrays should limit recursion, naturally/orderly.
+     * But circular references within the rule set - or a programmatic error
+     * in this library - could (without this hardcoded limit) result in
+     * perpetual recursion.
+     *
+     * @see ValidateAgainstRuleSet::RECURSION_LIMIT
+     *
+     * @var int
      */
+    const RECURSION_LIMIT = 10;
+
+    /**
+     * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
+     */
+
+    /**
+     * @var string[]
+     */
+    const TABLE_ELEMENTS_ALLOWED_KEYS = [
+        'rulesByElements', 'exclusive', 'whitelist', 'blacklist',
+    ];
+
+    /**
+     * @var string[]
+     */
+    const LIST_ITEMS_ALLOWED_KEYS = [
+        'itemRules', 'minOccur', 'maxOccur',
+    ];
 
     /**
      * New rule name by old rule name.
@@ -154,6 +189,12 @@ class ValidationRuleSet
      */
     public function __construct($rules = [], $ruleProvider = null, $depth = 0)
     {
+        if ($depth >= static::RECURSION_LIMIT) {
+            throw new OutOfRangeException(
+                'Stopped recursive validation rule set definition at limit[' . static::RECURSION_LIMIT . '].'
+            );
+        }
+
         /**
          * Constructor has no required parameters, to allow casting to it.
          * @see Utils::cast()
@@ -349,6 +390,23 @@ class ValidationRuleSet
                     // Declare dynamically.
                     $this->alternativeEnum =& $allowed_values;
                     unset($allowed_values, $allowed);
+                    break;
+
+                case 'alternativeRuleSet':
+                    if ($args instanceof ValidationRuleSet) {
+                        // Do not allow alternativeRuleSet to have alternativeRuleSet.
+                        if (!empty($args->alternativeRuleSet)) {
+                            throw new InvalidRuleException(
+                                'Non-provider validation rule[alternativeRuleSet] at depth[' .  $depth
+                                . '] is not allowed to have alternativeRuleSet by itself.'
+                            );
+                        }
+                        $this->alternativeRuleSet = $args;
+                    }
+                    else {
+                        // new ValidationRuleSet(.
+                        $this->alternativeRuleSet = new static($args, $provider_info, $depth + 1);
+                    }
                     break;
 
                 case 'tableElements':
@@ -700,20 +758,6 @@ class ValidationRuleSet
         // Iteration ref.
         unset($ruleValue);
     }
-
-    /**
-     * @var string[]
-     */
-    const TABLE_ELEMENTS_ALLOWED_KEYS = [
-        'rulesByElements', 'exclusive', 'whitelist', 'blacklist',
-    ];
-
-    /**
-     * @var string[]
-     */
-    const LIST_ITEMS_ALLOWED_KEYS = [
-        'itemRules', 'minOccur', 'maxOccur',
-    ];
 
     /**
      * @var array

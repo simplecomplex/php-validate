@@ -50,6 +50,8 @@ class ValidateAgainstRuleSet
      * using a specific rule provider,
      * no matter which parent/child class the method was/is called on.
      *
+     * @see ValidationRuleSet::RECURSION_LIMIT
+     *
      * @var ValidateAgainstRuleSet[]
      */
     protected static $instanceByValidateClass = [];
@@ -108,6 +110,7 @@ class ValidateAgainstRuleSet
         'optional',
         'allowNull',
         'alternativeEnum',
+        'alternativeRuleSet',
         'tableElements',
         'listItems',
     ];
@@ -255,7 +258,7 @@ class ValidateAgainstRuleSet
 
         $rules_found = [];
         $allowNull = false;
-        $alternative_enum = $table_elements = $list_items = null;
+        $alternative_enum = $alternative_rule_set = $table_elements = $list_items = null;
         foreach ($ruleSet as $ruleKey => $ruleValue) {
             switch ($ruleKey) {
                 case 'optional':
@@ -269,6 +272,10 @@ class ValidateAgainstRuleSet
                     // No need to check for falsy nor non-array;
                     // ValidationRuleSet do that.
                     $alternative_enum = $ruleValue;
+                    break;
+                case 'alternativeRuleSet':
+                    /** @var ValidationRuleSet $alternative_rule_set */
+                    $alternative_rule_set = $ruleValue;
                     break;
                 case 'tableElements':
                     // No need to check for type; ValidationRuleSet do that,
@@ -384,6 +391,9 @@ class ValidateAgainstRuleSet
                         . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
                 }
                 return false;
+            }
+            if ($alternative_rule_set) {
+                return $this->internalChallenge($depth + 1, $keyPath, $subject, $alternative_rule_set);
             }
             if ($this->recordFailure) {
                 $v = null;
