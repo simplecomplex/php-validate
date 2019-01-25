@@ -1,3 +1,8 @@
+SimpleComplex/Validate 2.x, 2019-01-25
+--------------------------------------
+- The 'bit' rule must allow string 0|1.
+- Release 2.4.1.
+
 SimpleComplex/Validate 2.x, 2019-01-24
 --------------------------------------
 - ValidationRuleSet must have (same) recursion limit as well.

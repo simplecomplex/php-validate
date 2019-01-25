@@ -105,7 +105,8 @@ class Validate implements RuleProviderInterface
     ];
 
     /**
-     * Methods that explicitly promise to check the subject's type.
+     * Methods that explicitly promise to check the subject's type or at least
+     * that subject's type is a simple and sensibly coercible scalar.
      *
      * If a validation rule set doesn't contain any of these methods
      * then it will be considered a string and checked as such.
@@ -523,7 +524,7 @@ class Validate implements RuleProviderInterface
         if (is_bool($subject)) {
             return true;
         }
-        if (is_int($subject)) {
+        if (is_int($subject) || is_string($subject)) {
             return $subject == 0 || $subject == 1;
         }
         return false;
