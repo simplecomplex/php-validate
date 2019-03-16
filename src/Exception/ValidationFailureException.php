@@ -36,9 +36,10 @@ class ValidationFailureException extends UserMessageException
     /**
      * Get list of validation failures.
      *
-     * Skipping empty values may be relevant when keys are column names
-     * (correlating to HTTP request properties) and values are messages meant
-     * for a HTTP response header.
+     * Skipping empty values may for instance be relevant when keys are column
+     * names (correlating to HTTP request properties) and values are messages
+     * meant for a HTTP response header; and some messages are empty because
+     * dupe message (two columns involved in failure).
      *
      * @param bool $skipEmptyValues
      *      True: skip items whose bucket value is empty.
@@ -65,20 +66,16 @@ class ValidationFailureException extends UserMessageException
     /**
      * Get keys of failures, excluding keys that are numeric.
      *
-     * Getting names only may be relevant when keys are column names
-     * (correlating to HTTP request properties) and values are messages meant
-     * for a HTTP response header.
-     *
      * @return string[]
      */
     public function getFailureNames() : array
     {
         if ($this->failures) {
-            $names = array_keys($this->failures);
+            $keys = array_keys($this->failures);
             $net = [];
-            foreach ($names as $name) {
-                if ($name && !ctype_digit($name)) {
-                    $net[] = $name;
+            foreach ($keys as $key) {
+                if ($key && !ctype_digit('' . $key)) {
+                    $net[] = $key;
                 }
             }
             return $net;
