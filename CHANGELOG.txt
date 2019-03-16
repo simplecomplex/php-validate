@@ -1,3 +1,7 @@
+SimpleComplex/Validate 2.x, 2019-03-16
+--------------------------------------
+- ValidationFailureException support more fine-grained retrieval of failures.
+
 SimpleComplex/Validate 2.x, 2019-01-25
 --------------------------------------
 - The 'bit' rule must allow string 0|1.
