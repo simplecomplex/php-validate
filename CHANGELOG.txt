@@ -1,3 +1,11 @@
+SimpleComplex/Validate 2.x, 2019-05-11
+--------------------------------------
+- Non-stringable object as subject for (essentially string) rule method
+  must test false; not produce error.
+  But keep allowing stringable object for such methods.
+- Clarify which rule methods promise type safety; and thus continually don't
+  accept stringable object as subject.
+
 SimpleComplex/Validate 2.x, 2019-03-16
 --------------------------------------
 - ValidationFailureException support more fine-grained retrieval of failures.

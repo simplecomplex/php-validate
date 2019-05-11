@@ -105,8 +105,8 @@ class Validate implements RuleProviderInterface
     ];
 
     /**
-     * Methods that explicitly promise to check the subject's type or at least
-     * that subject's type is a simple and sensibly coercible scalar.
+     * Methods that explicitly promise to check the subject's type
+     * or that subject's type is a simple and sensibly coercible scalar.
      *
      * If a validation rule set doesn't contain any of these methods
      * then it will be considered a string and checked as such.
@@ -479,14 +479,14 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $pattern
      *      /regular expression/
      *
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg pattern empty
+     *      Arg pattern empty.
      */
     public function regex($subject, string $pattern) : bool
     {
@@ -496,12 +496,18 @@ class Validate implements RuleProviderInterface
         if ($subject === null) {
             return false;
         }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
+        }
         return !!preg_match($pattern, '' . $subject);
     }
 
     // Type checkers.-----------------------------------------------------------
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -514,7 +520,10 @@ class Validate implements RuleProviderInterface
     /**
      * Boolean or integer 0|1.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      bool|int to pass validation.
      *
      * @return bool
@@ -532,6 +541,9 @@ class Validate implements RuleProviderInterface
 
     /**
      * Integer or float.
+     *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
      *
      * @see Validate::numeric()
      *
@@ -562,6 +574,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @see Validate::digit()
      *
      * @see Validate::bit32()
@@ -583,6 +598,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @see Validate::bit32()
      * @see Validate::bit64()
      * @see Validate::positive()
@@ -602,6 +620,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -612,6 +633,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -622,6 +646,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -654,6 +681,9 @@ class Validate implements RuleProviderInterface
      * if ($numeric
      * @endcode
      *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @see Validate::number()
      *
      * @see Validate::bit32()
@@ -667,6 +697,8 @@ class Validate implements RuleProviderInterface
      *
      * @param mixed $subject
      *      Checked stringified.
+     *      Stringable object tests false; method promises type safety.
+     *      int|float|string to pass validation.
      *
      * @return string|bool
      *      String (integer|float) on pass,
@@ -727,6 +759,9 @@ class Validate implements RuleProviderInterface
      * If negative integer should pass, use numeric()
      * and then check it's return value.
      *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @see Validate::integer()
      *
      * @see Validate::bit32()
@@ -740,6 +775,8 @@ class Validate implements RuleProviderInterface
      *
      * @param mixed $subject
      *      Checked stringified.
+     *      Stringable object tests false; method promises type safety.
+     *      int|string to pass validation.
      *
      * @return bool
      */
@@ -756,7 +793,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * @param $mixed $subject
+     * @param mixed $subject
      * @param string $decimalMarker
      * @param string $thousandSep
      * @return bool
@@ -771,6 +808,9 @@ class Validate implements RuleProviderInterface
     // Containers.--------------------------------------------------------------
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -782,6 +822,9 @@ class Validate implements RuleProviderInterface
 
     /**
      * Is object and is of that class or interface, or has it as ancestor.
+     *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
      *
      * @uses is_a()
      *
@@ -803,6 +846,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -820,6 +866,9 @@ class Validate implements RuleProviderInterface
      *   keyedLoopable, class, array, indexedArray, keyedArray
      *
      * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
      *
      * @param mixed $subject
      *      object|array to pass validation.
@@ -845,6 +894,9 @@ class Validate implements RuleProviderInterface
      * Not very useful because stdClass _is_ iterable.
      *
      * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
      *
      * @see Validate::loopable()
      *
@@ -875,7 +927,10 @@ class Validate implements RuleProviderInterface
      * Non-Traversable ArrayAccess is (hopefully) the only relevant container
      * class/interface that isn't iterable.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      object|array to pass validation.
      *
      * @return string|bool
@@ -900,7 +955,10 @@ class Validate implements RuleProviderInterface
     /**
      * Empty or indexed iterable.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      object|array to pass validation.
      *
      * @return string|bool
@@ -915,7 +973,10 @@ class Validate implements RuleProviderInterface
     /**
      * Empty or keyed iterable.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      object|array to pass validation.
      *
      * @return string|bool
@@ -930,7 +991,10 @@ class Validate implements RuleProviderInterface
     /**
      * Empty or indexed loopable.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      object|array to pass validation.
      *
      * @return string|bool
@@ -945,7 +1009,10 @@ class Validate implements RuleProviderInterface
     /**
      * Empty or keyed loopable.
      *
-     * @param $subject
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
+     *
+     * @param mixed $subject
      *      object|array to pass validation.
      *
      * @return string|bool
@@ -961,6 +1028,9 @@ class Validate implements RuleProviderInterface
      * Empty array or numerically indexed array.
      *
      * Does not check if the array's index is complete and correctly sequenced.
+     *
+     * Promises type safety.
+     * @see Validate::TYPE_METHODS
      *
      * @param mixed $subject
      *
@@ -1213,7 +1283,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      *      True on empty.
@@ -1221,6 +1291,9 @@ class Validate implements RuleProviderInterface
     public function unicode($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1243,6 +1316,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::unicode()
      *
      * @param mixed $subject
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      *      True on empty.
@@ -1250,6 +1324,9 @@ class Validate implements RuleProviderInterface
     public function unicodePrintable($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1278,6 +1355,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::unicode()
      *
      * @param mixed $subject
+     *      Checked stringified, and accepts stringable object.
      * @param boolean $noCarriageReturn
      *
      * @return bool
@@ -1286,6 +1364,9 @@ class Validate implements RuleProviderInterface
     public function unicodeMultiLine($subject, $noCarriageReturn = false) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         // Remove newline chars before checking if printable.
@@ -1306,7 +1387,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::unicode()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $min
      *      Stringed integer is not accepted.
      *
@@ -1321,6 +1402,9 @@ class Validate implements RuleProviderInterface
             throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
         }
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1338,7 +1422,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::unicode()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $max
      *      Stringed integer is not accepted.
      *
@@ -1353,6 +1437,9 @@ class Validate implements RuleProviderInterface
             throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
         }
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1371,7 +1458,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::unicode()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $exact
      *      Stringed integer is not accepted.
      *
@@ -1388,6 +1475,9 @@ class Validate implements RuleProviderInterface
         if ($subject === null) {
             return false;
         }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
+        }
         $v = '' . $subject;
         if ($v === '') {
             return $exact == 0;
@@ -1402,7 +1492,7 @@ class Validate implements RuleProviderInterface
      * Hexadeximal number (string).
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1412,6 +1502,9 @@ class Validate implements RuleProviderInterface
     public function hex($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         switch ($case) {
@@ -1434,7 +1527,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      *      True on empty.
@@ -1442,6 +1535,9 @@ class Validate implements RuleProviderInterface
     public function ascii($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1456,7 +1552,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      *      True on empty.
@@ -1464,6 +1560,9 @@ class Validate implements RuleProviderInterface
     public function asciiPrintable($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1490,7 +1589,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param boolean $noCarriageReturn
      *
      * @return bool
@@ -1499,6 +1598,9 @@ class Validate implements RuleProviderInterface
     public function asciiMultiLine($subject, $noCarriageReturn = false) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         // Remove newline chars before checking if printable.
@@ -1517,7 +1619,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $min
      *      Stringed integer is not accepted.
      *
@@ -1528,11 +1630,14 @@ class Validate implements RuleProviderInterface
      */
     public function minLength($subject, int $min) : bool
     {
+        if ($min < 0) {
+            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
+        }
         if ($subject === null) {
             return false;
         }
-        if ($min < 0) {
-            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
         }
         return strlen('' . $subject) >= $min;
     }
@@ -1543,7 +1648,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $max
      *      Stringed integer is not accepted.
      *
@@ -1554,11 +1659,14 @@ class Validate implements RuleProviderInterface
      */
     public function maxLength($subject, int $max) : bool
     {
+        if ($max < 0) {
+            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
+        }
         if ($subject === null) {
             return false;
         }
-        if ($max < 0) {
-            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
         }
         return strlen('' . $subject) <= $max;
     }
@@ -1569,7 +1677,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $exact
      *      Stringed integer is not accepted.
      *
@@ -1580,11 +1688,14 @@ class Validate implements RuleProviderInterface
      */
     public function exactLength($subject, int $exact) : bool
     {
+        if ($exact < 0) {
+            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
+        }
         if ($subject === null) {
             return false;
         }
-        if ($exact < 0) {
-            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
         }
         return strlen('' . $subject) == $exact;
     }
@@ -1598,7 +1709,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1608,6 +1719,9 @@ class Validate implements RuleProviderInterface
     public function alphaNum($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1636,7 +1750,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1646,6 +1760,9 @@ class Validate implements RuleProviderInterface
     public function name($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1672,7 +1789,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1682,6 +1799,9 @@ class Validate implements RuleProviderInterface
     public function camelName($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1708,7 +1828,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1718,6 +1838,9 @@ class Validate implements RuleProviderInterface
     public function snakeName($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1744,7 +1867,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1754,6 +1877,9 @@ class Validate implements RuleProviderInterface
     public function lispName($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1781,7 +1907,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::asciiUpperCase()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param string $case
      *      Values: lower|upper, otherwise ignored.
      *
@@ -1791,6 +1917,9 @@ class Validate implements RuleProviderInterface
     public function uuid($subject, string $case = '') : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1815,7 +1944,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      *      False on empty.
@@ -1823,6 +1952,9 @@ class Validate implements RuleProviderInterface
     public function base64($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $subject);
@@ -1851,7 +1983,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::dateTimeISO8601()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
      *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
@@ -1864,6 +1996,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1893,7 +2028,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
@@ -1902,6 +2037,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1919,7 +2057,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
      *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
@@ -1932,6 +2070,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -1964,7 +2105,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
      *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
@@ -1977,6 +2118,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -2005,7 +2149,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
@@ -2014,6 +2158,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -2035,7 +2182,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
      *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
@@ -2048,6 +2195,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -2077,7 +2227,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::string()
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
      *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
@@ -2090,6 +2240,9 @@ class Validate implements RuleProviderInterface
         // Ugly method name because \DateTime uses strict acronym camelCasing.
 
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -2116,7 +2269,7 @@ class Validate implements RuleProviderInterface
      * NB: Returns true on empty ('') string.
      *
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
@@ -2125,13 +2278,16 @@ class Validate implements RuleProviderInterface
         if ($subject === null) {
             return false;
         }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? true : !strcmp($v, strip_tags($v));
     }
 
     /**
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
@@ -2140,13 +2296,16 @@ class Validate implements RuleProviderInterface
         if ($subject === null) {
             return false;
         }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
     }
 
     /**
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
@@ -2155,19 +2314,25 @@ class Validate implements RuleProviderInterface
         if ($subject === null) {
             return false;
         }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
+            return false;
+        }
         $v = '' . $subject;
         return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
     }
 
     /**
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
     public function httpUrl($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         $v = '' . $subject;
@@ -2179,13 +2344,16 @@ class Validate implements RuleProviderInterface
 
     /**
      * @param mixed $subject
-     *      Checked stringified.
+     *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
     public function email($subject) : bool
     {
         if ($subject === null) {
+            return false;
+        }
+        if (is_object($subject) && !method_exists($subject, '__toString')) {
             return false;
         }
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.

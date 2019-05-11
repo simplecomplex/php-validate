@@ -380,6 +380,116 @@ class ValidateTest extends TestCase
         static::assertTrue($validate->string('' . $o));
     }
 
+    /**
+     * @see Validate::dateISO8601()
+     *
+     * @see ValidateTest::testInstantiation()
+     */
+    public function testSubjectStringCoercion()
+    {
+        $validate = $this->testInstantiation();
+
+        $subject = new \stdClass();
+
+        static::assertFalse($validate->regex($subject, '/./'));
+        static::assertFalse($validate->unicode($subject));
+        static::assertFalse($validate->unicodePrintable($subject));
+        static::assertFalse($validate->unicodeMultiLine($subject));
+        static::assertFalse($validate->unicodeMinLength($subject, 1));
+        static::assertFalse($validate->unicodeMaxLength($subject, 1));
+        static::assertFalse($validate->unicodeExactLength($subject, 1));
+        static::assertFalse($validate->hex($subject));
+        static::assertFalse($validate->ascii($subject));
+        static::assertFalse($validate->asciiPrintable($subject));
+        static::assertFalse($validate->asciiMultiLine($subject));
+        static::assertFalse($validate->minLength($subject, 1));
+        static::assertFalse($validate->maxLength($subject, 1));
+        static::assertFalse($validate->exactLength($subject, 1));
+        static::assertFalse($validate->alphaNum($subject));
+        static::assertFalse($validate->name($subject));
+        static::assertFalse($validate->camelName($subject));
+        static::assertFalse($validate->snakeName($subject));
+        static::assertFalse($validate->lispName($subject));
+        static::assertFalse($validate->uuid($subject));
+        static::assertFalse($validate->base64($subject));
+        static::assertFalse($validate->dateISO8601($subject));
+        static::assertFalse($validate->dateISO8601Local($subject));
+        static::assertFalse($validate->timeISO8601($subject));
+        static::assertFalse($validate->dateTimeISO8601($subject));
+        static::assertFalse($validate->dateTimeISO8601Local($subject));
+        static::assertFalse($validate->dateTimeISO8601Zonal($subject));
+        static::assertFalse($validate->dateTimeISOUTC($subject));
+        static::assertFalse($validate->plainText($subject));
+        static::assertFalse($validate->ipAddress($subject));
+        static::assertFalse($validate->url($subject));
+        static::assertFalse($validate->httpUrl($subject));
+        static::assertFalse($validate->email($subject));
+
+        $subject = new Stringable();
+
+        $subject->property = 1;
+        static::assertTrue($validate->regex($subject, '/./'));
+        static::assertTrue($validate->unicode($subject));
+        static::assertTrue($validate->unicodePrintable($subject));
+        static::assertTrue($validate->unicodeMultiLine($subject));
+        static::assertTrue($validate->unicodeMinLength($subject, 1));
+        static::assertTrue($validate->unicodeMaxLength($subject, 1));
+        static::assertTrue($validate->unicodeExactLength($subject, 1));
+        static::assertTrue($validate->hex($subject));
+        static::assertTrue($validate->ascii($subject));
+        static::assertTrue($validate->asciiPrintable($subject));
+        static::assertTrue($validate->asciiMultiLine($subject));
+        static::assertTrue($validate->minLength($subject, 1));
+        static::assertTrue($validate->maxLength($subject, 1));
+        static::assertTrue($validate->exactLength($subject, 1));
+        static::assertTrue($validate->alphaNum($subject));
+
+        $subject->property = 'a';
+        static::assertTrue($validate->name($subject));
+        static::assertTrue($validate->camelName($subject));
+        static::assertTrue($validate->snakeName($subject));
+        static::assertTrue($validate->lispName($subject));
+
+        $subject->property = '5c952f47-0464-4917-b4d1-ebab14cb4fb8';
+        static::assertTrue($validate->uuid($subject));
+
+        $subject->property = base64_encode('a');
+        static::assertTrue($validate->base64($subject));
+
+        $subject->property = '2019-01-01';
+        static::assertTrue($validate->dateISO8601($subject));
+        static::assertTrue($validate->dateISO8601Local($subject));
+
+        $subject->property = '00:00:01';
+        static::assertTrue($validate->timeISO8601($subject));
+
+        $subject->property = '2018-05-27T06:56:17.12345678Z';
+        static::assertTrue($validate->dateTimeISO8601($subject));
+
+        $subject->property = '2018-05-27 08:56:17';
+        static::assertTrue($validate->dateTimeISO8601Local($subject));
+
+        $subject->property = '2018-05-27T08:56:17.123456+02:00';
+        static::assertTrue($validate->dateTimeISO8601Zonal($subject));
+
+        $subject->property = '2018-05-27T06:56:17.12345678Z';
+        static::assertTrue($validate->dateTimeISOUTC($subject));
+
+        static::assertTrue($validate->plainText($subject));
+
+        $subject->property = '0.0.0.0';
+        static::assertTrue($validate->ipAddress($subject));
+
+        $subject->property = 'ftp://whatever';
+        static::assertTrue($validate->url($subject));
+
+        $subject->property = 'https://whatever';
+        static::assertTrue($validate->httpUrl($subject));
+
+        $subject->property = 'a@a.a';
+        static::assertTrue($validate->email($subject));
+    }
+
 
     const DATE_SUBJECTS = [
         '2018-05-27' => 'ISO-8601 date no zone',
