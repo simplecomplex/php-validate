@@ -1,3 +1,7 @@
+SimpleComplex/Validate 2.x, 2019-06-10
+--------------------------------------
+- Release 2.5.
+
 SimpleComplex/Validate 2.x, 2019-05-11
 --------------------------------------
 - Non-stringable object as subject for (essentially string) rule method
