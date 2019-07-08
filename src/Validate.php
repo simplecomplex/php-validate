@@ -1444,8 +1444,7 @@ class Validate implements RuleProviderInterface
         }
         $v = '' . $subject;
         if ($v === '') {
-            // Unlikely, but correct.
-            return $max == 0;
+            return true;
         }
         return $this->unicode->strlen($v) <= $max;
     }
