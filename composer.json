@@ -13,6 +13,7 @@
     ],
     "require": {
         "php": ">=7.0",
+        "ext-ctype": "*",
         "simplecomplex/utils": "^1.11 || ^2.0 || dev-develop"
     },
     "suggest": {
