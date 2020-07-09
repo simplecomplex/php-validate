@@ -254,11 +254,19 @@ class ValidationRuleSet
         // and that it goes at the top; before rules that don't type check.
         // NB: Not reliable if $rules is array having numerically indexed rules
         // (bucket value name of rule).
-        $type_rules_found = array_intersect($provider_info->typeMethods, array_keys(!$is_object ? $rules : get_object_vars($rules)));
+        $rule_keys = array_keys(!$is_object ? $rules : get_object_vars($rules));
+        $type_rules_found = array_intersect($provider_info->typeMethods, $rule_keys);
         $skip_type_rule = null;
         if (!$type_rules_found) {
-            // Declare dynamically.
-            $this->string = true;
+            // Default to string unless object|array; then container.
+            if (in_array('tableElements', $rule_keys, true) || in_array('listItems', $rule_keys, true)) {
+                // Declare dynamically.
+                $this->container = true;
+            }
+            else {
+                // Declare dynamically.
+                $this->string = true;
+            }
         }
         else {
             $type_rule_name = reset($type_rules_found);

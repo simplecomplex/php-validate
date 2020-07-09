@@ -110,6 +110,7 @@ class Validate implements RuleProviderInterface
      *
      * If a validation rule set doesn't contain any of these methods
      * then it will be considered a string and checked as such.
+     * Except if the rule has tableElements or listItems; then container.
      *
      * No type rule is allowed to take other arguments than the subject,
      * except the 'class' rule.
