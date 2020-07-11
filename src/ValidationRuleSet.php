@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2018 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -180,9 +180,7 @@ class ValidationRuleSet
      *
      * @param array|object $rules
      *      ArrayAccess is not supported.
-     * @param RuleProviderInterface|RuleProviderInfo|array|null $ruleProvider
-     *      Array is only for backwards compatibility (this parameter use to be
-     *      (array) $ruleMethodsAvailable), and using array elicits warning log.
+     * @param RuleProviderInterface|RuleProviderInfo|null $ruleProvider
      * @param int $depth
      *
      * @throws InvalidRuleException
@@ -228,18 +226,6 @@ class ValidationRuleSet
         }
         elseif ($ruleProvider instanceof RuleProviderInterface) {
             $provider_info = new RuleProviderInfo($ruleProvider);
-        }
-        elseif (is_array($ruleProvider)) {
-            $provider_info = new RuleProviderInfo();
-            $container = Dependency::container();
-            if ($container->has('logger')) {
-                $msg = 'ValidationRuleSet constructor no longer supports (array) ruleMethodsAvailable as second argument';
-                if ($container->has('inspect')) {
-                    $container->get('logger')->warning($msg . "\n" . $container->get('inspect')->trace(null));
-                } else {
-                    $container->get('logger')->warning($msg . '.');
-                }
-            }
         }
         else {
             throw new \InvalidArgumentException(
@@ -771,42 +757,4 @@ class ValidationRuleSet
      * @var array
      */
     protected static $rulesByProviderClass = [];
-
-    /**
-     * @deprecated Use RuleProviderInfo instead.
-     *
-     * @see RuleProviderInfo
-     *
-     * List rule methods made available by a rule provider.
-     *
-     * Helper method. Has to be set on other class than Validate
-     * (because Validate can 'see' it's own protected methods)
-     * and ValidateAgainstRuleSet (because that's marked as internal).
-     *
-     * @see Validate
-     *
-     * @uses get_class_methods()
-     * @uses Validate::getNonRuleMethods()
-     *
-     * @param Interfaces\RuleProviderInterface|null $ruleProvider
-     *      Default: dependency container ID 'validate' or Validate::getInstance().
-     *
-     * @return array
-     */
-    public static function ruleMethodsAvailable(/*?RuleProviderInterface*/ $ruleProvider = null)
-    {
-        if (!$ruleProvider) {
-            $container = Dependency::container();
-            $provider = $container->has('validate') ? $container->get('validate') : Validate::getInstance();
-        } else {
-            $provider = $ruleProvider;
-        }
-        $class_provider = get_class($provider);
-        return static::$rulesByProviderClass[$class_provider] ?? (
-                $rulesByProviderClass[$class_provider] = array_diff(
-                    get_class_methods($class_provider),
-                    $provider->getNonRuleMethods()
-                )
-            );
-    }
 }

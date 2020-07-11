@@ -1,4 +1,5 @@
 ## Validate ##
+<small>composer namespace: simplecomplex/**validate**</small>
 
 Validate almost any kind of PHP data structure.
 

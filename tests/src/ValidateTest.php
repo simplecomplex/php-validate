@@ -14,11 +14,12 @@ use SimpleComplex\Tests\Utils\BootstrapTest;
 
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\ValidationRuleSet;
+use SimpleComplex\Validate\RuleProviderInfo;
 
 /**
  * @code
  * // CLI, in document root:
- * backend/vendor/bin/phpunit backend/vendor/simplecomplex/validate/tests/src/ValidateTest.php
+ * backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/validate/tests/src/ValidateTest.php
  * @endcode
  *
  * @package SimpleComplex\Tests\Validate
@@ -122,7 +123,7 @@ class ValidateTest extends TestCase
         $validate = $this->testInstantiation();
 
         // Non-parameterized rule methods.
-        $simple_rule_methods = ValidationRuleSet::ruleMethodsAvailable($validate);
+        $simple_rule_methods = (new RuleProviderInfo($validate))->ruleMethods;
         $parameterized_methods = $validate->getParameterMethods();
         $simple_rule_methods =  array_diff($simple_rule_methods, array_keys($parameterized_methods));
         foreach ($parameterized_methods as $rule => $required) {

@@ -16,6 +16,9 @@
         "ext-ctype": "*",
         "simplecomplex/utils": "^1.11 || ^2.0 || dev-develop"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^8"
+    },
     "suggest": {
         "simplecomplex/inspect": "Great for logging; better variable dumps and traces."
     },
