@@ -485,7 +485,7 @@ class ValidationRuleSet
         // to be used.
         if (!$type_rules_found) {
             // Default to string unless object|array; then container.
-            if ($this->tableElements || $this->listItems) {
+            if (isset($this->tableElements) || isset($this->listItems)) {
                 $type_rules_found[] = 'container';
             }
             else {
