@@ -11,6 +11,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ### Changed
 * Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
+* Validation rule name by value instead of key (numerically indexed array)
+  is no longer supported.
 
 ### Fixed
 * Ruleset without type-checking rule must default to 'container' if has

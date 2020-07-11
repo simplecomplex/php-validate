@@ -166,6 +166,11 @@ class ValidationRuleSet
     ];
 
     /**
+     * @var RuleProviderInfo
+     */
+    protected $ruleProviderInfo;
+
+    /**
      * Validation rule set.
      *
      * Checks validity of arg rules, recursively.
@@ -200,561 +205,532 @@ class ValidationRuleSet
         if (!$rules) {
             return;
         }
-        $is_object = false;
+
         if (!is_array($rules)) {
             if (is_object($rules)) {
                 if ($rules instanceof \ArrayAccess) {
                     throw new \InvalidArgumentException(
-                        'Arg rules at depth[' . $depth . '] type[' . Utils::getType($rules)
+                        'Arg rules at depth[' . $depth . '] type[' . static::getType($rules)
                         . '] \ArrayAccess is not supported.'
                     );
                 }
-                $is_object = true;
             }
             else {
                 throw new \InvalidArgumentException(
-                    'Arg rules at depth[' . $depth . '] type[' . Utils::getType($rules) . '] is not array|object.'
+                    'Arg rules at depth[' . $depth . '] type[' . static::getType($rules) . '] is not array|object.'
                 );
             }
         }
 
         if (!$ruleProvider) {
-            $provider_info = new RuleProviderInfo();
+            // Go for default; presumably set in dependency injection container.
+            $this->ruleProviderInfo = new RuleProviderInfo();
         }
         elseif ($ruleProvider instanceof RuleProviderInfo) {
-            $provider_info = $ruleProvider;
+            $this->ruleProviderInfo = $ruleProvider;
         }
         elseif ($ruleProvider instanceof RuleProviderInterface) {
-            $provider_info = new RuleProviderInfo($ruleProvider);
+            $this->ruleProviderInfo = new RuleProviderInfo($ruleProvider);
         }
         else {
             throw new \InvalidArgumentException(
-                'Arg ruleProvider at depth[' . $depth . '] type[' . Utils::getType($ruleProvider)
+                'Arg ruleProvider at depth[' . $depth . '] type[' . static::getType($ruleProvider)
                 . '] is not RuleProviderInterface|RuleProviderInfo|null.'
             );
         }
 
-        $rules_found = [];
+        $type_rules_supported = $this->ruleProviderInfo->typeMethods;
 
         // Ensure that there's a type checking method,
         // and that it goes at the top; before rules that don't type check.
-        // NB: Not reliable if $rules is array having numerically indexed rules
-        // (bucket value name of rule).
-        $rule_keys = array_keys(!$is_object ? $rules : get_object_vars($rules));
-        $type_rules_found = array_intersect($provider_info->typeMethods, $rule_keys);
-        $skip_type_rule = null;
-        if (!$type_rules_found) {
-            // Default to string unless object|array; then container.
-            if (in_array('tableElements', $rule_keys, true) || in_array('listItems', $rule_keys, true)) {
-                // Declare dynamically.
-                $this->container = true;
-            }
-            else {
-                // Declare dynamically.
-                $this->string = true;
-            }
-        }
-        else {
-            $type_rule_name = reset($type_rules_found);
-            // No type rule is allowed to take other arguments than the subject,
-            // except the 'class' rule.
-            if ($type_rule_name == 'class') {
-                // Insert 'object' rule instead of moving 'class' rule, because
-                // we want the 'class' rule to be checked (like any other rule).
-                // Declare dynamically.
-                $this->object = true;
-                $skip_type_rule = 'object';
-            }
-            else {
-                // Insert type checking rule as first rule.
-                if (!$is_object) {
-                    $type_rule_value = $rules[$type_rule_name];
-                } else {
-                    $type_rule_value = $rules->{$type_rule_name};
-                }
-                // Declare dynamically.
-                $this->{$type_rule_name} = $type_rule_value;
-                $skip_type_rule = $type_rule_name;
-            }
-            unset($type_rules_found, $type_rule_name, $type_rule_value);
+        // Set all type rules at top, and remove the unecessary later.
+        foreach ($type_rules_supported as $method) {
+            // The 'class' method cannot be true; fix later.
+            $this->{$method} = true;
         }
 
+        $type_rules_found = [];
         // List of provider rules taking arguments.
         $provider_parameter_methods = null;
 
-        foreach ($rules as $ruleKey => &$ruleValue) {
-            unset($args);
-            if (ctype_digit('' . $ruleKey)) {
-                // Bucket is simply the name of a rule; key is int, value is the rule.
-                $rule = $ruleValue;
-                $args = true;
-                // The only non-provider rules supported are 'optional' and 'allowNull';
-                // the others cannot be boolean.
-                // And only provider rules having no parameters are legal here.
-                switch ($rule) {
+        foreach ($rules as $method => $argument) {
+            if (ctype_digit('' . $method)) {
+                throw new InvalidRuleException(
+                    'Validation rule name by value instead of key is no longer supported'
+                    . ', saw numeric index[' . $method . ']'
+                    . (!is_string($argument) ? '' : (' value[' . $argument . ']'))
+                    . ', at depth[' .  $depth . '].'
+                );
+            }
+            if (in_array($method, $type_rules_supported)) {
+                $type_rules_found[] = $method;
+                if ($method == 'class') {
+                    $this->class = $argument;
+                }
+                // Otherwise ignore; already set (true).
+            }
+            else {
+                // Copy because may alter.
+                $arg = $argument;
+
+                switch ($method) {
                     case 'optional':
                     case 'allowNull':
+                        if ($arg) {
+                            // Declare dynamically.
+                            $this->{$method} = true;
+                        }
                         break;
-                    case 'enum':
-                        throw new InvalidRuleException(
-                            'Provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
-                            . ' cannot be defined via numeric key and bucket value,'
-                            . ' because cannot be (simple) boolean true,'
-                            . ' must be array (of secondary rule method arguments).'
-                        );
-                    default:
-                        if (in_array($rule, ValidateAgainstRuleSet::NON_PROVIDER_RULES)) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
-                                . ' cannot be defined via numeric key and bucket value,'
-                                . ' because cannot be (simple) boolean true,'
-                                . ' must be non-scalar.'
-                            );
-                        }
-                        if (!in_array($rule, $provider_info->ruleMethods)) {
-                            if (isset(static::RULES_RENAMED[$rule])) {
-                                $rule = static::RULES_RENAMED[$rule];
-                            }
-                            else {
-                                throw new InvalidRuleException(
-                                    'Non-existent validation rule[' . $rule . '] at depth[' .  $depth . '],'
-                                    . ' was attempted to be defined via numeric key and bucket value.'
-                                );
-                            }
-                        }
-                        // Could check whether the rule method has secondary paramaters, like
-                        //if ((new \ReflectionMethod($ruleProvider, $rule))->getNumberOfParameters() > 1) {
-                        //    throw new InvalidRuleException('... must be array (of secondary rule method arguments).');
-                        //}
-                        // but doesn't know rule provider instance (nor class) here.
-                }
-            } else {
-                // Bucket key is name of the rule,
-                // value is arguments for the rule method.
-                $rule = $ruleKey;
-                $args = $ruleValue;
-            }
 
-            // That rule is already set.
-            if ($skip_type_rule && $rule == $skip_type_rule) {
-                continue;
-            }
-
-            switch ($rule) {
-                case 'optional':
-                    if ($depth && $args) {
-                        // Declare dynamically.
-                        $this->optional = true;
-                    }
-                    break;
-                case 'allowNull':
-                    // Declare dynamically.
-                    $this->allowNull = true;
-                    break;
-
-                case 'alternativeEnum':
-                    if (!$args || !is_array($args)) {
-                        throw new InvalidRuleException(
-                            'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                            . '] type[' . Utils::getType($args) . '] is not non-empty array.'
-                        );
-                    }
-                    // Allow defining alternativeEnum as nested array, because
-                    // easy to confuse with the format for enum.
-                    // enum formally requires to be nested, since
-                    // the allowed values array is second argument
-                    // to be passed to the enum() method.
-                    if (is_array(reset($args))) {
-                        $allowed_values = current($args);
-                    } else {
-                        $allowed_values =& $args;
-                    }
-                    // Check once and for all that allowed values are scalar|null.
-                    $i = -1;
-                    foreach ($allowed_values as $allowed) {
-                        ++$i;
-                        if ($allowed !== null && !is_scalar($allowed)) {
+                    case 'alternativeEnum':
+                        if (!$arg || !is_array($arg)) {
                             throw new InvalidRuleException(
                                 'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                                . '] allowed values bucket[' . $i . '] type[' . Utils::getType($allowed)
-                                . '] is not scalar or null.'
+                                . '] type[' . static::getType($arg) . '] is not non-empty array.'
                             );
                         }
-                    }
-                    // Declare dynamically.
-                    $this->alternativeEnum =& $allowed_values;
-                    unset($allowed_values, $allowed);
-                    break;
+                        // Allow defining alternativeEnum as nested array, because
+                        // easy to confuse with the format for enum.
+                        // enum formally requires to be nested, since
+                        // the allowed values array is second argument
+                        // to be passed to the enum() method.
+                        if (is_array(reset($arg))) {
+                            $arg = current($arg);
+                        }
 
-                case 'alternativeRuleSet':
-                    if ($args instanceof ValidationRuleSet) {
-                        // Do not allow alternativeRuleSet to have alternativeRuleSet.
-                        if (!empty($args->alternativeRuleSet)) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[alternativeRuleSet] at depth[' .  $depth
-                                . '] is not allowed to have alternativeRuleSet by itself.'
-                            );
-                        }
-                        $this->alternativeRuleSet = $args;
-                    }
-                    else {
-                        // new ValidationRuleSet(.
-                        $this->alternativeRuleSet = new static($args, $provider_info, $depth + 1);
-                    }
-                    break;
-
-                case 'tableElements':
-                case 'listItems':
-                    // Use $ruleValue directly; these rules cannot be set
-                    // as value by numeric key.
-                    unset($args);
-                    if (is_array($ruleValue)) {
-                        $ruleValue = (object) $ruleValue;
-                    } elseif (!is_object($ruleValue)) {
-                        $msg = 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth
-                            . '] type[' . Utils::getType($ruleValue) . '] is not a array|object.';
-                        $container = Dependency::container();
-                        if ($container->has('logger')) {
-                            if ($container->has('inspect')) {
-                                $inspection = $container->get('inspect')->variable($rules);
-                            } else {
-                                $inspection = 'Keys['
-                                    . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
-                            }
-                            $container->get('logger')->warning($msg . "\n" . $inspection);
-                        }
-                        throw new InvalidRuleException($msg);
-                    }
-
-                    if ($rule == 'tableElements') {
-                        // Fix obvious spelling errors.
-                        if (isset($ruleValue->whiteList)) {
-                            $ruleValue->whitelist = $ruleValue->whiteList;
-                            unset($ruleValue->whiteList);
-                        }
-                        if (isset($ruleValue->blackList)) {
-                            $ruleValue->blacklist = $ruleValue->blackList;
-                            unset($ruleValue->blackList);
-                        }
-                        // Allow only specific buckets.
-                        if (array_diff(
-                            $prop_keys = array_keys(get_object_vars($ruleValue)),
-                            static::TABLE_ELEMENTS_ALLOWED_KEYS
-                        )) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                . ' can only contain keys[' . join(', ', static::TABLE_ELEMENTS_ALLOWED_KEYS)
-                                . '], saw[' . join(', ', $prop_keys) . '].'
-                            );
-                        }
-                        unset($prop_keys);
-                        // exclusive.
-                        $has_lists = [];
-                        if (isset($ruleValue->exclusive)) {
-                            if (!is_bool($ruleValue->exclusive)) {
+                        // Check once and for all that allowed values are scalar|null.
+                        $i = -1;
+                        foreach ($arg as $value) {
+                            ++$i;
+                            if ($value !== null && !is_scalar($value)) {
                                 throw new InvalidRuleException(
-                                    'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                    . ' bucket \'exclusive\' type[' . Utils::getType($ruleValue->exclusive)
-                                    . '] is not boolean.'
-                                );
-                            } elseif ($ruleValue->exclusive) {
-                                $has_lists[] = 'exclusive';
-                            }
-                        }
-                        // whitelist|blacklist must be array, but allowed empty.
-                        $list_keys = array('whitelist' , 'blacklist');
-                        foreach ($list_keys as $list_key) {
-                            if (isset($ruleValue->{$list_key})) {
-                                if (!is_array($ruleValue->{$list_key})) {
-                                    throw new InvalidRuleException(
-                                        'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                        . ' bucket \'' . $list_key . '\' type['
-                                        . Utils::getType($ruleValue->{$list_key}) . '] is not array.'
-                                    );
-                                } elseif ($ruleValue->{$list_key}) {
-                                    $has_lists[] = $list_key;
-                                }
-                            }
-                        }
-                        unset($list_keys, $list_key);
-                        // exclusive|whitelist|blacklist are mutually exclusive.
-                        if (count($has_lists) > 1) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                . ' has more than one mutually exclusive buckets, saw[' . join(', ', $has_lists) . '].'
-                            );
-                        }
-                        unset($has_lists);
-                        // rulesByElements.
-                        if (!isset($ruleValue->rulesByElements)) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                                . ' misses array|object \'rulesByElements\' bucket.'
-                            );
-                        }
-                        if (is_array($ruleValue->rulesByElements)) {
-                            $ruleValue->rulesByElements = (object) $ruleValue->rulesByElements;
-                        } elseif (!is_object($ruleValue->rulesByElements)) {
-                            $msg = 'Non-provider validation rule[' . $rule . '] at depth[' .  $depth . ']'
-                                . ' bucket \'rulesByElements\' type[' . Utils::getType($ruleValue->rulesByElements)
-                                . '] is not a array|object.';
-                            $container = Dependency::container();
-                            if ($container->has('logger')) {
-                                if ($container->has('inspect')) {
-                                    $inspection = $container->get('inspect')->variable($rules);
-                                } else {
-                                    $inspection = 'Keys['
-                                        . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
-                                }
-                                $container->get('logger')->warning($msg . "\n" . $inspection);
-                            }
-                            throw new InvalidRuleException($msg);
-                        }
-                        try {
-                            $index = -1;
-                            foreach ($ruleValue->rulesByElements as $elementName => &$subRuleSet) {
-                                $name = $elementName;
-                                ++$index;
-                                if (!($subRuleSet instanceof ValidationRuleSet)) {
-                                    if (is_array($subRuleSet) || is_object($subRuleSet)) {
-                                        // new ValidationRuleSet(.
-                                        $subRuleSet = new static(
-                                            $subRuleSet, $provider_info, $depth + 1
-                                        );
-                                    } else {
-                                        throw new InvalidRuleException(
-                                            'Element rule set type[' . Utils::getType($subRuleSet)
-                                            . '] is not ValidationRuleSet|array|object.'
-                                        );
-                                    }
-                                }
-                            }
-                            // Iteration ref.
-                            unset($subRuleSet);
-                        } catch (\Throwable $xc) {
-                            $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth
-                                . '] element index[' . $index . '] name[' . $name
-                                . '] is not a valid rule set, reason:';
-                            $container = Dependency::container();
-                            if ($container->has('logger')) {
-                                if ($container->has('inspect')) {
-                                    $inspection = 'Current rule set:'
-                                        . "\n" . $container->get('inspect')->variable($rules)->toString(false);
-                                } else {
-                                    $inspection = 'Current rule set keys['
-                                        . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
-                                }
-                                $container->get('logger')->warning(
-                                    $msg . "\n" . $xc->getMessage() . "\n" . $inspection
-                                );
-                            }
-                            throw new InvalidRuleException($msg . ' ' . $xc->getMessage());
-                        }
-                        if ($index == -1) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[tableElements] at depth[' .  $depth . '] is empty.'
-                            );
-                        }
-                        // Declare dynamically.
-                        $this->tableElements = $ruleValue;
-                    }
-                    // listItems.
-                    else {
-                        // Allow only specific buckets.
-                        if (array_diff(
-                            $prop_keys = array_keys(get_object_vars($ruleValue)),
-                            static::LIST_ITEMS_ALLOWED_KEYS
-                        )) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                . ' can only contain keys[' . join(', ', static::LIST_ITEMS_ALLOWED_KEYS)
-                                . '], saw[' . join(', ', $prop_keys) . '].'
-                            );
-                        }
-                        unset($prop_keys);
-                        // minOccur|maxOccur must be non-negative integer.
-                        $occur_keys = array('minOccur' , 'maxOccur');
-                        foreach ($occur_keys as $occur_key) {
-                            if (isset($ruleValue->{$occur_key})) {
-                                if (!is_int($ruleValue->{$occur_key}) || $ruleValue->{$occur_key} < 0) {
-                                    throw new InvalidRuleException(
-                                        'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                        . ' bucket \'' . $occur_key . '\' type['
-                                        . Utils::getType($ruleValue->{$occur_key}) . ']'
-                                        . (!is_int($ruleValue->{$occur_key}) ? '' :
-                                            ' value[' . $ruleValue->{$occur_key} . ']')
-                                        . ' is not non-negative integer.'
-                                    );
-                                }
-                            }
-                        }
-                        unset($occur_keys, $occur_key);
-                        // Positive maxOccur cannot be less than minOccur.
-                        // maxOccur:zero means no maximum occurrence.
-                        if (
-                            isset($ruleValue->maxOccur) && isset($ruleValue->minOccur)
-                            && $ruleValue->maxOccur && $ruleValue->maxOccur < $ruleValue->minOccur
-                        ) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                . ' positive maxOccur[' . $ruleValue->maxOccur
-                                . '] cannot be less than minOccur[' . $ruleValue->minOccur . '].'
-                            );
-                        }
-                        // itemRules.
-                        if (!isset($ruleValue->itemRules)) {
-                            throw new InvalidRuleException(
-                                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                                . ' misses ValidationRuleSet|array|object \'itemRules\' bucket.'
-                            );
-                        }
-                        if (!($ruleValue->itemRules instanceof ValidationRuleSet)) {
-                            if (is_array($ruleValue->itemRules) || is_object($ruleValue->itemRules)) {
-                                // new ValidationRuleSet(.
-                                $ruleValue->itemRules = new static(
-                                    $ruleValue->itemRules, $provider_info, $depth + 1
-                                );
-                            } else {
-                                throw new InvalidRuleException(
-                                    'Non-provider validation rule[listItems] at depth[' .  $depth
-                                    . '] \'itemRules\' bucket type[' . Utils::getType($ruleValue->itemRules)
-                                    . '] is not ValidationRuleSet|array|object.'
+                                    'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
+                                    . '] allowed values bucket[' . $i . '] type[' . static::getType($value)
+                                    . '] is not scalar or null.'
                                 );
                             }
                         }
                         // Declare dynamically.
-                        $this->listItems = $ruleValue;
-                    }
-                    break;
+                        $this->alternativeEnum = $arg;
+                        break;
 
-                default:
-                    // Check for dupe; 'rule':args as well as N:'rule'.
-                    if (isset($rules_found[$rule])) {
-                        throw new InvalidRuleException(
-                            'Duplicate validation rule[' . $rule . '] at depth[' .  $depth . '].'
-                        );
-                    }
-                    // Check rule method existance.
-                    if (!in_array($rule, $provider_info->ruleMethods)) {
-                        if (isset(static::RULES_RENAMED[$rule])) {
-                            $rule = static::RULES_RENAMED[$rule];
+                    case 'alternativeRuleSet':
+                        if ($arg instanceof ValidationRuleSet) {
+                            // Do not allow alternativeRuleSet to have alternativeRuleSet.
+                            if (!empty($arg->alternativeRuleSet)) {
+                                throw new InvalidRuleException(
+                                    'Non-provider validation rule[alternativeRuleSet] at depth[' .  $depth
+                                    . '] is not allowed to have alternativeRuleSet by itself.'
+                                );
+                            }
+                            $this->alternativeRuleSet = $arg;
                         }
                         else {
-                            throw new InvalidRuleException(
-                                'Non-existent validation rule[' . $rule . '] at depth[' . $depth . '].'
-                            );
+                            // new ValidationRuleSet(.
+                            $this->alternativeRuleSet = new static($arg, $this->ruleProviderInfo, $depth + 1);
                         }
-                    }
+                        break;
 
-                    $rules_found[$rule] = true;
+                    case 'tableElements':
+                    case 'listItems':
+                        if (is_array($arg)) {
+                            $arg = (object) $arg;
+                        }
+                        elseif (!is_object($arg)) {
+                            $msg = 'Non-provider validation rule[' . $method . '] at depth[' .  $depth
+                                . '] type[' . static::getType($arg) . '] is not a array|object.';
+//                            $container = Dependency::container();
+//                            if ($container->has('logger')) {
+//                                if ($container->has('inspect')) {
+//                                    $inspection = $container->get('inspect')->variable($rules);
+//                                } else {
+//                                    $inspection = 'Keys['
+//                                        . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
+//                                }
+//                                $container->get('logger')->warning($msg . "\n" . $inspection);
+//                            }
+                            throw new InvalidRuleException($msg);
+                        }
 
-                    switch ($rule) {
-                        case 'enum':
-                            if (!$args || !is_array($args)) {
-                                throw new InvalidRuleException(
-                                    'Validation rule[enum] at depth[' .  $depth
-                                    . '] value type[' . Utils::getType($args) . '] is not non-empty array.'
-                                );
-                            }
-                            // Allow defining enum as un-nested array, because
-                            // counter-intuitive.
-                            // enum formally requires to be nested, since
-                            // the allowed values array is second argument
-                            // to be passed to the enum() method.
-                            $allowed_values = reset($args);
-                            if (!is_array($allowed_values)) {
-                                $allowed_values =& $args;
-                            }
-                            // Check once and for all that allowed values are scalar|null.
-                            $i = -1;
-                            foreach ($allowed_values as $allowed) {
-                                ++$i;
-                                if ($allowed !== null && !is_scalar($allowed)) {
-                                    throw new InvalidRuleException(
-                                        'Validation rule[enum] at depth[' .  $depth . '] allowed values bucket['
-                                        . $i . '] type[' . Utils::getType($allowed) . '] is not scalar or null.'
-                                    );
-                                }
-                            }
+                        if ($method == 'tableElements') {
+                            $this->tableElements($arg, $depth);
                             // Declare dynamically.
-                            $this->enum = [
-                                $allowed_values
-                            ];
-                            unset($allowed_values, $allowed);
-                            break;
-                        default:
-                            // Check that rule value accords with whether
-                            // the rule method accepts or requires
-                            // more argument(s) than subject self.
-                            if ($provider_parameter_methods === null) {
-                                $provider_parameter_methods = $provider_info->ruleProvider->getParameterMethods();
-                            }
-                            $rule_takes_arguments = isset($provider_parameter_methods[$rule]);
+                            $this->tableElements = $arg;
+                        }
+                        // listItems.
+                        else {
+                            $this->listItems($arg, $depth);
+                            // Declare dynamically.
+                            $this->listItems = $arg;
+                        }
+                        break;
 
-                            // Rule accept(s) more arguments than subject self.
-                            if ($rule_takes_arguments) {
-                                // Rule requires argument(s).
-                                if ($provider_parameter_methods[$rule]) {
-                                    // Rule value must be array.
-                                    if (!$args || !is_array($args)) {
-                                        throw new InvalidRuleException(
-                                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] requires more'
-                                            . ' argument(s) than subject self, and rule value type['
-                                            . Utils::getType($args) . '] is not non-empty array.'
-                                        );
-                                    }
-                                    // Rule method requires argument(s).
-                                    // Declare dynamically.
-                                    $this->{$rule} = $args;
-                                }
-                                // Rule doesn't require argument(s).
-                                else {
-                                    if ($args === true) {
-                                        // Rule method accepts argument(s), but
-                                        // none given; true as simple 'on' flag.
-                                        // Declare dynamically.
-                                        $this->{$rule} = true;
-                                    }
-                                    elseif (!$args || !is_array($args)) {
-                                        // Rule method accepts argument(s);
-                                        // if not true it must be non-empty array.
-                                        throw new InvalidRuleException(
-                                            'Validation rule[' . $rule . '] at depth[' .  $depth . '] accepts more'
-                                            . ' argument(s) than subject, but value type[' . Utils::getType($args)
-                                            . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
-                                            . ' (list of secondary argument(s)).'
-                                        );
-                                    }
-                                    else {
-                                        // Declare dynamically.
-                                        $this->{$rule} = $args;
-                                    }
-                                }
-                            }
-                            // Rule doesn't accept argument(s);
-                            // value must be boolean true.
-                            elseif ($args === true) {
-                                // Declare dynamically.
-                                $this->{$rule} = true;
+                    default:
+                        // Check rule method existance.
+                        if (!in_array($method, $this->ruleProviderInfo->ruleMethods)) {
+                            if (isset(static::RULES_RENAMED[$method])) {
+                                $method = static::RULES_RENAMED[$method];
                             }
                             else {
-                                // Rule method doesn't accept argument(s);
-                                // value should be boolean true.
                                 throw new InvalidRuleException(
-                                    'Validation rule[' . $rule . '] at depth[' .  $depth . '] doesn\'t accept'
-                                    . ' more arguments than subject self, thus value type[' . Utils::getType($args)
-                                    . '] makes no sense, value only allowed to be boolean true.'
+                                    'Non-existent validation rule[' . $method . '] at depth[' . $depth . '].'
                                 );
                             }
-                    }
+                        }
+
+                        switch ($method) {
+                            case 'enum':
+                                if (!$arg || !is_array($arg)) {
+                                    throw new InvalidRuleException(
+                                        'Validation rule[enum] at depth[' .  $depth
+                                        . '] value type[' . static::getType($arg) . '] is not non-empty array.'
+                                    );
+                                }
+                                // Allow defining enum as un-nested array, because
+                                // counter-intuitive.
+                                // enum formally requires to be nested, since
+                                // the allowed values array is second argument
+                                // to be passed to the enum() method.
+                                $allowed_values = reset($arg);
+                                if (!is_array($allowed_values)) {
+                                    $allowed_values = $arg;
+                                }
+                                // Check once and for all that allowed values are scalar|null.
+                                $i = -1;
+                                foreach ($allowed_values as $value) {
+                                    ++$i;
+                                    if ($value !== null && !is_scalar($value)) {
+                                        throw new InvalidRuleException(
+                                            'Validation rule[enum] at depth[' .  $depth . '] allowed values bucket['
+                                            . $i . '] type[' . static::getType($value) . '] is not scalar or null.'
+                                        );
+                                    }
+                                }
+                                // Declare dynamically.
+                                $this->enum = [
+                                    $allowed_values
+                                ];
+                                break;
+                            default:
+                                // Check that rule value accords with whether
+                                // the rule method accepts or requires
+                                // more argument(s) than subject self.
+                                if ($provider_parameter_methods === null) {
+                                    $provider_parameter_methods =
+                                        $this->ruleProviderInfo->ruleProvider->getParameterMethods();
+                                }
+                                $rule_takes_arguments = isset($provider_parameter_methods[$method]);
+
+                                // Rule accept(s) more arguments than subject self.
+                                if ($rule_takes_arguments) {
+                                    // Rule requires argument(s).
+                                    if ($provider_parameter_methods[$method]) {
+                                        // Rule value must be array.
+                                        if (!$arg || !is_array($arg)) {
+                                            throw new InvalidRuleException(
+                                                'Validation rule[' . $method . '] at depth[' .  $depth . '] requires more'
+                                                . ' argument(s) than subject self, and rule value type['
+                                                . static::getType($arg) . '] is not non-empty array.'
+                                            );
+                                        }
+                                        // Rule method requires argument(s).
+                                        // Declare dynamically.
+                                        $this->{$method} = $arg;
+                                    }
+                                    // Rule doesn't require argument(s).
+                                    else {
+                                        if ($arg === true) {
+                                            // Rule method accepts argument(s), but
+                                            // none given; true as simple 'on' flag.
+                                            // Declare dynamically.
+                                            $this->{$method} = true;
+                                        }
+                                        elseif (!$arg || !is_array($arg)) {
+                                            // Rule method accepts argument(s);
+                                            // if not true it must be non-empty array.
+                                            throw new InvalidRuleException(
+                                                'Validation rule[' . $method . '] at depth[' .  $depth . '] accepts more'
+                                                . ' argument(s) than subject, but value type[' . static::getType($arg)
+                                                . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
+                                                . ' (list of secondary argument(s)).'
+                                            );
+                                        }
+                                        else {
+                                            // Declare dynamically.
+                                            $this->{$method} = $arg;
+                                        }
+                                    }
+                                }
+                                // Rule doesn't accept argument(s);
+                                // value must be boolean true.
+                                elseif ($arg === true) {
+                                    // Declare dynamically.
+                                    $this->{$method} = true;
+                                }
+                                else {
+                                    // Rule method doesn't accept argument(s);
+                                    // value should be boolean true.
+                                    throw new InvalidRuleException(
+                                        'Validation rule[' . $method . '] at depth[' .  $depth . '] doesn\'t accept'
+                                        . ' more arguments than subject self, thus value type[' . static::getType($arg)
+                                        . '] makes no sense, value only allowed to be boolean true.'
+                                    );
+                                }
+                        }
+                }
             }
         }
-        // Iteration ref.
-        unset($ruleValue);
+
+        // Remove all the method properties set initially, except those actually
+        // to be used.
+        if (!$type_rules_found) {
+            // Default to string unless object|array; then container.
+            if ($this->tableElements || $this->listItems) {
+                $type_rules_found[] = 'container';
+            }
+            else {
+                $type_rules_found[] = 'string';
+            }
+        }
+        $type_rules_remove = array_diff($type_rules_supported, $type_rules_found);
+        foreach ($type_rules_remove as $method) {
+            unset($this->{$method});
+        }
+    }
+
+    protected function tableElements(object $arg, int $depth)
+    {
+        // Fix case spelling errors.
+        if (isset($arg->whiteList)) {
+            $arg->whitelist = $arg->whiteList;
+            unset($arg->whiteList);
+        }
+        if (isset($arg->blackList)) {
+            $arg->blacklist = $arg->blackList;
+            unset($arg->blackList);
+        }
+        // Allow only specific buckets.
+        if (array_diff(
+            $prop_keys = array_keys(get_object_vars($arg)),
+            static::TABLE_ELEMENTS_ALLOWED_KEYS
+        )) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                . ' can only contain keys[' . join(', ', static::TABLE_ELEMENTS_ALLOWED_KEYS)
+                . '], saw[' . join(', ', $prop_keys) . '].'
+            );
+        }
+        unset($prop_keys);
+        // exclusive.
+        $has_lists = [];
+        if (isset($arg->exclusive)) {
+            if (!is_bool($arg->exclusive)) {
+                throw new InvalidRuleException(
+                    'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                    . ' bucket \'exclusive\' type[' . static::getType($arg->exclusive)
+                    . '] is not boolean.'
+                );
+            }
+            elseif ($arg->exclusive) {
+                $has_lists[] = 'exclusive';
+            }
+        }
+        // whitelist|blacklist must be array, but allowed empty.
+        $list_keys = array('whitelist' , 'blacklist');
+        foreach ($list_keys as $list_key) {
+            if (isset($arg->{$list_key})) {
+                if (!is_array($arg->{$list_key})) {
+                    throw new InvalidRuleException(
+                        'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                        . ' bucket \'' . $list_key . '\' type['
+                        . static::getType($arg->{$list_key}) . '] is not array.'
+                    );
+                }
+                elseif ($arg->{$list_key}) {
+                    $has_lists[] = $list_key;
+                }
+            }
+        }
+        unset($list_keys, $list_key);
+        // exclusive|whitelist|blacklist are mutually exclusive.
+        if (count($has_lists) > 1) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                . ' has more than one mutually exclusive buckets, saw[' . join(', ', $has_lists) . '].'
+            );
+        }
+        unset($has_lists);
+        // rulesByElements.
+        if (!isset($arg->rulesByElements)) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                . ' misses array|object \'rulesByElements\' bucket.'
+            );
+        }
+        if (is_array($arg->rulesByElements)) {
+            $arg->rulesByElements = (object) $arg->rulesByElements;
+        }
+        elseif (!is_object($arg->rulesByElements)) {
+            $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
+                . ' bucket \'rulesByElements\' type[' . static::getType($arg->rulesByElements)
+                . '] is not a array|object.';
+//            $container = Dependency::container();
+//            if ($container->has('logger')) {
+//                if ($container->has('inspect')) {
+//                    $inspection = $container->get('inspect')->variable($rules);
+//                } else {
+//                    $inspection = 'Keys['
+//                        . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
+//                }
+//                $container->get('logger')->warning($msg . "\n" . $inspection);
+//            }
+            throw new InvalidRuleException($msg);
+        }
+        try {
+            $index = -1;
+            foreach ($arg->rulesByElements as $elementName => &$subRuleSet) {
+                $name = $elementName;
+                ++$index;
+                if (!($subRuleSet instanceof ValidationRuleSet)) {
+                    if (is_array($subRuleSet) || is_object($subRuleSet)) {
+                        // new ValidationRuleSet(.
+                        $subRuleSet = new static(
+                            $subRuleSet, $this->ruleProviderInfo, $depth + 1
+                        );
+                    } else {
+                        throw new InvalidRuleException(
+                            'Element rule set type[' . static::getType($subRuleSet)
+                            . '] is not ValidationRuleSet|array|object.'
+                        );
+                    }
+                }
+            }
+            // Iteration ref.
+            unset($subRuleSet);
+        }
+        catch (\Throwable $xc) {
+            $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth
+                . '] element index[' . $index . '] name[' . $name
+                . '] is not a valid rule set.';
+//            $container = Dependency::container();
+//            if ($container->has('logger')) {
+//                if ($container->has('inspect')) {
+//                    $inspection = 'Current rule set:'
+//                        . "\n" . $container->get('inspect')->variable($rules)->toString(false);
+//                } else {
+//                    $inspection = 'Current rule set keys['
+//                        . array_keys(is_array($rules) ? $rules : get_object_vars($rules)) . ']';
+//                }
+//                $container->get('logger')->warning(
+//                    $msg . "\n" . $xc->getMessage() . "\n" . $inspection
+//                );
+//            }
+            throw new InvalidRuleException($msg . ' ' . $xc->getMessage());
+        }
+        if ($index == -1) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[tableElements] at depth[' .  $depth . '] is empty.'
+            );
+        }
+    }
+
+
+    protected function listItems(object $arg, int $depth)
+    {
+        // Allow only specific buckets.
+        if (array_diff(
+            $prop_keys = array_keys(get_object_vars($arg)),
+            static::LIST_ITEMS_ALLOWED_KEYS
+        )) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
+                . ' can only contain keys[' . join(', ', static::LIST_ITEMS_ALLOWED_KEYS)
+                . '], saw[' . join(', ', $prop_keys) . '].'
+            );
+        }
+        unset($prop_keys);
+        // minOccur|maxOccur must be non-negative integer.
+        $occur_keys = array('minOccur' , 'maxOccur');
+        foreach ($occur_keys as $occur_key) {
+            if (isset($arg->{$occur_key})) {
+                if (!is_int($arg->{$occur_key}) || $arg->{$occur_key} < 0) {
+                    throw new InvalidRuleException(
+                        'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
+                        . ' bucket \'' . $occur_key . '\' type['
+                        . static::getType($arg->{$occur_key}) . ']'
+                        . (!is_int($arg->{$occur_key}) ? '' :
+                            ' value[' . $arg->{$occur_key} . ']')
+                        . ' is not non-negative integer.'
+                    );
+                }
+            }
+        }
+        unset($occur_keys, $occur_key);
+        // Positive maxOccur cannot be less than minOccur.
+        // maxOccur:zero means no maximum occurrence.
+        if (
+            isset($arg->maxOccur) && isset($arg->minOccur)
+            && $arg->maxOccur && $arg->maxOccur < $arg->minOccur
+        ) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
+                . ' positive maxOccur[' . $arg->maxOccur
+                . '] cannot be less than minOccur[' . $arg->minOccur . '].'
+            );
+        }
+        // itemRules.
+        if (!isset($arg->itemRules)) {
+            throw new InvalidRuleException(
+                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
+                . ' misses ValidationRuleSet|array|object \'itemRules\' bucket.'
+            );
+        }
+        if (!($arg->itemRules instanceof ValidationRuleSet)) {
+            if (is_array($arg->itemRules) || is_object($arg->itemRules)) {
+                // new ValidationRuleSet(.
+                $arg->itemRules = new static(
+                    $arg->itemRules, $this->ruleProviderInfo, $depth + 1
+                );
+            } else {
+                throw new InvalidRuleException(
+                    'Non-provider validation rule[listItems] at depth[' .  $depth
+                    . '] \'itemRules\' bucket type[' . static::getType($arg->itemRules)
+                    . '] is not ValidationRuleSet|array|object.'
+                );
+            }
+        }
     }
 
     /**
-     * @var array
+     * Get subject class name or (non-object) type.
+     *
+     * Counter to native gettype() this method returns:
+     * - class name instead of 'object'
+     * - 'float' instead of 'double'
+     * - 'null' instead of 'NULL'
+     *
+     * Like native gettype() this method returns:
+     * - 'boolean' not 'bool'
+     * - 'integer' not 'int'
+     * - 'unknown type' for unknown type
+     *
+     * @param mixed $subject
+     *
+     * @return string
      */
-    protected static $rulesByProviderClass = [];
+    protected static function getType($subject)
+    {
+        if (!is_object($subject)) {
+            $type = gettype($subject);
+            switch ($type) {
+                case 'double':
+                    return 'float';
+                case 'NULL':
+                    return 'null';
+                default:
+                    return $type;
+            }
+        }
+        return get_class($subject);
+    }
 }
