@@ -1078,7 +1078,7 @@ class Validate implements RuleProviderInterface
      * @see Validate::integer()
      * @see Validate::float()
      * @see Validate::numeric()
-     * @see Validate::digit()
+     * @see Validate::digital()
      *
      * @param mixed $subject
      *

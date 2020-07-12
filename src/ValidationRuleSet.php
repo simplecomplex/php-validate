@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\Utils;
-use SimpleComplex\Utils\Dependency;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
@@ -75,7 +73,8 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  *          Subject array|object must only contain these keys,
  *          apart from the keys defined by $rulesByElements.
  *      @var array|undefined $blacklist
- *          Subject array|object must not contain these keys.
+ *          Subject array|object must not contain these keys,
+ *          apart from the keys defined by $rulesByElements.
  * }
  *      Rule listing ValidationRuleSets of elements of array|object subject.
  *
@@ -166,11 +165,6 @@ class ValidationRuleSet
     ];
 
     /**
-     * @var RuleProviderInfo
-     */
-    protected $ruleProviderInfo;
-
-    /**
      * Validation rule set.
      *
      * Checks validity of arg rules, recursively.
@@ -187,20 +181,21 @@ class ValidationRuleSet
      *      ArrayAccess is not supported.
      * @param RuleProviderInterface|RuleProviderInfo|null $ruleProvider
      * @param int $depth
+     * @param string $keyPath
      *
      * @throws InvalidRuleException
      */
-    public function __construct($rules = [], $ruleProvider = null, $depth = 0)
+    public function __construct($rules = [], $ruleProvider = null, int $depth = 0, string $keyPath = 'root')
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
-                'Stopped recursive validation rule set definition at limit[' . static::RECURSION_LIMIT . '].'
+                'Stopped recursive validation rule set definition at limit['
+                . static::RECURSION_LIMIT . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
 
         /**
          * Constructor has no required parameters, to allow casting to it.
-         * @see Utils::cast()
          */
         if (!$rules) {
             return;
@@ -210,36 +205,37 @@ class ValidationRuleSet
             if (is_object($rules)) {
                 if ($rules instanceof \ArrayAccess) {
                     throw new \InvalidArgumentException(
-                        'Arg rules at depth[' . $depth . '] type[' . static::getType($rules)
-                        . '] \ArrayAccess is not supported.'
+                        'Arg rules type[' . static::getType($rules)
+                        . '] \ArrayAccess is not supported, at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
             }
             else {
                 throw new \InvalidArgumentException(
-                    'Arg rules at depth[' . $depth . '] type[' . static::getType($rules) . '] is not array|object.'
+                    'Arg rules type[' . static::getType($rules)
+                    . '] is not array|object, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
         }
 
         if (!$ruleProvider) {
             // Go for default; presumably set in dependency injection container.
-            $this->ruleProviderInfo = new RuleProviderInfo();
+            $ruleProviderInfo = new RuleProviderInfo();
         }
         elseif ($ruleProvider instanceof RuleProviderInfo) {
-            $this->ruleProviderInfo = $ruleProvider;
+            $ruleProviderInfo = $ruleProvider;
         }
         elseif ($ruleProvider instanceof RuleProviderInterface) {
-            $this->ruleProviderInfo = new RuleProviderInfo($ruleProvider);
+            $ruleProviderInfo = new RuleProviderInfo($ruleProvider);
         }
         else {
             throw new \InvalidArgumentException(
-                'Arg ruleProvider at depth[' . $depth . '] type[' . static::getType($ruleProvider)
-                . '] is not RuleProviderInterface|RuleProviderInfo|null.'
+                'Arg ruleProvider type[' . static::getType($ruleProvider)
+                . '] is not RuleProviderInterface|RuleProviderInfo|null, at (' . $depth . ') ' . $keyPath . '.'
             );
         }
 
-        $type_rules_supported = $this->ruleProviderInfo->typeMethods;
+        $type_rules_supported = $ruleProviderInfo->typeMethods;
 
         // Ensure that there's a type checking method,
         // and that it goes at the top; before rules that don't type check.
@@ -259,7 +255,7 @@ class ValidationRuleSet
                     'Validation rule name by value instead of key is no longer supported'
                     . ', saw numeric index[' . $method . ']'
                     . (!is_string($argument) ? '' : (' value[' . $argument . ']'))
-                    . ', at depth[' .  $depth . '].'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             if (in_array($method, $type_rules_supported)) {
@@ -285,8 +281,8 @@ class ValidationRuleSet
                     case 'alternativeEnum':
                         if (!$arg || !is_array($arg)) {
                             throw new InvalidRuleException(
-                                'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                                . '] type[' . static::getType($arg) . '] is not non-empty array.'
+                                'Validation alternativeEnum type[' . static::getType($arg)
+                                . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                             );
                         }
                         // Allow defining alternativeEnum as nested array, because
@@ -304,9 +300,9 @@ class ValidationRuleSet
                             ++$i;
                             if ($value !== null && !is_scalar($value)) {
                                 throw new InvalidRuleException(
-                                    'Non-provider validation rule[alternativeEnum] at depth[' .  $depth
-                                    . '] allowed values bucket[' . $i . '] type[' . static::getType($value)
-                                    . '] is not scalar or null.'
+                                    'Validation alternativeEnum allowed values bucket[' . $i
+                                    . '] type[' . static::getType($value)
+                                    . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
                         }
@@ -319,15 +315,17 @@ class ValidationRuleSet
                             // Do not allow alternativeRuleSet to have alternativeRuleSet.
                             if (!empty($arg->alternativeRuleSet)) {
                                 throw new InvalidRuleException(
-                                    'Non-provider validation rule[alternativeRuleSet] at depth[' .  $depth
-                                    . '] is not allowed to have alternativeRuleSet by itself.'
+                                    'Validation alternativeRuleSet is not allowed to contain'
+                                    . ' child alternativeRuleSet, at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
                             $this->alternativeRuleSet = $arg;
                         }
                         else {
                             // new ValidationRuleSet(.
-                            $this->alternativeRuleSet = new static($arg, $this->ruleProviderInfo, $depth + 1);
+                            $this->alternativeRuleSet = new static(
+                                $arg, $ruleProviderInfo, $depth + 1, $keyPath . '(alternativeRuleSet)'
+                            );
                         }
                         break;
 
@@ -337,8 +335,8 @@ class ValidationRuleSet
                             $arg = (object) $arg;
                         }
                         elseif (!is_object($arg)) {
-                            $msg = 'Non-provider validation rule[' . $method . '] at depth[' .  $depth
-                                . '] type[' . static::getType($arg) . '] is not a array|object.';
+                            $msg = 'Validation ' . $method . ' type[' . static::getType($arg)
+                                . '] is not a array|object, at (' . $depth . ') ' . $keyPath . '.';
 //                            $container = Dependency::container();
 //                            if ($container->has('logger')) {
 //                                if ($container->has('inspect')) {
@@ -353,13 +351,13 @@ class ValidationRuleSet
                         }
 
                         if ($method == 'tableElements') {
-                            $this->tableElements($arg, $depth);
+                            $this->tableElements($arg, $ruleProviderInfo, $depth, $keyPath);
                             // Declare dynamically.
                             $this->tableElements = $arg;
                         }
                         // listItems.
                         else {
-                            $this->listItems($arg, $depth);
+                            $this->listItems($arg, $ruleProviderInfo, $depth, $keyPath);
                             // Declare dynamically.
                             $this->listItems = $arg;
                         }
@@ -367,13 +365,14 @@ class ValidationRuleSet
 
                     default:
                         // Check rule method existance.
-                        if (!in_array($method, $this->ruleProviderInfo->ruleMethods)) {
+                        if (!in_array($method, $ruleProviderInfo->ruleMethods)) {
                             if (isset(static::RULES_RENAMED[$method])) {
                                 $method = static::RULES_RENAMED[$method];
                             }
                             else {
                                 throw new InvalidRuleException(
-                                    'Non-existent validation rule[' . $method . '] at depth[' . $depth . '].'
+                                    'Unknown validation rule[' . $method
+                                    . '], at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
                         }
@@ -382,8 +381,8 @@ class ValidationRuleSet
                             case 'enum':
                                 if (!$arg || !is_array($arg)) {
                                     throw new InvalidRuleException(
-                                        'Validation rule[enum] at depth[' .  $depth
-                                        . '] value type[' . static::getType($arg) . '] is not non-empty array.'
+                                        'Validation rule[enum] value type[' . static::getType($arg)
+                                        . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                                     );
                                 }
                                 // Allow defining enum as un-nested array, because
@@ -401,8 +400,9 @@ class ValidationRuleSet
                                     ++$i;
                                     if ($value !== null && !is_scalar($value)) {
                                         throw new InvalidRuleException(
-                                            'Validation rule[enum] at depth[' .  $depth . '] allowed values bucket['
-                                            . $i . '] type[' . static::getType($value) . '] is not scalar or null.'
+                                            'Validation rule[enum] allowed values bucket[' . $i
+                                            . '] type[' . static::getType($value)
+                                            . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
                                         );
                                     }
                                 }
@@ -417,7 +417,7 @@ class ValidationRuleSet
                                 // more argument(s) than subject self.
                                 if ($provider_parameter_methods === null) {
                                     $provider_parameter_methods =
-                                        $this->ruleProviderInfo->ruleProvider->getParameterMethods();
+                                        $ruleProviderInfo->ruleProvider->getParameterMethods();
                                 }
                                 $rule_takes_arguments = isset($provider_parameter_methods[$method]);
 
@@ -428,9 +428,10 @@ class ValidationRuleSet
                                         // Rule value must be array.
                                         if (!$arg || !is_array($arg)) {
                                             throw new InvalidRuleException(
-                                                'Validation rule[' . $method . '] at depth[' .  $depth . '] requires more'
+                                                'Validation rule[' . $method . '] requires more'
                                                 . ' argument(s) than subject self, and rule value type['
-                                                . static::getType($arg) . '] is not non-empty array.'
+                                                . static::getType($arg)
+                                                . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                                             );
                                         }
                                         // Rule method requires argument(s).
@@ -449,10 +450,11 @@ class ValidationRuleSet
                                             // Rule method accepts argument(s);
                                             // if not true it must be non-empty array.
                                             throw new InvalidRuleException(
-                                                'Validation rule[' . $method . '] at depth[' .  $depth . '] accepts more'
+                                                'Validation rule[' . $method . '] accepts more'
                                                 . ' argument(s) than subject, but value type[' . static::getType($arg)
                                                 . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
-                                                . ' (list of secondary argument(s)).'
+                                                . ' (list of secondary argument(s))'
+                                                . ', at (' . $depth . ') ' . $keyPath . '.'
                                             );
                                         }
                                         else {
@@ -471,9 +473,10 @@ class ValidationRuleSet
                                     // Rule method doesn't accept argument(s);
                                     // value should be boolean true.
                                     throw new InvalidRuleException(
-                                        'Validation rule[' . $method . '] at depth[' .  $depth . '] doesn\'t accept'
+                                        'Validation rule[' . $method . '] doesn\'t accept'
                                         . ' more arguments than subject self, thus value type[' . static::getType($arg)
-                                        . '] makes no sense, value only allowed to be boolean true.'
+                                        . '] makes no sense, value only allowed to be boolean true'
+                                        . ', at (' . $depth . ') ' . $keyPath . '.'
                                     );
                                 }
                         }
@@ -484,13 +487,8 @@ class ValidationRuleSet
         // Remove all the method properties set initially, except those actually
         // to be used.
         if (!$type_rules_found) {
-            // Default to string unless object|array; then container.
-            if (isset($this->tableElements) || isset($this->listItems)) {
-                $type_rules_found[] = 'container';
-            }
-            else {
-                $type_rules_found[] = 'string';
-            }
+            // Default to a type-checking rule which accords with a found rule.
+            $type_rules_found[] = $this->inferTypeCheckingRule();
         }
         $type_rules_remove = array_diff($type_rules_supported, $type_rules_found);
         foreach ($type_rules_remove as $method) {
@@ -498,7 +496,46 @@ class ValidationRuleSet
         }
     }
 
-    protected function tableElements(object $arg, int $depth)
+    /**
+     * Establishes a type checking rule method that matches
+     * other rule(s) of the ruleset.
+     * Defaults to string.
+     *
+     * @return string
+     */
+    protected function inferTypeCheckingRule() : string
+    {
+        if (isset($this->tableElements) || isset($this->listItems)) {
+            return 'container';
+        }
+        elseif (isset($this->bit32)
+            || isset($this->bit64)
+        ) {
+            return 'digital';
+        }
+        elseif (isset($this->positive)
+            || isset($this->nonNegative)
+            || isset($this->negative)
+            || isset($this->min)
+            || isset($this->max)
+            || isset($this->range)
+        ) {
+            return 'numeric';
+        }
+        return 'string';
+    }
+
+
+    // @todo: tableElements should be a class, and there should also be a validateTableElements() method.
+
+    /**
+     * @param object $arg
+     *      tableElements object.
+     * @param RuleProviderInfo $ruleProviderInfo
+     * @param int $depth
+     * @param string $keyPath
+     */
+    protected function tableElements(object $arg, RuleProviderInfo $ruleProviderInfo, int $depth, string $keyPath)
     {
         // Fix case spelling errors.
         if (isset($arg->whiteList)) {
@@ -515,9 +552,9 @@ class ValidationRuleSet
             static::TABLE_ELEMENTS_ALLOWED_KEYS
         )) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                . ' can only contain keys[' . join(', ', static::TABLE_ELEMENTS_ALLOWED_KEYS)
-                . '], saw[' . join(', ', $prop_keys) . '].'
+                'Validation tableElements can only contain keys['
+                . join(', ', static::TABLE_ELEMENTS_ALLOWED_KEYS)
+                . '], saw[' . join(', ', $prop_keys) . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         unset($prop_keys);
@@ -526,9 +563,9 @@ class ValidationRuleSet
         if (isset($arg->exclusive)) {
             if (!is_bool($arg->exclusive)) {
                 throw new InvalidRuleException(
-                    'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                    . ' bucket \'exclusive\' type[' . static::getType($arg->exclusive)
-                    . '] is not boolean.'
+                    'Validation tableElements bucket \'exclusive\' type['
+                    . static::getType($arg->exclusive)
+                    . '] is not boolean, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             elseif ($arg->exclusive) {
@@ -541,9 +578,8 @@ class ValidationRuleSet
             if (isset($arg->{$list_key})) {
                 if (!is_array($arg->{$list_key})) {
                     throw new InvalidRuleException(
-                        'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                        . ' bucket \'' . $list_key . '\' type['
-                        . static::getType($arg->{$list_key}) . '] is not array.'
+                        'Validation tableElements bucket \'' . $list_key . '\' type['
+                        . static::getType($arg->{$list_key}) . '] is not array, at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
                 elseif ($arg->{$list_key}) {
@@ -555,25 +591,27 @@ class ValidationRuleSet
         // exclusive|whitelist|blacklist are mutually exclusive.
         if (count($has_lists) > 1) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                . ' has more than one mutually exclusive buckets, saw[' . join(', ', $has_lists) . '].'
+                'Validation tableElements has more than one mutually exclusive buckets, saw['
+                . join(', ', $has_lists) . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         unset($has_lists);
         // rulesByElements.
         if (!isset($arg->rulesByElements)) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                . ' misses array|object \'rulesByElements\' bucket.'
+                'Validation tableElements misses array|object \'rulesByElements\' bucket'
+                . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         if (is_array($arg->rulesByElements)) {
             $arg->rulesByElements = (object) $arg->rulesByElements;
+            $prefix = '[';
+            $suffix = ']';
         }
         elseif (!is_object($arg->rulesByElements)) {
-            $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth . ']'
-                . ' bucket \'rulesByElements\' type[' . static::getType($arg->rulesByElements)
-                . '] is not a array|object.';
+            $msg = 'Validation tableElements bucket \'rulesByElements\' type['
+                . static::getType($arg->rulesByElements)
+                . '] is not a array|object, at (' . $depth . ') ' . $keyPath . '.';
 //            $container = Dependency::container();
 //            if ($container->has('logger')) {
 //                if ($container->has('inspect')) {
@@ -586,21 +624,26 @@ class ValidationRuleSet
 //            }
             throw new InvalidRuleException($msg);
         }
+        else {
+            $prefix = '->';
+            $suffix = '';
+        }
         try {
             $index = -1;
-            foreach ($arg->rulesByElements as $elementName => &$subRuleSet) {
-                $name = $elementName;
+            foreach ($arg->rulesByElements as $key => &$subRuleSet) {
                 ++$index;
                 if (!($subRuleSet instanceof ValidationRuleSet)) {
                     if (is_array($subRuleSet) || is_object($subRuleSet)) {
                         // new ValidationRuleSet(.
                         $subRuleSet = new static(
-                            $subRuleSet, $this->ruleProviderInfo, $depth + 1
+                            $subRuleSet, $ruleProviderInfo, $depth + 1, $keyPath . $prefix . $key . $suffix
                         );
-                    } else {
+                    }
+                    else {
                         throw new InvalidRuleException(
-                            'Element rule set type[' . static::getType($subRuleSet)
-                            . '] is not ValidationRuleSet|array|object.'
+                            'Validation tableElements.rulesByElements element index[' . $index . '] key[' . $key
+                            . '] type[' . static::getType($subRuleSet)
+                            . '] is not ValidationRuleSet|array|object, at (' . $depth . ') ' . $keyPath . '.'
                         );
                     }
                 }
@@ -608,10 +651,9 @@ class ValidationRuleSet
             // Iteration ref.
             unset($subRuleSet);
         }
-        catch (\Throwable $xc) {
-            $msg = 'Non-provider validation rule[tableElements] at depth[' .  $depth
-                . '] element index[' . $index . '] name[' . $name
-                . '] is not a valid rule set.';
+        catch (\Throwable $xcptn) {
+            $msg = 'Validation tableElements.rulesByElements element index[' . $index . '] key[' . $key
+                . '] is not a valid rule set, at (' . $depth . ') ' . $keyPath . '.';
 //            $container = Dependency::container();
 //            if ($container->has('logger')) {
 //                if ($container->has('inspect')) {
@@ -625,17 +667,17 @@ class ValidationRuleSet
 //                    $msg . "\n" . $xc->getMessage() . "\n" . $inspection
 //                );
 //            }
-            throw new InvalidRuleException($msg . ' ' . $xc->getMessage());
+            throw new InvalidRuleException($msg, 0, $xcptn);
         }
         if ($index == -1) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[tableElements] at depth[' .  $depth . '] is empty.'
+                'Validation tableElements.rulesByElements is empty, at (' . $depth . ') ' . $keyPath . '.'
             );
         }
     }
 
 
-    protected function listItems(object $arg, int $depth)
+    protected function listItems(object $arg, RuleProviderInfo $ruleProviderInfo, int $depth, string $keyPath)
     {
         // Allow only specific buckets.
         if (array_diff(
@@ -643,9 +685,9 @@ class ValidationRuleSet
             static::LIST_ITEMS_ALLOWED_KEYS
         )) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                . ' can only contain keys[' . join(', ', static::LIST_ITEMS_ALLOWED_KEYS)
-                . '], saw[' . join(', ', $prop_keys) . '].'
+                'Validation listItems can only contain keys['
+                . join(', ', static::LIST_ITEMS_ALLOWED_KEYS)
+                . '], saw[' . join(', ', $prop_keys) . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         unset($prop_keys);
@@ -655,12 +697,10 @@ class ValidationRuleSet
             if (isset($arg->{$occur_key})) {
                 if (!is_int($arg->{$occur_key}) || $arg->{$occur_key} < 0) {
                     throw new InvalidRuleException(
-                        'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                        . ' bucket \'' . $occur_key . '\' type['
+                        'Validation listItems bucket \'' . $occur_key . '\' type['
                         . static::getType($arg->{$occur_key}) . ']'
-                        . (!is_int($arg->{$occur_key}) ? '' :
-                            ' value[' . $arg->{$occur_key} . ']')
-                        . ' is not non-negative integer.'
+                        . (!is_int($arg->{$occur_key}) ? '' : ' value[' . $arg->{$occur_key} . ']')
+                        . ' is not non-negative integer, at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
             }
@@ -673,29 +713,28 @@ class ValidationRuleSet
             && $arg->maxOccur && $arg->maxOccur < $arg->minOccur
         ) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                . ' positive maxOccur[' . $arg->maxOccur
-                . '] cannot be less than minOccur[' . $arg->minOccur . '].'
+                'Validation listItems positive maxOccur[' . $arg->maxOccur
+                . '] cannot be less than minOccur[' . $arg->minOccur . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         // itemRules.
         if (!isset($arg->itemRules)) {
             throw new InvalidRuleException(
-                'Non-provider validation rule[listItems] at depth[' .  $depth . ']'
-                . ' misses ValidationRuleSet|array|object \'itemRules\' bucket.'
+                'Validation listItems misses ValidationRuleSet|array|object \'itemRules\' bucket'
+                . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         if (!($arg->itemRules instanceof ValidationRuleSet)) {
             if (is_array($arg->itemRules) || is_object($arg->itemRules)) {
                 // new ValidationRuleSet(.
                 $arg->itemRules = new static(
-                    $arg->itemRules, $this->ruleProviderInfo, $depth + 1
+                    $arg->itemRules, $ruleProviderInfo, $depth + 1, $keyPath . '(itemRules)'
                 );
-            } else {
+            }
+            else {
                 throw new InvalidRuleException(
-                    'Non-provider validation rule[listItems] at depth[' .  $depth
-                    . '] \'itemRules\' bucket type[' . static::getType($arg->itemRules)
-                    . '] is not ValidationRuleSet|array|object.'
+                    'Validation listItems.itemRules type[' . static::getType($arg->itemRules)
+                    . '] is not ValidationRuleSet|array|object, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
         }

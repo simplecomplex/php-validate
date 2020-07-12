@@ -217,7 +217,8 @@ class ValidateAgainstRuleSet
 
         if ($ruleSet instanceof ValidationRuleSet) {
             return $this->internalChallenge(0, $keyPath, $subject, $ruleSet);
-        } elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
+        }
+        elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
                 'Arg rules type[' . Utils::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
@@ -252,7 +253,8 @@ class ValidateAgainstRuleSet
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
-                'Stopped recursive validation by rule-set at limit[' . static::RECURSION_LIMIT . '].'
+                'Stopped recursive validation by rule-set at limit['
+                . static::RECURSION_LIMIT . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
 
@@ -292,7 +294,9 @@ class ValidateAgainstRuleSet
                     // But do check for rule method existance, because we might
                     // be using a different rule provider now.
                     if (!in_array($ruleKey, $this->ruleMethods)) {
-                        throw new InvalidRuleException('Non-existent validation rule[' . $ruleKey . '].');
+                        throw new InvalidRuleException(
+                            'Unknown validation rule[' . $ruleKey . '], at (' . $depth . ') ' . $keyPath . '.'
+                        );
                     }
                     $rules_found[$ruleKey] = $ruleValue;
             }
@@ -388,7 +392,8 @@ class ValidateAgainstRuleSet
                             $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
                                 (substr($subject, 50) . '...(truncated)');
                         }
-                        $this->record[] = $keyPath . ': ' . join(', ', $record) . ', alternativeEnum(*, ...) - saw type '
+                        $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
+                            . ', alternativeEnum(*, ...) - saw type '
                             . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
                     }
                     return false;
@@ -403,8 +408,8 @@ class ValidateAgainstRuleSet
                     $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
                         (substr($subject, 50) . '...(truncated)');
                 }
-                $this->record[] = $keyPath . ': ' . join(', ', $record) . ' - saw type ' . Utils::getType($subject)
-                    . ($v === null ? '' : (' value ' . $v));
+                $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
+                    . ' - saw type ' . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
             }
             return false;
         }
@@ -422,7 +427,7 @@ class ValidateAgainstRuleSet
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = $keyPath . ': tableElements - ' . Utils::getType($subject)
+                $this->record[] = '(' . $depth . ') ' . $keyPath . ': tableElements - ' . Utils::getType($subject)
                     . ' is not a loopable container';
             }
             return false;
@@ -473,7 +478,8 @@ class ValidateAgainstRuleSet
                 if ($exclusive) {
                     if (($illegal_keys = array_diff($subject_keys, $specified_keys))) {
                         if ($this->recordFailure) {
-                            $this->record[] = $keyPath . ': tableElements exclusive - subject has key(s)'
+                            $this->record[] = '(' . $depth . ') ' . $keyPath
+                                . ': tableElements exclusive - subject has key(s)'
                                 . ' not specified by elementsByRules, key(s) \''
                                 . join('\', \'', $illegal_keys) . '\'';
                             // Don't stop on failure when recording.
@@ -484,7 +490,8 @@ class ValidateAgainstRuleSet
                 } elseif ($whitelist) {
                     if (($illegal_keys = array_diff($subject_keys, $specified_keys, $table_elements->whitelist))) {
                         if ($this->recordFailure) {
-                            $this->record[] = $keyPath . ': tableElements whitelist - subject has key(s)'
+                            $this->record[] = '(' . $depth . ') ' . $keyPath
+                                . ': tableElements whitelist - subject has key(s)'
                                 . ' not specified by elementsByRules nor whitelist, key(s) \''
                                 . join('\', \'', $illegal_keys) . '\'';
                             // Don't stop on failure when recording.
@@ -494,7 +501,8 @@ class ValidateAgainstRuleSet
                     }
                 } elseif (($illegal_keys = array_intersect($table_elements->blacklist, $subject_keys))) {
                     if ($this->recordFailure) {
-                        $this->record[] = $keyPath . ': tableElements blacklist - subject has blacklisted key(s) \''
+                        $this->record[] = '(' . $depth . ') ' . $keyPath
+                            . ': tableElements blacklist - subject has blacklisted key(s) \''
                             . join('\', \'', $illegal_keys) . '\'';
                         // Don't stop on failure when recording.
                     } else {
@@ -514,8 +522,8 @@ class ValidateAgainstRuleSet
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
-                                    $this->record[] = $keyPath . ': tableElements - non-optional bucket '
-                                        . $key . ' doesn\'t exist';
+                                    $this->record[] = '(' . $depth . ') ' . $keyPath
+                                        . ': tableElements - non-optional bucket ' . $key . ' doesn\'t exist';
                                     // Don't stop on failure when recording.
                                     continue;
                                 }
@@ -543,8 +551,8 @@ class ValidateAgainstRuleSet
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
                                 if ($this->recordFailure) {
-                                    $this->record[] = $keyPath . ': tableElements - non-optional bucket '
-                                        . $key . ' doesn\'t exist';
+                                    $this->record[] = '(' . $depth . ') ' . $keyPath
+                                        . ': tableElements - non-optional bucket ' . $key . ' doesn\'t exist';
                                     // Don't stop on failure when recording.
                                     continue;
                                 }
@@ -597,8 +605,8 @@ class ValidateAgainstRuleSet
             $minOccur = $list_items->minOccur ?? 0;
             if ($minOccur && $occurrence < $minOccur) {
                 if ($this->recordFailure) {
-                    $this->record[] = $keyPath . ': listItems - saw less instances ' . $occurrence
-                        . ' than minOccur ' . $minOccur;
+                    $this->record[] = '(' . $depth . ') ' . $keyPath
+                        . ': listItems - saw less instances ' . $occurrence . ' than minOccur ' . $minOccur;
                     // Don't stop on failure when recording.
                 } else {
                     return false;
@@ -607,8 +615,8 @@ class ValidateAgainstRuleSet
             $maxOccur = $list_items->maxOccur ?? 0;
             if ($maxOccur && $occurrence > $maxOccur) {
                 if ($this->recordFailure) {
-                    $this->record[] = $keyPath . ': listItems - saw more instances ' . $occurrence
-                        . ' than maxOccur ' . $maxOccur;
+                    $this->record[] = '(' . $depth . ') ' . $keyPath . ': listItems - saw more instances '
+                        . $occurrence . ' than maxOccur ' . $maxOccur;
                     // Don't stop on failure when recording.
                 } else {
                     return false;
@@ -649,6 +657,20 @@ class ValidateAgainstRuleSet
                 return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * @todo
+     *
+     * @param $depth
+     * @param $keyPath
+     * @param $subject
+     * @param $tableElements
+     * @return bool
+     */
+    protected function tableElements($depth, $keyPath, $subject, /*TableElements*/ $tableElements) : bool
+    {
         return false;
     }
 }
