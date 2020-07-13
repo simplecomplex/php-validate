@@ -13,6 +13,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 * Validation rule name by value instead of key (numerically indexed array)
   is no longer supported.
+* The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
+  [bit:true,alternativeEnum['0','1']].
 
 ### Fixed
 * Ruleset without type-checking rule must default to 'container' if has
@@ -41,7 +43,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ## [2.4.1] - 2019-01-25
 
 ### Changed
-The 'bit' rule must allow string 0|1
+The 'bit' rule must allow string 0|1.
 
 
 ## [2.4] - 2019-01-24

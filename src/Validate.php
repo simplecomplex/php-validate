@@ -534,7 +534,7 @@ class Validate implements RuleProviderInterface
         if (is_bool($subject)) {
             return true;
         }
-        if (is_int($subject) || is_string($subject)) {
+        if (is_int($subject)) {
             return $subject == 0 || $subject == 1;
         }
         return false;
