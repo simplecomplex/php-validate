@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\Utils;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
@@ -78,7 +77,7 @@ class ValidateAgainstRuleSet
             throw new BadMethodCallException(
                 'Method allows only one argument (a rule provider), passing options would void warranty'
                 . ' that requested and returned instance are effectvely identical, saw secondary argument type['
-                . Utils::getType(func_get_arg(1)) . '].'
+                . Helper::getType(func_get_arg(1)) . '].'
             );
         }
         $provider_class = get_class($ruleProvider);
@@ -220,7 +219,7 @@ class ValidateAgainstRuleSet
         }
         elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
             throw new \TypeError(
-                'Arg rules type[' . Utils::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
+                'Arg rules type[' . Helper::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
         }
         // Convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet,
@@ -349,7 +348,7 @@ class ValidateAgainstRuleSet
                         if ($args && is_array($args)) {
                             $tmp = [];
                             foreach ($args as $arg) {
-                                $arg_type = Utils::getType($arg);
+                                $arg_type = Helper::getType($arg);
                                 switch ($arg_type) {
                                     case 'boolean':
                                         $tmp[] = $arg ? 'true' : 'false';
@@ -394,7 +393,7 @@ class ValidateAgainstRuleSet
                         }
                         $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
                             . ', alternativeEnum(*, ...) - saw type '
-                            . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
+                            . Helper::getType($subject) . ($v === null ? '' : (' value ' . $v));
                     }
                     return false;
                 }
@@ -409,7 +408,7 @@ class ValidateAgainstRuleSet
                         (substr($subject, 50) . '...(truncated)');
                 }
                 $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
-                    . ' - saw type ' . Utils::getType($subject) . ($v === null ? '' : (' value ' . $v));
+                    . ' - saw type ' . Helper::getType($subject) . ($v === null ? '' : (' value ' . $v));
             }
             return false;
         }
@@ -427,7 +426,7 @@ class ValidateAgainstRuleSet
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = '(' . $depth . ') ' . $keyPath . ': tableElements - ' . Utils::getType($subject)
+                $this->record[] = '(' . $depth . ') ' . $keyPath . ': tableElements - ' . Helper::getType($subject)
                     . ' is not a loopable container';
             }
             return false;
@@ -574,6 +573,9 @@ class ValidateAgainstRuleSet
                     }
             }
         }
+
+        // @todo: tableElements, listItems are allowed combined in validation ruleset.
+        // @todo: but subject must only match one of them.
 
         if ($list_items) {
             switch ($container_type) {

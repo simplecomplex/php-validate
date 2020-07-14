@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\Utils;
-use SimpleComplex\Utils\Unicode;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
@@ -82,65 +80,66 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Don't ever access this - call getNonRuleMethods() instead.
+     * Non-rule methods.
      *
      * @see Validate::getNonRuleMethods()
      *
-     * Methods of this class that a ValidateAgainstRuleSet instance
-     * should never call.
+     * Keys are property names, values may be anything.
+     * Allows a child class to extend parent's list by doing
+     * const NON_RULE_METHODS = [
+     *   'someMethod' => true,
+     * ] + ParentClass::NON_RULE_METHODS;
      *
      * @var string[]
      */
     const NON_RULE_METHODS = [
-        'getInstance',
-        'flushInstance',
-        '__construct',
-        'make',
-        'getNonRuleMethods',
-        'getTypeMethods',
-        'getParameterMethods',
-        '__call',
-        'challenge',
-        'challengeRecording',
+        'getInstance' => null,
+        'flushInstance' => null,
+        '__construct' => null,
+        'getNonRuleMethods' => null,
+        'getRuleMethods' => null,
+        'getTypeMethods' => null,
+        'getParameterMethods' => null,
+        '__call' => null,
+        'challenge' => null,
+        'challengeRecording' => null,
     ];
 
     /**
      * Methods that explicitly promise to check the subject's type
      * or that subject's type is a simple and sensibly coercible scalar.
      *
-     * If a validation rule set doesn't contain any of these methods
-     * then it will be considered a string and checked as such.
-     * Except if the rule has tableElements or listItems; then container.
-     *
      * No type rule is allowed to take other arguments than the subject,
      * except the 'class' rule.
      *
-     * @see ValidationRuleSet::__construct()
+     * If the source of a validation rule set (e.g. JSON) doesn't contain any
+     * of these methods then ValidationRuleSet makes a guess; ultimately string.
+     * @see ValidationRuleSet::inferTypeCheckingRule()
      *
      * @var string[]
      */
     const TYPE_METHODS = [
-        'boolean',
-        'bit',
-        'number',
-        'integer',
-        'float',
-        'string',
-        'null',
-        'resource',
-        'numeric',
-        'digital',
-        'object',
-        'class',
-        'array',
-        'container',
-        'iterable',
-        'loopable',
-        'indexedIterable',
-        'keyedIterable',
-        'indexedLoopable',
-        'keyedLoopable',
-        'indexedArray',
+        'boolean' => null,
+        'bit' => null,
+        'number' => null,
+        'integer' => null,
+        'float' => null,
+        'string' => null,
+        'null' => null,
+        'resource' => null,
+        'numeric' => null,
+        'digital' => null,
+        'object' => null,
+        'class' => null,
+        'array' => null,
+        'container' => null,
+        'iterable' => null,
+        'loopable' => null,
+        'indexedIterable' => null,
+        'keyedIterable' => null,
+        'indexedLoopable' => null,
+        'keyedLoopable' => null,
+        'indexedArray' => null,
     ];
 
     /**
@@ -196,28 +195,30 @@ class Validate implements RuleProviderInterface
      */
 
     /**
-     * @var Unicode
-     */
-    protected $unicode;
-
-    /**
      * @see Validate::getNonRuleMethods()
      *
-     * @var array
+     * @var string[]
      */
     protected $nonRuleMethods = [];
 
     /**
+     * @see Validate::getRuleMethods()
+     *
+     * @var string[]
+     */
+    protected $ruleMethods = [];
+
+    /**
      * @see Validate::getTypeMethods()
      *
-     * @var array
+     * @var string[]
      */
     protected $typeMethods = [];
 
     /**
      * @see Validate::getParameterMethods()
      *
-     * @var array
+     * @var string[]
      */
     protected $parameterMethods = [];
 
@@ -226,62 +227,67 @@ class Validate implements RuleProviderInterface
      */
     public function __construct()
     {
-        // Dependencies.--------------------------------------------------------
-        // Extending class' constructor might provide instance by other means.
-        if (!$this->unicode) {
-            $this->unicode = Unicode::getInstance();
-        }
-
-        // self:: to allow extending class to define more such methods.
-        $this->typeMethods = self::TYPE_METHODS;
-        $this->parameterMethods = self::PARAMETER_METHODS;
     }
 
     /**
-     * Get list of methods of this class that are validation rule methods.
+     * Lists public methods that aren't validation rule methods.
      *
-     * Extending class declaring more non-rule methods must override this method.
-     *
-     * @return array
+     * @return string[]
      */
     public function getNonRuleMethods() : array
     {
         if (!$this->nonRuleMethods) {
-            // Root class does.
-            $this->nonRuleMethods = self::NON_RULE_METHODS;
-            // Extending class declaring non-rule methods should do:
-            //$this->nonRuleMethods = array_unique(
-            //    array_merge(
-            //        parent::getNonRuleMethods(),
-            //        self::NON_RULE_METHODS
-            //    )
-            //);
+            $this->nonRuleMethods = array_keys(static::NON_RULE_METHODS);
         }
         return $this->nonRuleMethods;
     }
 
     /**
+     * Lists validation rule methods.
+     *
+     * @return string[]
+     *
+     * @throws \TypeError  Propagated.
+     * @throws \ReflectionException  Propagated.
+     */
+    public function getRuleMethods() : array
+    {
+        if (!$this->ruleMethods) {
+            $this->ruleMethods = array_diff(
+                Helper::getPublicMethods($this),
+                $this->getNonRuleMethods()
+            );
+        }
+        return $this->ruleMethods;
+    }
+
+    /**
      * Lists rule methods that explicitly promise to check the subject's type.
      *
-     * If a validation rule set doesn't contain any of these methods
-     * then it will be considered a string and checked as such.
+     * If the source of a validation rule set (e.g. JSON) doesn't contain any
+     * of these methods then ValidationRuleSet makes a guess; ultimately string.
+     * @see ValidationRuleSet::inferTypeCheckingRule()
      *
-     * Extending class declaring more non-rule methods must override this method.
-     *
-     * @return array
+     * @return string[]
      */
     public function getTypeMethods() : array
     {
+        if (!$this->typeMethods) {
+            $this->typeMethods = array_keys(static::TYPE_METHODS);
+        }
         return $this->typeMethods;
     }
 
     /**
      * Lists rule methods that accept/require other arguments(s) than subject.
      *
-     * @return array
+     * @return string[]
      */
     public function getParameterMethods() : array
     {
+        if (!$this->parameterMethods) {
+            $this->parameterMethods = array_keys(static::PARAMETER_METHODS);
+        }
         return $this->parameterMethods;
     }
 
@@ -468,7 +474,7 @@ class Validate implements RuleProviderInterface
             ++$i;
             if ($allowed !== null && !is_scalar($allowed)) {
                 throw new InvalidArgumentException(
-                    'Arg allowedValues bucket ' . $i . ' type[' . Utils::getType($allowed) . '] is not scalar or null.'
+                    'Arg allowedValues bucket ' . $i . ' type[' . Helper::getType($allowed) . '] is not scalar or null.'
                 );
             }
             if ($subject === $allowed) {
@@ -1191,7 +1197,7 @@ class Validate implements RuleProviderInterface
     public function min($subject, $min) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException('Arg min type[' . Utils::getType($min) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg min type[' . Helper::getType($min) . '] is not integer or float.');
         }
         if ($subject === null) {
             return false;
@@ -1223,7 +1229,7 @@ class Validate implements RuleProviderInterface
     public function max($subject, $max) : bool
     {
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException('Arg max type[' . Utils::getType($max) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg max type[' . Helper::getType($max) . '] is not integer or float.');
         }
         if ($subject === null) {
             return false;
@@ -1259,10 +1265,10 @@ class Validate implements RuleProviderInterface
     public function range($subject, $min, $max) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException('Arg min type[' . Utils::getType($min) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg min type[' . Helper::getType($min) . '] is not integer or float.');
         }
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException('Arg max type[' . Utils::getType($max) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg max type[' . Helper::getType($max) . '] is not integer or float.');
         }
         if ($max < $min) {
             throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than arg min[' .  $min . '].');
@@ -1412,7 +1418,7 @@ class Validate implements RuleProviderInterface
         if ($v === '') {
             return $min == 0;
         }
-        return $this->unicode->strlen($v) >= $min;
+        return mb_strlen($v) >= $min;
     }
 
     /**
@@ -1447,7 +1453,7 @@ class Validate implements RuleProviderInterface
         if ($v === '') {
             return true;
         }
-        return $this->unicode->strlen($v) <= $max;
+        return mb_strlen($v) <= $max;
     }
 
     /**
@@ -1482,7 +1488,7 @@ class Validate implements RuleProviderInterface
         if ($v === '') {
             return $exact == 0;
         }
-        return $this->unicode->strlen($v) == $exact;
+        return mb_strlen($v) == $exact;
     }
 
 

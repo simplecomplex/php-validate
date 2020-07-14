@@ -28,19 +28,27 @@ namespace SimpleComplex\Validate\Interfaces;
 interface RuleProviderInterface
 {
     /**
-     * Names of methods of the rule provider that a ValidateAgainstRuleSet
-     * instance should never call.
+     * Lists public methods that aren't validation rule methods.
      *
-     * @return array
+     * @return string[]
      *
      * @see Validate::getNonRuleMethods()
      */
     public function getNonRuleMethods() : array;
 
     /**
+     * Lists validation rule methods.
+     *
+     * @return string[]
+     *
+     * @see Validate::getRuleMethods()
+     */
+    public function getRuleMethods() : array;
+
+    /**
      * Lists rule methods that explicitly promise to check the subject's type.
      *
-     * @return array
+     * @return string[]
      *
      * @see Validate::getTypeMethods()
      */
@@ -49,7 +57,7 @@ interface RuleProviderInterface
     /**
      * Lists rule methods that accept/require other arguments(s) than subject.
      *
-     * @return array
+     * @return string[]
      *
      * @see Validate::getParameterMethods()
      */
@@ -80,6 +88,13 @@ interface RuleProviderInterface
      * @see Validate::nonEmpty()
      */
     public function nonEmpty($subject) : bool;
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function string($subject) : bool;
 
     /**
      * Checks for equality against a list of values.

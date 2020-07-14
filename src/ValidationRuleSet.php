@@ -144,14 +144,19 @@ class ValidationRuleSet
      * @var string[]
      */
     const TABLE_ELEMENTS_ALLOWED_KEYS = [
-        'rulesByElements', 'exclusive', 'whitelist', 'blacklist',
+        'rulesByElements',
+        'exclusive',
+        'whitelist',
+        'blacklist',
     ];
 
     /**
      * @var string[]
      */
     const LIST_ITEMS_ALLOWED_KEYS = [
-        'itemRules', 'minOccur', 'maxOccur',
+        'itemRules',
+        'minOccur',
+        'maxOccur',
     ];
 
     /**
@@ -175,17 +180,17 @@ class ValidationRuleSet
      *
      * Converts descendant rule sets to ValidationRuleSet.
      *
-     * @see RuleProviderInfo
-     *
-     * @param array|object $rules
+     * @param object|array $rules
      *      ArrayAccess is not supported.
-     * @param RuleProviderInterface|RuleProviderInfo|null $ruleProvider
+     * @param RuleProviderInterface $ruleProvider
      * @param int $depth
      * @param string $keyPath
      *
      * @throws InvalidRuleException
+     * @see RuleProviderInfo
+     *
      */
-    public function __construct($rules = [], $ruleProvider = null, int $depth = 0, string $keyPath = 'root')
+    public function __construct($rules, $ruleProvider, int $depth = 0, string $keyPath = 'root')
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -201,41 +206,35 @@ class ValidationRuleSet
             return;
         }
 
+        // @todo: resolve object|array, and do check for type checking rule at start; don't set/unset all type checking rules.
+//        if (is_object($rules)) {
+//            $o = $rules;
+//        }
+//        elseif (is_array($rules)) {
+//            $o = (object) $rules;
+//        }
+
         if (!is_array($rules)) {
             if (is_object($rules)) {
                 if ($rules instanceof \ArrayAccess) {
                     throw new \InvalidArgumentException(
-                        'Arg rules type[' . static::getType($rules)
+                        'Arg rules type[' . Helper::getType($rules)
                         . '] \ArrayAccess is not supported, at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
             }
             else {
                 throw new \InvalidArgumentException(
-                    'Arg rules type[' . static::getType($rules)
+                    'Arg rules type[' . Helper::getType($rules)
                     . '] is not array|object, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
         }
 
-        if (!$ruleProvider) {
-            // Go for default; presumably set in dependency injection container.
-            $ruleProviderInfo = new RuleProviderInfo();
-        }
-        elseif ($ruleProvider instanceof RuleProviderInfo) {
-            $ruleProviderInfo = $ruleProvider;
-        }
-        elseif ($ruleProvider instanceof RuleProviderInterface) {
-            $ruleProviderInfo = new RuleProviderInfo($ruleProvider);
-        }
-        else {
-            throw new \InvalidArgumentException(
-                'Arg ruleProvider type[' . static::getType($ruleProvider)
-                . '] is not RuleProviderInterface|RuleProviderInfo|null, at (' . $depth . ') ' . $keyPath . '.'
-            );
-        }
-
-        $type_rules_supported = $ruleProviderInfo->typeMethods;
+        $rules_supported = $ruleProvider->getRuleMethods();
+        $type_rules_supported = $ruleProvider->getTypeMethods();
+        // List of provider rules taking arguments.
+        $parameter_rules = $ruleProvider->getParameterMethods();
 
         // Ensure that there's a type checking method,
         // and that it goes at the top; before rules that don't type check.
@@ -246,8 +245,6 @@ class ValidationRuleSet
         }
 
         $type_rules_found = [];
-        // List of provider rules taking arguments.
-        $provider_parameter_methods = null;
 
         foreach ($rules as $method => $argument) {
             if (ctype_digit('' . $method)) {
@@ -281,7 +278,7 @@ class ValidationRuleSet
                     case 'alternativeEnum':
                         if (!$arg || !is_array($arg)) {
                             throw new InvalidRuleException(
-                                'Validation alternativeEnum type[' . static::getType($arg)
+                                'Validation alternativeEnum type[' . Helper::getType($arg)
                                 . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                             );
                         }
@@ -301,7 +298,7 @@ class ValidationRuleSet
                             if ($value !== null && !is_scalar($value)) {
                                 throw new InvalidRuleException(
                                     'Validation alternativeEnum allowed values bucket[' . $i
-                                    . '] type[' . static::getType($value)
+                                    . '] type[' . Helper::getType($value)
                                     . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
@@ -324,7 +321,7 @@ class ValidationRuleSet
                         else {
                             // new ValidationRuleSet(.
                             $this->alternativeRuleSet = new static(
-                                $arg, $ruleProviderInfo, $depth + 1, $keyPath . '(alternativeRuleSet)'
+                                $arg, $ruleProvider, $depth + 1, $keyPath . '(alternativeRuleSet)'
                             );
                         }
                         break;
@@ -332,10 +329,10 @@ class ValidationRuleSet
                     case 'tableElements':
                     case 'listItems':
                         if (is_array($arg)) {
-                            $arg = (object) $arg;
+                            $arg = (object)$arg;
                         }
                         elseif (!is_object($arg)) {
-                            $msg = 'Validation ' . $method . ' type[' . static::getType($arg)
+                            $msg = 'Validation ' . $method . ' type[' . Helper::getType($arg)
                                 . '] is not a array|object, at (' . $depth . ') ' . $keyPath . '.';
 //                            $container = Dependency::container();
 //                            if ($container->has('logger')) {
@@ -351,13 +348,13 @@ class ValidationRuleSet
                         }
 
                         if ($method == 'tableElements') {
-                            $this->tableElements($arg, $ruleProviderInfo, $depth, $keyPath);
+                            $this->tableElements($arg, $ruleProvider, $depth, $keyPath);
                             // Declare dynamically.
                             $this->tableElements = $arg;
                         }
                         // listItems.
                         else {
-                            $this->listItems($arg, $ruleProviderInfo, $depth, $keyPath);
+                            $this->listItems($arg, $ruleProvider, $depth, $keyPath);
                             // Declare dynamically.
                             $this->listItems = $arg;
                         }
@@ -365,7 +362,7 @@ class ValidationRuleSet
 
                     default:
                         // Check rule method existance.
-                        if (!in_array($method, $ruleProviderInfo->ruleMethods)) {
+                        if (!in_array($method, $rules_supported)) {
                             if (isset(static::RULES_RENAMED[$method])) {
                                 $method = static::RULES_RENAMED[$method];
                             }
@@ -381,7 +378,7 @@ class ValidationRuleSet
                             case 'enum':
                                 if (!$arg || !is_array($arg)) {
                                     throw new InvalidRuleException(
-                                        'Validation rule[enum] value type[' . static::getType($arg)
+                                        'Validation rule[enum] value type[' . Helper::getType($arg)
                                         . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                                     );
                                 }
@@ -401,7 +398,7 @@ class ValidationRuleSet
                                     if ($value !== null && !is_scalar($value)) {
                                         throw new InvalidRuleException(
                                             'Validation rule[enum] allowed values bucket[' . $i
-                                            . '] type[' . static::getType($value)
+                                            . '] type[' . Helper::getType($value)
                                             . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
                                         );
                                     }
@@ -430,7 +427,7 @@ class ValidationRuleSet
                                             throw new InvalidRuleException(
                                                 'Validation rule[' . $method . '] requires more'
                                                 . ' argument(s) than subject self, and rule value type['
-                                                . static::getType($arg)
+                                                . Helper::getType($arg)
                                                 . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
                                             );
                                         }
@@ -451,7 +448,7 @@ class ValidationRuleSet
                                             // if not true it must be non-empty array.
                                             throw new InvalidRuleException(
                                                 'Validation rule[' . $method . '] accepts more'
-                                                . ' argument(s) than subject, but value type[' . static::getType($arg)
+                                                . ' argument(s) than subject, but value type[' . Helper::getType($arg)
                                                 . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
                                                 . ' (list of secondary argument(s))'
                                                 . ', at (' . $depth . ') ' . $keyPath . '.'
@@ -474,7 +471,7 @@ class ValidationRuleSet
                                     // value should be boolean true.
                                     throw new InvalidRuleException(
                                         'Validation rule[' . $method . '] doesn\'t accept'
-                                        . ' more arguments than subject self, thus value type[' . static::getType($arg)
+                                        . ' more arguments than subject self, thus value type[' . Helper::getType($arg)
                                         . '] makes no sense, value only allowed to be boolean true'
                                         . ', at (' . $depth . ') ' . $keyPath . '.'
                                     );
@@ -503,7 +500,7 @@ class ValidationRuleSet
      *
      * @return string
      */
-    protected function inferTypeCheckingRule() : string
+    protected function inferTypeCheckingRule(): string
     {
         if (isset($this->tableElements) || isset($this->listItems)) {
             return 'container';
@@ -564,7 +561,7 @@ class ValidationRuleSet
             if (!is_bool($arg->exclusive)) {
                 throw new InvalidRuleException(
                     'Validation tableElements bucket \'exclusive\' type['
-                    . static::getType($arg->exclusive)
+                    . Helper::getType($arg->exclusive)
                     . '] is not boolean, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
@@ -573,13 +570,13 @@ class ValidationRuleSet
             }
         }
         // whitelist|blacklist must be array, but allowed empty.
-        $list_keys = array('whitelist' , 'blacklist');
+        $list_keys = ['whitelist', 'blacklist'];
         foreach ($list_keys as $list_key) {
             if (isset($arg->{$list_key})) {
                 if (!is_array($arg->{$list_key})) {
                     throw new InvalidRuleException(
                         'Validation tableElements bucket \'' . $list_key . '\' type['
-                        . static::getType($arg->{$list_key}) . '] is not array, at (' . $depth . ') ' . $keyPath . '.'
+                        . Helper::getType($arg->{$list_key}) . '] is not array, at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
                 elseif ($arg->{$list_key}) {
@@ -604,13 +601,13 @@ class ValidationRuleSet
             );
         }
         if (is_array($arg->rulesByElements)) {
-            $arg->rulesByElements = (object) $arg->rulesByElements;
+            $arg->rulesByElements = (object)$arg->rulesByElements;
             $prefix = '[';
             $suffix = ']';
         }
         elseif (!is_object($arg->rulesByElements)) {
             $msg = 'Validation tableElements bucket \'rulesByElements\' type['
-                . static::getType($arg->rulesByElements)
+                . Helper::getType($arg->rulesByElements)
                 . '] is not a array|object, at (' . $depth . ') ' . $keyPath . '.';
 //            $container = Dependency::container();
 //            if ($container->has('logger')) {
@@ -642,7 +639,7 @@ class ValidationRuleSet
                     else {
                         throw new InvalidRuleException(
                             'Validation tableElements.rulesByElements element index[' . $index . '] key[' . $key
-                            . '] type[' . static::getType($subRuleSet)
+                            . '] type[' . Helper::getType($subRuleSet)
                             . '] is not ValidationRuleSet|array|object, at (' . $depth . ') ' . $keyPath . '.'
                         );
                     }
@@ -692,13 +689,13 @@ class ValidationRuleSet
         }
         unset($prop_keys);
         // minOccur|maxOccur must be non-negative integer.
-        $occur_keys = array('minOccur' , 'maxOccur');
+        $occur_keys = ['minOccur', 'maxOccur'];
         foreach ($occur_keys as $occur_key) {
             if (isset($arg->{$occur_key})) {
                 if (!is_int($arg->{$occur_key}) || $arg->{$occur_key} < 0) {
                     throw new InvalidRuleException(
                         'Validation listItems bucket \'' . $occur_key . '\' type['
-                        . static::getType($arg->{$occur_key}) . ']'
+                        . Helper::getType($arg->{$occur_key}) . ']'
                         . (!is_int($arg->{$occur_key}) ? '' : ' value[' . $arg->{$occur_key} . ']')
                         . ' is not non-negative integer, at (' . $depth . ') ' . $keyPath . '.'
                     );
@@ -733,43 +730,10 @@ class ValidationRuleSet
             }
             else {
                 throw new InvalidRuleException(
-                    'Validation listItems.itemRules type[' . static::getType($arg->itemRules)
+                    'Validation listItems.itemRules type[' . Helper::getType($arg->itemRules)
                     . '] is not ValidationRuleSet|array|object, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
         }
-    }
-
-    /**
-     * Get subject class name or (non-object) type.
-     *
-     * Counter to native gettype() this method returns:
-     * - class name instead of 'object'
-     * - 'float' instead of 'double'
-     * - 'null' instead of 'NULL'
-     *
-     * Like native gettype() this method returns:
-     * - 'boolean' not 'bool'
-     * - 'integer' not 'int'
-     * - 'unknown type' for unknown type
-     *
-     * @param mixed $subject
-     *
-     * @return string
-     */
-    protected static function getType($subject)
-    {
-        if (!is_object($subject)) {
-            $type = gettype($subject);
-            switch ($type) {
-                case 'double':
-                    return 'float';
-                case 'NULL':
-                    return 'null';
-                default:
-                    return $type;
-            }
-        }
-        return get_class($subject);
     }
 }

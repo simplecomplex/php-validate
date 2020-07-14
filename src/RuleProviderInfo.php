@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Utils\Dependency;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
 /**
@@ -70,11 +69,11 @@ class RuleProviderInfo
     /**
      * RuleProviderInfo constructor.
      *
-     * @param RuleProviderInterface|null $ruleProvider
+     * @param RuleProviderInterface $ruleProvider
      */
-    public function __construct(RuleProviderInterface $ruleProvider = null)
+    public function __construct(RuleProviderInterface $ruleProvider)
     {
-        $this->ruleProvider = $ruleProvider ?? $this->getRuleProviderDefault();
+        $this->ruleProvider = $ruleProvider;
 
         $class_provider = get_class($this->ruleProvider);
         if (isset(static::$ruleMethodsByClass[$class_provider])) {
@@ -90,19 +89,5 @@ class RuleProviderInfo
             );
             $this->typeMethods = static::$typeMethodsByClass[$class_provider] = $this->ruleProvider->getTypeMethods();
         }
-    }
-
-    /**
-     * Get default rule provider from dependency injection container
-     * or first instance of the Validate class.
-     *
-     * @uses-dependency-container validate
-     *
-     * @return RuleProviderInterface
-     */
-    public function getRuleProviderDefault() : RuleProviderInterface
-    {
-        $container = Dependency::container();
-        return $container->has('validate') ? $container->get('validate') : Validate::getInstance();
     }
 }
