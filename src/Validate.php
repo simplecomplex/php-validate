@@ -726,7 +726,7 @@ class Validate implements RuleProviderInterface
             return false;
         }
         // Remove leading hyphen, for later digital check.
-        if ($v{0} === '-') {
+        if ($v[0] === '-') {
             $v = substr($v, 1);
             --$le;
             if (!$le) {
