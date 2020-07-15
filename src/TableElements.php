@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
  * Pseudo rule listing ValidationRuleSets of elements of object|array subject.
@@ -63,6 +63,10 @@ class TableElements
 
 
     /**
+     * Assumes that arg $tableElements in itself is the rulesByElements
+     * hashtable, if $tableElements doesn't have a rulesByElements property
+     * nor any of the modifier properties.
+     *
      * @param object $tableElements
      * @param RuleProviderInterface $ruleProvider
      * @param int $depth
@@ -111,6 +115,7 @@ class TableElements
                     . '] is not object|array, at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
+            $self_rulesByElements = false;
             $rulesByElements = $tableElements->rulesByElements;
         }
         elseif (
@@ -120,6 +125,7 @@ class TableElements
         ) {
             // Assume that arg $tableElements in itself is the rulesByElements
             // hashtable.
+            $self_rulesByElements = true;
             $rulesByElements = $tableElements;
         }
         else {
@@ -132,9 +138,33 @@ class TableElements
 
         $class_rule_set = static::CLASS_RULE_SET;
         foreach ($rulesByElements as $key => $ruleSet) {
-            $this->rulesByElements[$key] = $ruleSet instanceof $class_rule_set ? $ruleSet :
-                /** @see ValidationRuleSet::__construct() */
-                new $class_rule_set($ruleSet, $ruleProvider, $depth + 1, $keyPath . ' > ' . $key);
+            if ($ruleSet instanceof ValidationRuleSet) {
+                $this->rulesByElements[$key] = $ruleSet;
+            }
+            elseif (is_object($ruleSet)) {
+                $this->rulesByElements[$key] =
+                    /**
+                     * new ValidationRuleSet(
+                     * @see ValidationRuleSet::__construct()
+                     */
+                    new $class_rule_set($ruleSet, $ruleProvider, $depth + 1, $keyPath . ' > ' . $key);
+            }
+            elseif (is_array($ruleSet)) {
+                $this->rulesByElements[$key] =
+                    /**
+                     * new ValidationRuleSet(
+                     * @see ValidationRuleSet::__construct()
+                     */
+                    new $class_rule_set((object) $ruleSet, $ruleProvider, $depth + 1, $keyPath . ' > ' . $key);
+            }
+            else {
+                throw new InvalidRuleException(
+                    'Validation tableElements'
+                    . (!$self_rulesByElements ? '.rulesByElements' : ' using self as rulesByElements')
+                    . ' key[' . $key . '] type[' . Helper::getType($ruleSet) . '] is not object|array'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
         }
     }
 }

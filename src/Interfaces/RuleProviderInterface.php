@@ -64,6 +64,13 @@ interface RuleProviderInterface
     public function getParameterMethods() : array;
 
     /**
+     * Lists rules renamed; current rule name by old rule name.
+     *
+     * @return string[]
+     */
+    public function getRulesNamed() : array;
+
+    /**
      * Subject is falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
@@ -90,13 +97,6 @@ interface RuleProviderInterface
     public function nonEmpty($subject) : bool;
 
     /**
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function string($subject) : bool;
-
-    /**
      * Checks for equality against a list of values.
      *
      * Compares type strict, and allowed values must be scalar or null.
@@ -116,6 +116,24 @@ interface RuleProviderInterface
      * @see Validate::enum()
      */
     public function enum($subject, array $allowedValues) : bool;
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function string($subject) : bool;
+
+    /**
+     * Is object and is of that class or interface, or has it as ancestor.
+     *
+     * @param mixed $subject
+     *      object to pass validation.
+     * @param string $className
+     *
+     * @return bool
+     */
+    public function class($subject, string $className) : bool;
 
     /**
      * Array or object.

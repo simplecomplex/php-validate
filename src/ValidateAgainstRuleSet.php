@@ -165,6 +165,7 @@ class ValidateAgainstRuleSet
      */
     public function __construct(RuleProviderInterface $ruleProvider, array $options = []) {
         $this->ruleProvider = $ruleProvider;
+        $this->ruleMethods = $ruleProvider->getRuleMethods();
         $this->recordFailure = !empty($options['recordFailure']);
     }
 
@@ -176,19 +177,17 @@ class ValidateAgainstRuleSet
      *
      * @code
      * // Validate a value which should be an integer zero thru two.
-     * $validate->ruleSet($some_input, [
-     *   'integer',
-     *   'range' => [
-     *     0,
-     *     2
-     *   ]
+     * $validate->challenge($some_input, [
+     *     'integer',
+     *     'range' => [
+     *         0,
+     *         2
+     *     ]
      * ]);
      * @endcode
      *
-     * @uses RuleProviderInfo::$ruleMethods
-     *
      * @param mixed $subject
-     * @param ValidationRuleSet|array|object $ruleSet
+     * @param ValidationRuleSet|object|array $ruleSet
      *      A list of rules; either N:'rule' or 'rule':true or 'rule':[specs].
      *      [
      *          'integer'
@@ -206,18 +205,10 @@ class ValidateAgainstRuleSet
      */
     public function challenge($subject, $ruleSet, string $keyPath = 'root')
     {
-        // Init, really.
-        // List rule methods made available by the rule provider.
-        $provider_info = null;
-        if (!$this->ruleMethods) {
-            $provider_info = new RuleProviderInfo($this->ruleProvider);
-            $this->ruleMethods = $provider_info->ruleMethods;
-        }
-
         if ($ruleSet instanceof ValidationRuleSet) {
             return $this->internalChallenge(0, $keyPath, $subject, $ruleSet);
         }
-        elseif (!is_array($ruleSet) && !is_object($ruleSet)) {
+        elseif (is_object($ruleSet) && !is_array($ruleSet)) {
             throw new \TypeError(
                 'Arg rules type[' . Helper::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
@@ -228,7 +219,12 @@ class ValidateAgainstRuleSet
             0,
             $keyPath,
             $subject,
-            new ValidationRuleSet($ruleSet, $provider_info ?? new RuleProviderInfo($this->ruleProvider))
+            new ValidationRuleSet(
+                is_object($ruleSet) ? $ruleSet : ((object) $ruleSet),
+                $this->ruleProvider,
+                0,
+                $keyPath
+            )
         );
     }
 

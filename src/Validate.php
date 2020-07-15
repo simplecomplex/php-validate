@@ -90,7 +90,7 @@ class Validate implements RuleProviderInterface
      *   'someMethod' => true,
      * ] + ParentClass::NON_RULE_METHODS;
      *
-     * @var string[]
+     * @var mixed[]
      */
     const NON_RULE_METHODS = [
         'getInstance' => null,
@@ -100,6 +100,7 @@ class Validate implements RuleProviderInterface
         'getRuleMethods' => null,
         'getTypeMethods' => null,
         'getParameterMethods' => null,
+        'getRulesRenamed' => null,
         '__call' => null,
         'challenge' => null,
         'challengeRecording' => null,
@@ -110,13 +111,13 @@ class Validate implements RuleProviderInterface
      * or that subject's type is a simple and sensibly coercible scalar.
      *
      * No type rule is allowed to take other arguments than the subject,
-     * except the 'class' rule.
+     * except the 'class' rule (which requires class name argument).
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then ValidationRuleSet makes a guess; ultimately string.
      * @see ValidationRuleSet::inferTypeCheckingRule()
      *
-     * @var string[]
+     * @var mixed[]
      */
     const TYPE_METHODS = [
         'boolean' => null,
@@ -178,6 +179,18 @@ class Validate implements RuleProviderInterface
         'dateTimeISOUTC' => false,
     ];
 
+    /**
+     * New rule name by old rule name.
+     *
+     * @see Validate::getRulesRenamed()
+     *
+     * @var string[]
+     */
+    const RULES_RENAMED = [
+        'dateIso8601Local' => 'dateISO8601Local',
+        'dateTimeIso8601' => 'dateTimeISO8601',
+    ];
+
 
     /**
      * Instance vars are not allowed to have state
@@ -214,13 +227,6 @@ class Validate implements RuleProviderInterface
      * @var string[]
      */
     protected $typeMethods = [];
-
-    /**
-     * @see Validate::getParameterMethods()
-     *
-     * @var string[]
-     */
-    protected $parameterMethods = [];
 
     /**
      * @see Validate::getInstance()
@@ -281,14 +287,21 @@ class Validate implements RuleProviderInterface
     /**
      * Lists rule methods that accept/require other arguments(s) than subject.
      *
-     * @return string[]
+     * @return bool[]
      */
     public function getParameterMethods() : array
     {
-        if (!$this->parameterMethods) {
-            $this->parameterMethods = array_keys(static::PARAMETER_METHODS);
-        }
-        return $this->parameterMethods;
+        return static::PARAMETER_METHODS;
+    }
+
+    /**
+     * Lists rules renamed; current rule name by old rule name.
+     *
+     * @return string[]
+     */
+    public function getRulesNamed() : array
+    {
+        return static::RULES_RENAMED;
     }
 
     /**
@@ -1999,8 +2012,6 @@ class Validate implements RuleProviderInterface
      */
     public function dateISO8601($subject, int $subSeconds = -1) : bool
     {
-        // Ugly method name because \DateTime uses strict acronym camelCasing.
-
         if ($subject === null) {
             return false;
         }

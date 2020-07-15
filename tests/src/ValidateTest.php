@@ -14,7 +14,6 @@ use SimpleComplex\Tests\Utils\BootstrapTest;
 
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\ValidationRuleSet;
-use SimpleComplex\Validate\RuleProviderInfo;
 
 /**
  * @code
@@ -123,7 +122,7 @@ class ValidateTest extends TestCase
         $validate = $this->testInstantiation();
 
         // Non-parameterized rule methods.
-        $simple_rule_methods = (new RuleProviderInfo($validate))->ruleMethods;
+        $simple_rule_methods = $validate->getRuleMethods();
         $parameterized_methods = $validate->getParameterMethods();
         $simple_rule_methods =  array_diff($simple_rule_methods, array_keys($parameterized_methods));
         foreach ($parameterized_methods as $rule => $required) {
