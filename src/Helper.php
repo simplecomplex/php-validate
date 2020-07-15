@@ -26,8 +26,8 @@ class Helper
      *
      * @throws \TypeError
      *      Arg $objectOrClass not object|string.
-     * @throws \ReflectionException
-     *      Propagated.
+     * @throws \InvalidArgumentException
+     *      Class (str) $objectOrClass doesn't exist.
      */
     public static function getPublicMethods($objectOrClass, bool $instanceOnly = false) : array
     {
@@ -36,6 +36,11 @@ class Helper
         }
         elseif (is_string($objectOrClass)) {
             $class = $objectOrClass;
+            if (!class_exists($class)) {
+                throw new \InvalidArgumentException(
+                    'Arg $objectOrClass value[' . $class . '], such class doesn\'t exist.'
+                );
+            }
         }
         else {
             throw new \TypeError(
@@ -44,8 +49,18 @@ class Helper
         }
         $all = get_class_methods($class);
         if ($instanceOnly) {
-            $statics = (new \ReflectionClass($class))
-                ->getMethods(\ReflectionMethod::IS_STATIC | \ReflectionMethod::IS_PUBLIC);
+            // Prevent complaints about unhandled (highly unlikely)
+            // \ReflectionException.
+            try {
+                $statics = (new \ReflectionClass($class))
+                    ->getMethods(\ReflectionMethod::IS_STATIC | \ReflectionMethod::IS_PUBLIC);
+            }
+            catch (\Throwable $xcptn) {
+                // Unlikely because class existence checked previously.
+                throw new \InvalidArgumentException(
+                    'See previous.', 0, /*\ReflectionException*/ $xcptn
+                );
+            }
             foreach ($statics as $method) {
                 array_splice($all, array_search($method->name, $all), 1);
             }

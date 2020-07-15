@@ -76,6 +76,7 @@ class Validate implements RuleProviderInterface
     {
         $class = get_called_class();
         return static::$instanceByClass[$class] ??
+            // IDE: child class constructor may have parameters.
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
@@ -236,7 +237,7 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists public methods that aren't validation rule methods.
+     * Lists names of public methods that aren't validation rule methods.
      *
      * @return string[]
      */
@@ -249,12 +250,12 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists validation rule methods.
+     * Lists names of validation rule methods.
      *
      * @return string[]
      *
      * @throws \TypeError  Propagated.
-     * @throws \ReflectionException  Propagated.
+     * @throws \InvalidArgumentException  Propagated.
      */
     public function getRuleMethods() : array
     {
@@ -268,7 +269,8 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists rule methods that explicitly promise to check the subject's type.
+     * Lists names of rule methods that explicitly promise to check
+     * the subject's type.
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then ValidationRuleSet makes a guess; ultimately string.
@@ -287,6 +289,8 @@ class Validate implements RuleProviderInterface
     /**
      * Lists rule methods that accept/require other arguments(s) than subject.
      *
+     * Key is method name, value is (bool) whether arguments(s) are required.
+     *
      * @return bool[]
      */
     public function getParameterMethods() : array
@@ -295,7 +299,9 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists rules renamed; current rule name by old rule name.
+     * Lists rule methods renamed.
+     *
+     * Keys is old name, value new name.
      *
      * @return string[]
      */

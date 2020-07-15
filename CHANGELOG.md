@@ -7,14 +7,20 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ## [Unreleased]
 
 ### Added
+* Require PHP mbstring extension.
 
 ### Changed
-* Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
-* Changelog in standard keepachangelog format; previous was idiosyncratic.
-* Validation rule name by value instead of key (numerically indexed array)
-  is no longer supported.
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
+* Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
+* Removed class RuleProviderInfo.
+* Class ValidationRuleSet tableElements|listItems properties are now instances
+  of TableElements|ListItems, and enum value is now an un-nested array.  
+  Existing <v3.0 ValidationRuleSet instances, whether declared in code or cached
+  as PHP serials, will hardly be compatible; whereas PHP array|stdClass rulesets
+  and JSON-formatted rulesets should work fine.
+* Require PHP 64-bit >=7.2.
+* Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
 * Ruleset without type-checking rule must default to 'container' if has

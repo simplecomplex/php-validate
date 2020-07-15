@@ -206,7 +206,7 @@ class ValidateAgainstRuleSet
     public function challenge($subject, $ruleSet, string $keyPath = 'root')
     {
         if ($ruleSet instanceof ValidationRuleSet) {
-            return $this->internalChallenge(0, $keyPath, $subject, $ruleSet);
+            return $this->internalChallenge($subject, $ruleSet, 0, $keyPath);
         }
         elseif (is_object($ruleSet) && !is_array($ruleSet)) {
             throw new \TypeError(
@@ -216,15 +216,15 @@ class ValidateAgainstRuleSet
         // Convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet,
         // to secure checks.
         return $this->internalChallenge(
-            0,
-            $keyPath,
             $subject,
             new ValidationRuleSet(
                 is_object($ruleSet) ? $ruleSet : ((object) $ruleSet),
                 $this->ruleProvider,
                 0,
                 $keyPath
-            )
+            ),
+            0,
+            $keyPath
         );
     }
 
@@ -234,17 +234,17 @@ class ValidateAgainstRuleSet
      *
      * @recursive
      *
-     * @param int $depth
-     * @param string $keyPath
      * @param mixed $subject
      * @param ValidationRuleSet $ruleSet
+     * @param int $depth
+     * @param string $keyPath
      *
      * @return bool
      *
      * @throws InvalidRuleException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($depth, $keyPath, $subject, ValidationRuleSet $ruleSet)
+    protected function internalChallenge($subject, ValidationRuleSet $ruleSet, $depth, $keyPath)
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -255,7 +255,9 @@ class ValidateAgainstRuleSet
 
         $rules_found = [];
         $allowNull = false;
-        $alternative_enum = $alternative_rule_set = $table_elements = $list_items = null;
+        $enum = $alternative_enum =
+            $alternative_rule_set =
+            $table_elements = $list_items = null;
         foreach ($ruleSet as $ruleKey => $ruleValue) {
             switch ($ruleKey) {
                 case 'optional':
@@ -265,18 +267,22 @@ class ValidateAgainstRuleSet
                 case 'allowNull':
                     $allowNull = true;
                     break;
+                case 'enum':
+                    // Support definition as nested array, because enum used to require
+                    // (overly formalistic) that the allowed values array was nested;
+                    // since the allowed values array is the second argument to be passed
+                    // to the enum() method.
+                    $enum = is_array(reset($ruleValue)) ? reset($ruleValue) : $ruleValue;
+                    break;
                 case 'alternativeEnum':
-                    // No need to check for falsy nor non-array;
-                    // ValidationRuleSet do that.
-                    $alternative_enum = $ruleValue;
+                    // Like 'enum'; backwards compatibility.
+                    $alternative_enum = is_array(reset($ruleValue)) ? reset($ruleValue) : $ruleValue;
                     break;
                 case 'alternativeRuleSet':
                     /** @var ValidationRuleSet $alternative_rule_set */
                     $alternative_rule_set = $ruleValue;
                     break;
                 case 'tableElements':
-                    // No need to check for type; ValidationRuleSet do that,
-                    // and makes it object.
                     $table_elements = $ruleValue;
                     break;
                 case 'listItems':
@@ -285,9 +291,6 @@ class ValidateAgainstRuleSet
                     $list_items = $ruleValue;
                     break;
                 default:
-                    // No need to check for dupes; ValidationRuleSet does that.
-                    // But do check for rule method existance, because we might
-                    // be using a different rule provider now.
                     if (!in_array($ruleKey, $this->ruleMethods)) {
                         throw new InvalidRuleException(
                             'Unknown validation rule[' . $ruleKey . '], at (' . $depth . ') ' . $keyPath . '.'
@@ -306,7 +309,7 @@ class ValidateAgainstRuleSet
                 return true;
             }
             // If enum rule, then that may allow null.
-            if (!property_exists($ruleSet, 'enum')) {
+            if (!$enum) {
                 // Continue to alternativeEnum check.
                 $failed = true;
             }
@@ -325,10 +328,11 @@ class ValidateAgainstRuleSet
                         }
                         break;
                     }
-                } elseif ($rule == 'enum') {
+                }
+                elseif ($rule == 'enum') {
                     // Use own pre-checked enum() because ValidationRuleSet checks
                     // that all allowed values are scalar|null.
-                    if (!$this->preCheckedEnum($subject, $args[0])) {
+                    if (!$this->enum($subject, $enum)) {
                         $failed = true;
                         if ($this->recordFailure) {
                             $record[] = $rule . '(*)';
@@ -357,7 +361,7 @@ class ValidateAgainstRuleSet
                                         $tmp[] = "'" . $arg . "'";
                                         break;
                                     default:
-                                        $tmp[] = $arg_type;
+                                        $tmp[] = '(' . $arg_type . ')';
                                 }
                             }
                             $record[] = $rule . '(*, ' . join(', ', $tmp) . ')';
@@ -377,7 +381,7 @@ class ValidateAgainstRuleSet
             if ($alternative_enum) {
                 // Use own pre-checked enum() because ValidationRuleSet checks
                 // that all allowed values are scalar|null.
-                if ($this->preCheckedEnum($subject, $alternative_enum)) {
+                if ($this->enum($subject, $alternative_enum)) {
                     return true;
                 }
                 if (!$alternative_rule_set) {
@@ -395,7 +399,7 @@ class ValidateAgainstRuleSet
                 }
             }
             if ($alternative_rule_set) {
-                return $this->internalChallenge($depth + 1, $keyPath, $subject, $alternative_rule_set);
+                return $this->internalChallenge($subject, $alternative_rule_set, $depth + 1, $keyPath);
             }
             if ($this->recordFailure) {
                 $v = null;
@@ -528,7 +532,7 @@ class ValidateAgainstRuleSet
                             $item_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
-                                $depth + 1, $keyPath . '[' . $key . ']', $subject[$key], $element_rule_set)
+                                $subject[$key], $element_rule_set, $depth + 1, $keyPath . '[' . $key . ']')
                             ) {
                                 if ($this->recordFailure) {
                                     // Don't stop on failure when recording.
@@ -557,7 +561,7 @@ class ValidateAgainstRuleSet
                             $item_list_skip_keys[] = $key;
                             // Recursion.
                             if (!$this->internalChallenge(
-                                $depth + 1, $keyPath . '->' . $key, $subject->{$key}, $element_rule_set)
+                                $subject->{$key}, $element_rule_set, $depth + 1, $keyPath . '->' . $key)
                             ) {
                                 if ($this->recordFailure) {
                                     // Don't stop on failure when recording.
@@ -636,38 +640,48 @@ class ValidateAgainstRuleSet
      * Enum rule method which doesn't check that all allowed values
      * are scalar|null; ValidationRuleSet checks that.
      *
-     *
-     *
      * @see Validate::enum()
+     * @see ValidationRuleSet::enum()
      *
      * @param mixed $subject
      * @param array $allowedValues
      *
      * @return bool
      */
-    protected function preCheckedEnum($subject, array $allowedValues) : bool
+    protected function enum($subject, array $allowedValues) : bool
     {
         if ($subject !== null && !is_scalar($subject)) {
             return false;
         }
-        foreach ($allowedValues as $allowed) {
-            if ($subject === $allowed) {
-                return true;
-            }
-        }
+        return in_array($subject, $allowedValues, true);
+    }
+
+    /**
+     * @todo
+     *
+     * @param object|array $subject
+     * @param TableElements $tableElements
+     * @param int $depth
+     * @param string $keyPath
+     *
+     * @return bool
+     */
+    protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
+    {
         return false;
     }
 
     /**
      * @todo
      *
-     * @param $depth
-     * @param $keyPath
-     * @param $subject
-     * @param $tableElements
+     * @param object|array $subject
+     * @param ListItems $listItems
+     * @param int $depth
+     * @param string $keyPath
+     *
      * @return bool
      */
-    protected function tableElements($depth, $keyPath, $subject, /*TableElements*/ $tableElements) : bool
+    protected function listItems($subject, ListItems $listItems, int $depth, string $keyPath) : bool
     {
         return false;
     }

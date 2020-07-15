@@ -173,7 +173,7 @@ interface RuleProviderInterface
      * @param mixed $subject
      *
      * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
+     *      String (array|arrayAccess|traversable|object) on pass,
      *      boolean false on validation failure.
      *
      * @see Validate::loopable()

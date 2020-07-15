@@ -185,6 +185,7 @@ class ValidationRuleSet
         $type_rules_supported = $ruleProvider->getTypeMethods();
         // List of provider rules taking arguments.
         $parameter_rules = $ruleProvider->getParameterMethods();
+        $rules_renamed = $ruleProvider->getRulesNamed();
 
         $skip_rules = [];
 
@@ -222,12 +223,43 @@ class ValidationRuleSet
 
         foreach ($o_rules as $rule => $argument) {
             if (ctype_digit('' . $rule)) {
-                throw new InvalidRuleException(
-                    'Validation rule name by value instead of key is no longer supported'
-                    . ', saw numeric index[' . $rule . ']'
-                    . (!is_string($argument) ? '' : (' value[' . $argument . ']'))
-                    . ', at (' . $depth . ') ' . $keyPath . '.'
-                );
+                if (is_string($argument) && $argument) {
+                    if (property_exists($o_rules, $argument)) {
+                        throw new InvalidRuleException(
+                            'Validation rule by value[' . $argument . '] at numeric index[' . $rule
+                            . '] conflicts with rule by key of same name' . ', at (' . $depth . ') ' . $keyPath . '.'
+                        );
+                    }
+                    if ($skip_rules && in_array($argument, $skip_rules)) {
+                        continue;
+                    }
+                    $method = $argument;
+                    if (!in_array($method, $rules_supported)) {
+                        if (isset($rules_renamed[$method])) {
+                            $method = $rules_renamed[$method];
+                        }
+                        else {
+                            throw new InvalidRuleException(
+                                'Validation rule by value[' . $argument . '] at numeric index[' . $rule
+                                . '] is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
+                            );
+                        }
+                    }
+                    if (!empty($parameter_rules[$method])) {
+                        throw new InvalidRuleException(
+                            'Validation rule by value[' . $argument . '] at numeric index[' . $rule
+                            . '] requires arguments' . ', at (' . $depth . ') ' . $keyPath . '.'
+                        );
+                    }
+                    // Declare dynamically.
+                    $this->{$method} = true;
+                }
+                else {
+                    throw new InvalidRuleException(
+                        'Validation rule set key[' . $rule . '] value type[' . Helper::getType($argument)
+                        . '] does not make sense' . ', at (' . $depth . ') ' . $keyPath . '.'
+                    );
+                }
             }
 
             if ($skip_rules && in_array($rule, $skip_rules)) {
@@ -237,6 +269,7 @@ class ValidationRuleSet
             switch ($rule) {
                 case 'optional':
                 case 'allowNull':
+                    // Allow falsy, but then don't set.
                     if ($argument) {
                         // Declare dynamically.
                         $this->{$rule} = true;
@@ -244,22 +277,15 @@ class ValidationRuleSet
                     break;
 
                 case 'enum':
-                    if ($argument) {
-                        // Declare dynamically.
-                        $this->enum = $this->enum($argument, $depth, $keyPath);
-                    }
-                    break;
-
                 case 'alternativeEnum':
-                    if ($argument) {
-                        // Declare dynamically.
-                        $this->alternativeEnum = $this->alternativeEnum($argument, $depth, $keyPath);
-                    }
+                    // Declare dynamically.
+                    $this->{$rule} = $this->enum($rule, $argument, $depth, $keyPath);
                     break;
 
                 case 'alternativeRuleSet':
                     if ($argument instanceof ValidationRuleSet) {
                         // Do not allow alternativeRuleSet to have alternativeRuleSet.
+                        // @todo: why not? Safeguarding against perpetual isn't possible anyway.
                         if (!empty($argument->alternativeRuleSet)) {
                             throw new InvalidRuleException(
                                 'Validation \'alternativeRuleSet\' is not allowed to contain'
@@ -278,25 +304,22 @@ class ValidationRuleSet
                     }
                     break;
 
+                // @todo: combining tableElements with listItems should be illegal. Either should go into alternativeRuleSet.
+
                 case 'tableElements':
-                    if ($argument) {
-                        // Declare dynamically.
-                        $this->tableElements = $this->tableElements($argument, $ruleProvider, $depth, $keyPath);
-                    }
+                    // Declare dynamically.
+                    $this->tableElements = $this->tableElements($argument, $ruleProvider, $depth, $keyPath);
                     break;
 
                 case 'listItems':
-                    if ($argument) {
-                        // Declare dynamically.
-                        $this->listItems = $this->listItems($argument, $ruleProvider, $depth, $keyPath);
-                    }
+                    // Declare dynamically.
+                    $this->listItems = $this->listItems($argument, $ruleProvider, $depth, $keyPath);
                     break;
 
                 default:
                     $method = $rule;
                     // Check rule method existance.
                     if (!in_array($rule, $rules_supported)) {
-                        $rules_renamed = $ruleProvider->getRulesNamed();
                         if (isset($rules_renamed[$rule])) {
                             $method = $rules_renamed[$rule];
                         }
@@ -369,7 +392,7 @@ class ValidationRuleSet
 
     /**
      * Establishes a type checking rule method that matches
-     * other rule(s) of the ruleset.
+     * other rules of a ruleset.
      *
      * Defaults to string.
      *
@@ -391,17 +414,19 @@ class ValidationRuleSet
         elseif (in_array('digital', $ruleProvider->getTypeMethods())
             && (isset($ruleSet->bit32) || isset($ruleSet->bit64))
         ) {
+            /**
+             * @see Validate::digital()
+             */
             return 'digital';
         }
         elseif (in_array('numeric', $ruleProvider->getTypeMethods())
-            && (isset($ruleSet->positive)
-                || isset($ruleSet->nonNegative)
-                || isset($ruleSet->negative)
-                || isset($ruleSet->min)
-                || isset($ruleSet->max)
-                || isset($ruleSet->range)
+            && (isset($ruleSet->positive) || isset($ruleSet->nonNegative) || isset($ruleSet->negative)
+                || isset($ruleSet->min) || isset($ruleSet->max) || isset($ruleSet->range)
             )
         ) {
+            /**
+             * @see Validate::numeric()
+             */
             return 'numeric';
         }
         /**
@@ -415,70 +440,28 @@ class ValidationRuleSet
      *
      * Bucket values must be scalar|null.
      *
+     * @see ValidationRuleSet::$enum
+     * @see ValidationRuleSet::$alternativeEnum
+     *
+     * @param string $ruleName
      * @param array $argument
      * @param int $depth
      * @param string $keyPath
      *
      * @return array
      */
-    protected function enum($argument, int $depth, string $keyPath) : array
+    protected function enum(string $ruleName, $argument, int $depth, string $keyPath) : array
     {
         if (!$argument || !is_array($argument)) {
             throw new InvalidRuleException(
-                'Validation rule \'enum\' value type[' . Helper::getType($argument)
+                'Validation \'' . $ruleName . '\' type[' . Helper::getType($argument)
                 . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
             );
         }
-        // Allow defining enum as un-nested array, because
-        // counter-intuitive.
-        // enum formally requires to be nested, since
-        // the allowed values array is second argument
-        // to be passed to the enum() method.
-        $allowed_values = reset($argument);
-        if (!is_array($allowed_values)) {
-            $allowed_values = $argument;
-        }
-        // Check once and for all that allowed values are scalar|null.
-        $i = -1;
-        foreach ($allowed_values as $value) {
-            ++$i;
-            if ($value !== null && !is_scalar($value)) {
-                throw new InvalidRuleException(
-                    'Validation rule[enum] allowed values bucket[' . $i
-                    . '] type[' . Helper::getType($value)
-                    . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
-                );
-            }
-        }
-
-        return $allowed_values;
-    }
-
-    /**
-     * Pseudo rule listing alternative valid values used if subject doesn't
-     * comply with other - typically type checking - rules.
-     *
-     * Bucket values must be scalar|null.
-     *
-     * @param array $argument
-     * @param int $depth
-     * @param string $keyPath
-     *
-     * @return array
-     */
-    protected function alternativeEnum($argument, int $depth, string $keyPath) : array
-    {
-        if (!$argument || !is_array($argument)) {
-            throw new InvalidRuleException(
-                'Validation \'alternativeEnum\' type[' . Helper::getType($argument)
-                . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
-            );
-        }
-        // Allow defining alternativeEnum as nested array, because
-        // easy to confuse with the format for enum.
-        // enum formally requires to be nested, since
-        // the allowed values array is second argument
-        // to be passed to the enum() method.
+        // Support definition as nested array, because enum used to require
+        // (overly formalistic) that the allowed values array was nested;
+        // since the allowed values array is the second argument to be passed
+        // to the enum() method.
         if (is_array(reset($argument))) {
             $allowed_values = current($argument);
         }
@@ -492,7 +475,7 @@ class ValidationRuleSet
             ++$i;
             if ($value !== null && !is_scalar($value)) {
                 throw new InvalidRuleException(
-                    'Validation \'alternativeEnum\' allowed values bucket[' . $i
+                    'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
                     . '] type[' . Helper::getType($value)
                     . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
                 );

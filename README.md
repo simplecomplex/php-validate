@@ -46,27 +46,33 @@ even though another rule is violated
 - **tableElements**: the subject (an object|array) must contain these keys,  
 and for every key there's a sub rule set
 - **listItems**: the subject (an object|array) must be a list consisting of a number of buckets,  
-which all have the same type/pattern/structure
-
-```alternativeEnum``` is great for defining "the bucket must be object or null".  
+which all have the same type/pattern/structure 
 
 ```tableElements``` and ```listItems``` are allowed to co-exist.  
 Relevant if you have a – kind of malformed – object that may contain list items as well as non-list elements.  
 Data originating from XML may easily have that structure (XML stinks ;-)
 
-#### tableElements sub flags ####
+#### tableElements ####
 
-- (obj|arr) **rulesByElements** (required): table of rule sets by keys;  
-~ for every key there's a rule set
+(obj|arr) **rulesByElements**: table of rule sets by keys; for every key there's a rule set.
+
+Modifiers:
 - (bool) **exclusive**: the object|array must only contain the keys specified by ```rulesByElements```
 - (arr) **whitelist**: the object|array must – apart from ```rulesByElements``` – only contain these keys
-- (arr) **blacklist**: the object|array must not contain these keys
+- (arr) **blacklist**: the object|array must – apart from ```rulesByElements``` – not contain these keys
 
-#### listItems sub flags ####
+If neither rulesByElements nor any modifier then tableElements in itself will be used as rulesByElements.
 
-- (obj|arr) **listItems** (required): a rule set that every list item must comply to
+
+#### listItems ####
+
+(obj|arr) **itemRules**: a rule set that every list item must comply to.
+
+Modifiers:
 - (int) **minOccur**: there must be at least that many list items
 - (int) **maxOccur**: guess what
+
+If neither itemRules nor any modifier then listItems in itself will be used as itemRules.
 
 ### Example ###
 
@@ -101,36 +107,26 @@ $rule_set = [
         //'blacklist' => ['saddle', 'accessories'],
         'rulesByElements' => [
             'wheels' => [
-                'integer',
+                'integer' => true,
                 'range' => [
                     1,
-                    3
+                    3,
                 ]
             ],
             'saddle' => [
+                // Rule name by value instead of key;
+                // ugly but still supported.
                 'integer',
                 'alternativeEnum' => [
-                    // Wrongly defined as nested; confused by enum which
-                    // formally requires to be nested.
-                    // But ValidationRuleSet fixes this, as it does with
-                    // the opposite for (un-nested) enum.
-                    [
-                        true,
-                    ]
+                    true,
                 ]
             ],
             'sound' => [
                 'string' => true,
                 'enum' => [
-                    // Counterintuitive nesting, but formally correct because
-                    // the allowed values array is second arg to the enum()
-                    // method.
-                    // ValidationRuleSet fixes un-nested instance.
-                    [
-                        'silent',
-                        'swooshy',
-                        'clattering',
-                    ]
+                    'silent',
+                    'swooshy',
+                    'clattering',
                 ]
             ],
             'accessories' => [
@@ -138,10 +134,11 @@ $rule_set = [
                 'tableElements' => [
                     'rulesByElements' => [
                         'luggageCarrier' => [
-                            'boolean',
-                            'optional'
+                            'boolean' => true,
+                            'optional' => true,
                         ],
                         'lights' => [
+                            // Rule name by value instead of key.
                             'numeric',
                             'optional'
                         ]
@@ -149,8 +146,8 @@ $rule_set = [
                 ]
             ],
             'various' => [
-                'array',
-                'optional',
+                'optional' => true,
+                'array' => true,
                 // allowNull and alternativeEnum with null
                 // are two ways of allowing null.
                 'allowNull' => true,
@@ -160,9 +157,8 @@ $rule_set = [
                 'listItems' => [
                     'maxOccur' => 5,
                     'itemRules' => [
-                        'string',
+                        'string' => true,
                         'alternativeEnum' => [
-                            // Correctly defined as un-nested array.
                             true,
                             false,
                         ]
