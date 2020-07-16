@@ -68,7 +68,7 @@ interface RuleProviderInterface
      *
      * @return string[]
      */
-    public function getRulesNamed() : array;
+    public function getRulesRenamed() : array;
 
     /**
      * Subject is falsy or array|object is empty.

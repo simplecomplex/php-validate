@@ -305,7 +305,7 @@ class Validate implements RuleProviderInterface
      *
      * @return string[]
      */
-    public function getRulesNamed() : array
+    public function getRulesRenamed() : array
     {
         return static::RULES_RENAMED;
     }
@@ -360,7 +360,7 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules, recording validation failures.
      *
-     * Doesn't stop on failure, continues to the very end.
+     * Doesn't stop on failure, continues until the end of the ruleset.
      *
      * Creates a new ValidateAgainstRuleSet instance on every call.
      *
@@ -390,12 +390,10 @@ class Validate implements RuleProviderInterface
             'recordFailure' => true,
         ]);
 
-        $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
-        $record = $validate_by_rules->getRecord();
-
+        $passed = $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
         return [
-            'passed' => !$record,
-            'record' => $record,
+            'passed' => $passed,
+            'record' => $passed ? [] : $validate_by_rules->getRecord(),
         ];
     }
 
@@ -909,13 +907,24 @@ class Validate implements RuleProviderInterface
      */
     public function container($subject)
     {
-        return is_array($subject) ? 'array' : (
-            $subject && is_object($subject) ? (
-                $subject instanceof \Traversable ? (
-                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-                ) : 'object'
-            ) : false
-        );
+        //return is_array($subject) ? 'array' : (
+        //    $subject && is_object($subject) ? (
+        //        $subject instanceof \Traversable ? (
+        //            $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+        //        ) : 'object'
+        //    ) : false
+        //);
+        
+        if (is_array($subject)) {
+            return 'array';
+        }
+        if ($subject && is_object($subject)) {
+            if ($subject instanceof \Traversable) {
+                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
+            }
+            return 'object';
+        }
+        return false;
     }
 
     /**
@@ -939,11 +948,19 @@ class Validate implements RuleProviderInterface
      */
     public function iterable($subject)
     {
-        return is_array($subject) ? 'array' : (
-            $subject && $subject instanceof \Traversable ? (
-                $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-            ) : false
-        );
+        //return is_array($subject) ? 'array' : (
+        //    $subject && $subject instanceof \Traversable ? (
+        //        $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+        //    ) : false
+        //);
+        
+        if (is_array($subject)) {
+            return 'array';
+        }
+        if ($subject && $subject instanceof \Traversable) {
+            return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
+        }
+        return false;
     }
 
     /**
@@ -971,15 +988,27 @@ class Validate implements RuleProviderInterface
     {
         // Only difference vs container() is that non-Traversable ArrayAccess
         // doesn't pass here.
-        return is_array($subject) ? 'array' : (
-            $subject && is_object($subject) ? (
-                $subject instanceof \Traversable ? (
-                    $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-                ) : (
-                    $subject instanceof \ArrayAccess ? false : 'object'
-                )
-            ) : false
-        );
+        
+        //return is_array($subject) ? 'array' : (
+        //    $subject && is_object($subject) ? (
+        //        $subject instanceof \Traversable ? (
+        //            $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
+        //        ) : (
+        //            $subject instanceof \ArrayAccess ? false : 'object'
+        //        )
+        //    ) : false
+        //);
+
+        if (is_array($subject)) {
+            return 'array';
+        }
+        if ($subject && is_object($subject)) {
+            if ($subject instanceof \Traversable) {
+                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
+            }
+            return $subject instanceof \ArrayAccess ? false : 'object';
+        }
+        return false;
     }
 
     /**

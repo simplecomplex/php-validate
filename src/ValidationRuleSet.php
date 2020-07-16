@@ -73,9 +73,9 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  *      will count as validation failure, because validation not possible.
  *
  *      tableElements combined with listItems is allowed.
+ *      If tableElements pass then listItems will be ignored.
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
- *      If tableElements pass then listItems will be ignored.
  *
  * @property ListItems|undefined $listItems {
  *      @var ValidationRuleSet|object|array $itemRules
@@ -86,9 +86,9 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  *      Rule representing every element of object|array subject.
  *
  *      listItems combined with tableElements is allowed.
+ *      If tableElements pass then listItems will be ignored.
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
- *      If tableElements pass then listItems will be ignored.
  *
  *
  * Design considerations - why no \Traversable or \Iterator?
@@ -189,7 +189,7 @@ class ValidationRuleSet
         $type_rules_supported = $ruleProvider->getTypeMethods();
         // List of provider rules taking arguments.
         $parameter_rules = $ruleProvider->getParameterMethods();
-        $rules_renamed = $ruleProvider->getRulesNamed();
+        $rules_renamed = $ruleProvider->getRulesRenamed();
 
         $skip_rules = [];
 
@@ -299,26 +299,34 @@ class ValidationRuleSet
                             $argument, $ruleProvider, $depth + 1, $keyPath . '(alternativeRuleSet)'
                         );
                     }
+                    // alternativeRuleSet cannot contain
+                    // alternativeRuleSet|tableElements|listItems.
+                    if (isset($this->alternativeRuleSet->alternativeRuleSet)) {
+                        throw new InvalidRuleException(
+                            'Validation \'alternativeRuleSet\' is not allowed to contain alternativeRuleSet'
+                            . ', at (' . $depth . ') ' . $keyPath . '.'
+                        );
+                    }
+                    if (isset($this->alternativeRuleSet->tableElements)) {
+                        throw new InvalidRuleException(
+                            'Validation \'alternativeRuleSet\' is not allowed to contain tableElements'
+                            . ', at (' . $depth . ') ' . $keyPath . '.'
+                        );
+                    }
+                    if (isset($this->alternativeRuleSet->listItems)) {
+                        throw new InvalidRuleException(
+                            'Validation \'alternativeRuleSet\' is not allowed to contain listItems'
+                            . ', at (' . $depth . ') ' . $keyPath . '.'
+                        );
+                    }
                     break;
 
                 case 'tableElements':
-//                    if (isset($this->listItems)) {
-//                        throw new InvalidRuleException(
-//                            'Validation \'tableElements\' and \'listItems\' cannot both exist in same ruleset'
-//                            . ', do move one to an \'alternativeRuleSet\', at (' . $depth . ') ' . $keyPath . '.'
-//                        );
-//                    }
                     // Declare dynamically.
                     $this->tableElements = $this->tableElements($argument, $ruleProvider, $depth, $keyPath);
                     break;
 
                 case 'listItems':
-//                    if (isset($this->tableElements)) {
-//                        throw new InvalidRuleException(
-//                            'Validation \'tableElements\' and \'listItems\' cannot both exist in same ruleset'
-//                            . ', do move one to an \'alternativeRuleSet\', at (' . $depth . ') ' . $keyPath . '.'
-//                        );
-//                    }
                     // Declare dynamically.
                     $this->listItems = $this->listItems($argument, $ruleProvider, $depth, $keyPath);
                     break;
@@ -396,6 +404,22 @@ class ValidationRuleSet
                             . ', at (' . $depth . ') ' . $keyPath . '.'
                         );
                     }
+            }
+        }
+
+        // enum must be scalar|null, not container.
+        if (isset($this->enum)) {
+            if (isset($this->tableElements)) {
+                throw new InvalidRuleException(
+                    'Validation rules \'enum\' and \'tableElements\' are incompatible'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
+            if (isset($this->listItems)) {
+                throw new InvalidRuleException(
+                    'Validation rules \'enum\' and \'listItems\' are incompatible'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
             }
         }
     }

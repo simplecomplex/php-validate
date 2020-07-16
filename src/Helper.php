@@ -15,6 +15,10 @@ namespace SimpleComplex\Validate;
 class Helper
 {
     /**
+     * For listing public properties within method of object self.
+     *
+     * @see get_object_vars()
+     *
      * @param object $object
      *
      * @return array
@@ -25,8 +29,7 @@ class Helper
     }
 
     /**
-     * To overcome the fact that a class/object cannot within itself
-     * discriminate between public and private methods.
+     * For listing public methods within method of object self.
      *
      * @param object|string $objectOrClass
      * @param bool $instanceOnly
@@ -48,7 +51,7 @@ class Helper
             $class = $objectOrClass;
             if (!class_exists($class)) {
                 throw new \InvalidArgumentException(
-                    'Arg $objectOrClass value[' . $class . '], such class doesn\'t exist.'
+                    'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
                 );
             }
         }
@@ -59,11 +62,11 @@ class Helper
         }
         $all = get_class_methods($class);
         if ($instanceOnly) {
-            // Prevent complaints about unhandled (highly unlikely)
+            // Prevent (IDE) complaints about unhandled (highly unlikely)
             // \ReflectionException.
             try {
-                $statics = (new \ReflectionClass($class))
-                    ->getMethods(\ReflectionMethod::IS_STATIC | \ReflectionMethod::IS_PUBLIC);
+                // Bitwise can only do AND.
+                $statics = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_STATIC);
             }
             catch (\Throwable $xcptn) {
                 // Unlikely because class existence checked previously.
@@ -72,7 +75,10 @@ class Helper
                 );
             }
             foreach ($statics as $method) {
-                array_splice($all, array_search($method->name, $all), 1);
+                $index = array_search($method->name, $all);
+                if ($index !== false) {
+                    array_splice($all, $index, 1);
+                }
             }
         }
         return $all;

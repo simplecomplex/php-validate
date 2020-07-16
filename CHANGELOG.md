@@ -13,7 +13,10 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
   
-* alternativeRuleSet is now allowed to contain own alternativeRuleSet.
+* enum is incompatible with tableElements, listItems.
+  
+* alternativeRuleSet is not allowed to contain alternativeRuleSet,
+  tableElements, listItems.
 
 * tableElements, listItems combined is legal, but if tableElements pass then
   listItems won't be used/checked.
