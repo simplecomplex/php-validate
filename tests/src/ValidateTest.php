@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
-use SimpleComplex\Tests\Utils\BootstrapTest;
 
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\ValidationRuleSet;
@@ -18,7 +17,7 @@ use SimpleComplex\Validate\ValidationRuleSet;
 /**
  * @code
  * // CLI, in document root:
- * backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/validate/tests/src/ValidateTest.php
+backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/validate/tests/src/ValidateTest.php
  * @endcode
  *
  * @package SimpleComplex\Tests\Validate
@@ -26,13 +25,11 @@ use SimpleComplex\Validate\ValidationRuleSet;
 class ValidateTest extends TestCase
 {
     /**
-     * @see BootstrapTest::testDependencies()
-     *
      * @return Validate
      */
     public function testInstantiation()
     {
-        $validate = (new BootstrapTest())->testDependencies()->get('validate');
+        $validate = new Validate();
         static::assertInstanceOf(Validate::class, $validate);
         return $validate;
     }
@@ -71,10 +68,10 @@ class ValidateTest extends TestCase
         $o[0] = 0;
         static::assertFalse($validate->empty($o));
 
-        $o = new EmptyExplorable();
-        static::assertTrue($validate->empty($o));
-        $o = new NonEmptyExplorable();
-        static::assertFalse($validate->empty($o));
+//        $o = new EmptyExplorable();
+//        static::assertTrue($validate->empty($o));
+//        $o = new NonEmptyExplorable();
+//        static::assertFalse($validate->empty($o));
     }
 
     /**
@@ -111,10 +108,10 @@ class ValidateTest extends TestCase
         $o[0] = 0;
         static::assertTrue($validate->nonEmpty($o));
 
-        $o = new EmptyExplorable();
-        static::assertFalse($validate->nonEmpty($o));
-        $o = new NonEmptyExplorable();
-        static::assertTrue($validate->nonEmpty($o));
+//        $o = new EmptyExplorable();
+//        static::assertFalse($validate->nonEmpty($o));
+//        $o = new NonEmptyExplorable();
+//        static::assertTrue($validate->nonEmpty($o));
     }
 
     public function testNull()
@@ -191,14 +188,20 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $ruleSet = new ValidationRuleSet([
-            'nonNegative' => true,
-        ]);
+        $ruleSet = new ValidationRuleSet(
+            [
+                'nonNegative' => true,
+            ],
+            $validate
+        );
         static::assertFalse($validate->challenge(null, $ruleSet), 'Rule method (false): ' . 'nonNegative');
-        $ruleSet = new ValidationRuleSet([
-            'nonNegative' => true,
-            'allowNull' => true,
-        ]);
+        $ruleSet = new ValidationRuleSet(
+            [
+                'nonNegative' => true,
+                'allowNull' => true,
+            ],
+            $validate
+        );
         static::assertTrue($validate->challenge(null, $ruleSet), 'Rule method (true): ' . 'nonNegative');
     }
 

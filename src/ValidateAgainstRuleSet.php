@@ -282,7 +282,7 @@ class ValidateAgainstRuleSet
         }
 
         $rule_methods = [];
-        $allowNull = false;
+        $allowNull = $has_loopable = false;
         $enum = $alternativeEnum =
             $alternativeRuleSet =
             $tableElements = $listItems = null;
@@ -313,6 +313,12 @@ class ValidateAgainstRuleSet
                 case 'alternativeRuleSet':
                     /** @var ValidationRuleSet $alternativeRuleSet */
                     $alternativeRuleSet = $argument;
+                    break;
+                case 'array':
+                case 'indexedArray':
+                case 'keyedArray':
+                case 'loopable':
+                    $has_loopable = true;
                     break;
                 case 'tableElements':
                     $tableElements = $argument;
@@ -410,7 +416,7 @@ class ValidateAgainstRuleSet
         }
 
         // tableElements|listItems require loopable container.
-        if (!$this->ruleProvider->loopable($subject)) {
+        if (!$has_loopable && !$this->ruleProvider->loopable($subject)) {
             if ($this->recordFailure) {
                 $this->recordCumulative(
                     $subject, $depth, $keyPath, ($tableElements ? 'tableElements' : 'listItems') . '.loopable'

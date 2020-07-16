@@ -2,15 +2,21 @@
 
 namespace SimpleComplex\Validate\Exception;
 
-use SimpleComplex\Utils\Exception\UserMessageException;
-
 /**
  * Generic validation failure exception - free to use within other packages.
  *
+ * Can accommodate a non-sensitive message to end user,
+ * and a list of failures.
+ *
  * @package SimpleComplex\Validate
  */
-class ValidationFailureException extends UserMessageException
+class ValidationFailureException extends \RuntimeException
 {
+    /**
+     * @var string
+     */
+    protected $userMessage;
+
     /**
      * @var array
      */
@@ -21,16 +27,26 @@ class ValidationFailureException extends UserMessageException
      * @param int $code
      * @param \Throwable|null $previous
      * @param string|null $userMessage
+     *      Also used as fallback for empty arg $message; counter laziness.
      * @param array|null $failures
      */
     public function __construct(
         $message = '', $code = 0, \Throwable $previous = null,
         string $userMessage = null, array $failures = null
     ) {
-        parent::__construct($message, $code, $previous, $userMessage);
+        parent::__construct($message ? $message : ($userMessage ?? ''), $code, $previous);
+        $this->userMessage = $userMessage;
         if ($failures) {
             $this->failures = $failures;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserMessage() : string
+    {
+        return $this->userMessage ?? '';
     }
 
     /**

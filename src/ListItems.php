@@ -116,7 +116,9 @@ class ListItems
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
                      */
-                    new $class_rule_set((object) $listItems, $ruleProvider, $depth + 1, $keyPath . '(itemRules)');
+                    new $class_rule_set(
+                        (object) $listItems->itemRules, $ruleProvider, $depth + 1, $keyPath . '(itemRules)'
+                    );
             }
             else {
                 throw new InvalidRuleException(

@@ -13,6 +13,9 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
   
+* ValidationFailureException no longer extends (SimpleComplex\Utils\Exception\)
+  UserMessageException; extends \RuntimeException directly.
+  
 * enum is incompatible with tableElements, listItems.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
@@ -35,10 +38,11 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   as PHP serials, will hardly be compatible; whereas PHP array|stdClass rulesets
   and JSON-formatted rulesets should work fine.
 * Require PHP 64-bit >=7.2.
+* Don't require simplecomplex/utils.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
-* Ruleset without type-checking rule must default to 'container' if has
+* Ruleset without type-checking rule must default to 'loopable' container if has
   tableElements or listItems; otherwise to 'string'.
 
 

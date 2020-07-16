@@ -162,7 +162,7 @@ class ValidationRuleSet
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
                 'Stopped recursive validation rule set definition at limit['
-                . static::RECURSION_LIMIT . '], at (' . $depth . ') ' . $keyPath . '.'
+                . static::RECURSION_LIMIT . ']' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
 
@@ -170,7 +170,7 @@ class ValidationRuleSet
             if ($rules instanceof \ArrayAccess) {
                 throw new \InvalidArgumentException(
                     'Arg rules type[' . Helper::getType($rules)
-                    . '] \ArrayAccess is not supported, at (' . $depth . ') ' . $keyPath . '.'
+                    . '] \ArrayAccess is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             $o_rules = $rules;
@@ -181,7 +181,7 @@ class ValidationRuleSet
         else {
             throw new \TypeError(
                 'Arg rules type[' . Helper::getType($rules)
-                . '] is not object|array, at (' . $depth . ') ' . $keyPath . '.'
+                . '] is not object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
 
@@ -201,16 +201,29 @@ class ValidationRuleSet
                 $type_rule_found = true;
                 $skip_rules[] = $rule;
                 // The class rule is the only type-checking rule that allows
-                // another parameter than
+                // another parameter than subject.
                 if ($rule == 'class') {
-                    if (!is_string($o_rules->class)) {
-                        throw new InvalidRuleException(
-                            'Validation rule \'class\' type[' . Helper::getType($o_rules->class)
-                            . '] is not string, at (' . $depth . ') ' . $keyPath . '.'
-                        );
+                    // Support string as well as [string].
+                    if (is_array($o_rules->class)) {
+                        $class = reset($o_rules->class);
+                        if (!$class || !is_string($class)) {
+                            throw new InvalidRuleException(
+                                'Validation rule \'class\' array[0] type[' . Helper::getType($class)
+                                . '] is not non-empty string' . ', at (' . $depth . ') ' . $keyPath . '.'
+                            );
+                        }
+                    }
+                    else {
+                        $class = $o_rules->class;
+                        if (!$class || !is_string($class)) {
+                            throw new InvalidRuleException(
+                                'Validation rule \'class\' type[' . Helper::getType($class)
+                                . '] is not non-empty string' . ', at (' . $depth . ') ' . $keyPath . '.'
+                            );
+                        }
                     }
                     // Declare dynamically.
-                    $this->{$rule} = $o_rules->class;
+                    $this->{$rule} = $class;
                 }
                 else {
                     // Declare dynamically.
@@ -227,7 +240,7 @@ class ValidationRuleSet
 
         foreach ($o_rules as $rule => $argument) {
             if (ctype_digit('' . $rule)) {
-                // @todo: move to method, after creating tmp variable holding depth etc.
+                // Simple non-parameter rule declared by value instead of key.
                 if (is_string($argument) && $argument) {
                     if (property_exists($o_rules, $argument)) {
                         throw new InvalidRuleException(
@@ -235,36 +248,40 @@ class ValidationRuleSet
                             . '] conflicts with rule by key of same name' . ', at (' . $depth . ') ' . $keyPath . '.'
                         );
                     }
-                    if ($skip_rules && in_array($argument, $skip_rules)) {
+                    if ($argument == 'optional' || $argument == 'allowNull') {
+                        $this->{$argument} = true;
+                    }
+                    elseif ($skip_rules && in_array($argument, $skip_rules)) {
                         continue;
                     }
-                    $method = $argument;
-                    if (!in_array($method, $rules_supported)) {
-                        if (isset($rules_renamed[$method])) {
-                            $method = $rules_renamed[$method];
+                    else {
+                        $method = $argument;
+                        if (!in_array($method, $rules_supported)) {
+                            if (isset($rules_renamed[$method])) {
+                                $method = $rules_renamed[$method];
+                            }
+                            else {
+                                throw new InvalidRuleException(
+                                    'Validation rule by value[' . $argument . '] at numeric index[' . $rule
+                                    . '] is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
+                                );
+                            }
                         }
-                        else {
+                        if (!empty($parameter_rules[$method])) {
                             throw new InvalidRuleException(
                                 'Validation rule by value[' . $argument . '] at numeric index[' . $rule
-                                . '] is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
+                                . '] requires arguments' . ', at (' . $depth . ') ' . $keyPath . '.'
                             );
                         }
+                        // Declare dynamically.
+                        $this->{$method} = true;
                     }
-                    if (!empty($parameter_rules[$method])) {
-                        throw new InvalidRuleException(
-                            'Validation rule by value[' . $argument . '] at numeric index[' . $rule
-                            . '] requires arguments' . ', at (' . $depth . ') ' . $keyPath . '.'
-                        );
-                    }
-                    // Declare dynamically.
-                    $this->{$method} = true;
+                    continue;
                 }
-                else {
-                    throw new InvalidRuleException(
-                        'Validation rule set key[' . $rule . '] value type[' . Helper::getType($argument)
-                        . '] does not make sense' . ', at (' . $depth . ') ' . $keyPath . '.'
-                    );
-                }
+                throw new InvalidRuleException(
+                    'Validation rule set key[' . $rule . '] value type[' . Helper::getType($argument)
+                    . '] does not make sense' . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
             }
 
             if ($skip_rules && in_array($rule, $skip_rules)) {
@@ -299,25 +316,14 @@ class ValidationRuleSet
                             $argument, $ruleProvider, $depth + 1, $keyPath . '(alternativeRuleSet)'
                         );
                     }
-                    // alternativeRuleSet cannot contain
-                    // alternativeRuleSet|tableElements|listItems.
-                    if (isset($this->alternativeRuleSet->alternativeRuleSet)) {
-                        throw new InvalidRuleException(
-                            'Validation \'alternativeRuleSet\' is not allowed to contain alternativeRuleSet'
-                            . ', at (' . $depth . ') ' . $keyPath . '.'
-                        );
-                    }
-                    if (isset($this->alternativeRuleSet->tableElements)) {
-                        throw new InvalidRuleException(
-                            'Validation \'alternativeRuleSet\' is not allowed to contain tableElements'
-                            . ', at (' . $depth . ') ' . $keyPath . '.'
-                        );
-                    }
-                    if (isset($this->alternativeRuleSet->listItems)) {
-                        throw new InvalidRuleException(
-                            'Validation \'alternativeRuleSet\' is not allowed to contain listItems'
-                            . ', at (' . $depth . ') ' . $keyPath . '.'
-                        );
+                    // alternativeRuleSet illegal children.
+                    foreach (['alternativeRuleSet', 'tableElements', 'listItems'] as $illegal_child) {
+                        if (isset($this->alternativeRuleSet->{$illegal_child})) {
+                            throw new InvalidRuleException(
+                                'Validation \'alternativeRuleSet\' is not allowed to contain \'' . $illegal_child . '\''
+                                . ', at (' . $depth . ') ' . $keyPath . '.'
+                            );
+                        }
                     }
                     break;
 
@@ -343,7 +349,7 @@ class ValidationRuleSet
                         }
                         else {
                             throw new InvalidRuleException(
-                                'Unknown validation rule[' . $rule . '], at (' . $depth . ') ' . $keyPath . '.'
+                                'Unknown validation rule[' . $rule . ']' . ', at (' . $depth . ') ' . $keyPath . '.'
                             );
                         }
                     }
@@ -355,9 +361,9 @@ class ValidationRuleSet
                             // Rule value must be array.
                             if (!$argument || !is_array($argument)) {
                                 throw new InvalidRuleException(
-                                    'Validation rule[' . $method . '] requires more argument(s) than subject self'
+                                    'Validation rule[' . $method . '] requires more arguments than subject self'
                                     . ', and rule value type[' . Helper::getType($argument)
-                                    . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
+                                    . '] is not non-empty array' . ', at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
                             // Declare dynamically.
@@ -375,10 +381,10 @@ class ValidationRuleSet
                                 // Rule method accepts argument(s);
                                 // if not true it must be non-empty array.
                                 throw new InvalidRuleException(
-                                    'Validation rule[' . $method . '] accepts more argument(s) than subject'
+                                    'Validation rule[' . $method . '] accepts more arguments than subject'
                                     . ', but value type[' . Helper::getType($argument)
-                                    . '] is neither boolean true (simple \'on\' flag), nor non-empty array'
-                                    . ' (list of secondary argument(s))'
+                                    . '] is neither boolean true (simple \'on\' flag)'
+                                    . ', nor non-empty array (list of secondary argument(s))'
                                     . ', at (' . $depth . ') ' . $keyPath . '.'
                                 );
                             }
@@ -409,17 +415,14 @@ class ValidationRuleSet
 
         // enum must be scalar|null, not container.
         if (isset($this->enum)) {
-            if (isset($this->tableElements)) {
-                throw new InvalidRuleException(
-                    'Validation rules \'enum\' and \'tableElements\' are incompatible'
-                    . ', at (' . $depth . ') ' . $keyPath . '.'
-                );
-            }
-            if (isset($this->listItems)) {
-                throw new InvalidRuleException(
-                    'Validation rules \'enum\' and \'listItems\' are incompatible'
-                    . ', at (' . $depth . ') ' . $keyPath . '.'
-                );
+            foreach (['tableElements', 'listItems'] as $illegal_sibling) {
+                if (isset($this->{$illegal_sibling})) {
+                    throw new InvalidRuleException(
+                        'Validation rules \'enum\' and \'' . $illegal_sibling . '\' are incompatible'
+                        . ' because a passed enum is scalar|null (not a container)'
+                        . ', at (' . $depth . ') ' . $keyPath . '.'
+                    );
+                }
             }
         }
     }
@@ -441,9 +444,9 @@ class ValidationRuleSet
     {
         if (isset($ruleSet->tableElements) || isset($ruleSet->listItems)) {
             /**
-             * @see RuleProviderInterface::container()
+             * @see RuleProviderInterface::loopable()
              */
-            return 'container';
+            return 'loopable';
         }
         elseif (in_array('digital', $ruleProvider->getTypeMethods())
             && (isset($ruleSet->bit32) || isset($ruleSet->bit64))
@@ -489,7 +492,7 @@ class ValidationRuleSet
         if (!$argument || !is_array($argument)) {
             throw new InvalidRuleException(
                 'Validation \'' . $ruleName . '\' type[' . Helper::getType($argument)
-                . '] is not non-empty array, at (' . $depth . ') ' . $keyPath . '.'
+                . '] is not non-empty array' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
         // Support definition as nested array, because enum used to require
@@ -511,7 +514,7 @@ class ValidationRuleSet
                 throw new InvalidRuleException(
                     'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
                     . '] type[' . Helper::getType($value)
-                    . '] is not scalar or null, at (' . $depth . ') ' . $keyPath . '.'
+                    . '] is not scalar or null' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
         }
@@ -561,7 +564,7 @@ class ValidationRuleSet
         }
         throw new InvalidRuleException(
             'Validation \'tableElements\' type[' . Helper::getType($argument)
-            . '] is not a object|array, at (' . $depth . ') ' . $keyPath . '.'
+            . '] is not a object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
         );
     }
 
@@ -607,7 +610,7 @@ class ValidationRuleSet
         }
         throw new InvalidRuleException(
             'Validation \'listItems\' type[' . Helper::getType($argument)
-            . '] is not a object|array, at (' . $depth . ') ' . $keyPath . '.'
+            . '] is not a object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
         );
     }
 }

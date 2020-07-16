@@ -2460,7 +2460,8 @@ class Validate implements RuleProviderInterface
                     }
                     return ctype_digit(join('', $keys)) ?
                         (!$keyed ? 'arrayAccess' : false) : ($keyed ? 'arrayAccess' : false);
-                } else {
+                }
+                else {
                     // Have to iterate; horrible.
                     $keys = [];
                     foreach ($subject as $k => $ignore) {
@@ -2472,7 +2473,8 @@ class Validate implements RuleProviderInterface
                     return ctype_digit(join('', $keys)) ?
                         (!$keyed ? 'traversable' : false) : ($keyed ? 'traversable' : false);
                 }
-            } elseif ($loopable) {
+            }
+            elseif ($loopable) {
                 if (!($subject instanceof \ArrayAccess) && $subject instanceof \Countable && !count($subject)) {
                     return 'object';
                 }

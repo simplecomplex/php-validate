@@ -172,5 +172,5 @@ $rule_set = [
 
 #### Requirements ####
 
-- PHP >=7.0
-- [SimpleComplex Utils](https://github.com/simplecomplex/php-utils)
+- PHP >=7.2
+- PHP extensions ctype, mbstring

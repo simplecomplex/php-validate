@@ -117,7 +117,7 @@ class TableElements
             if (!is_array($tableElements->whitelist)) {
                 throw new InvalidRuleException(
                     'Validation tableElements.whitelist type[' . Helper::getType($tableElements->whitelist)
-                    . '] is not array, at (' . $depth . ') ' . $keyPath . '.'
+                    . '] is not array' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             $this->whitelist = $tableElements->whitelist;
@@ -127,7 +127,7 @@ class TableElements
             if (!is_array($tableElements->blacklist)) {
                 throw new InvalidRuleException(
                     'Validation tableElements.blacklist type[' . Helper::getType($tableElements->blacklist)
-                    . '] is not array, at (' . $depth . ') ' . $keyPath . '.'
+                    . '] is not array' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             $this->blacklist = $tableElements->blacklist;
@@ -137,7 +137,7 @@ class TableElements
             throw new InvalidRuleException(
                 'Validation tableElements only accepts a single exclusive|whitelist|blacklist modifier, saw '
                 . count($modifiers) . ' modifiers[' . join(', ', $modifiers)
-                . '], at (' . $depth . ') ' . $keyPath . '.'
+                . ']' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }
     }
@@ -160,7 +160,7 @@ class TableElements
             if (!is_object($tableElements->rulesByElements) && !is_array($tableElements->rulesByElements)) {
                 throw new InvalidRuleException(
                     'Validation tableElements.rulesByElements type[' . Helper::getType($tableElements->rulesByElements)
-                    . '] is not object|array, at (' . $depth . ') ' . $keyPath . '.'
+                    . '] is not object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
             $self_rulesByElements = false;
