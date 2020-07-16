@@ -154,6 +154,9 @@ class ValidateAgainstRuleSet
     /**
      * Use Validate::challenge() instead of this.
      *
+     * Stops validation on first failure,
+     * except if truthy options recordFailure.
+     *
      * @see Validate::challenge()
      *
      * @param RuleProviderInterface $ruleProvider
@@ -255,9 +258,9 @@ class ValidateAgainstRuleSet
 
         $rules_found = [];
         $allowNull = false;
-        $enum = $alternative_enum =
-            $alternative_rule_set =
-            $table_elements = $list_items = null;
+        $enum = $alternativeEnum =
+            $alternativeRuleSet =
+            $tableElements = $listItems = null;
         foreach ($ruleSet as $ruleKey => $ruleValue) {
             switch ($ruleKey) {
                 case 'optional':
@@ -272,23 +275,25 @@ class ValidateAgainstRuleSet
                     // (overly formalistic) that the allowed values array was nested;
                     // since the allowed values array is the second argument to be passed
                     // to the enum() method.
+                    /** @var array $enum */
                     $enum = is_array(reset($ruleValue)) ? reset($ruleValue) : $ruleValue;
                     break;
                 case 'alternativeEnum':
                     // Like 'enum'; backwards compatibility.
-                    $alternative_enum = is_array(reset($ruleValue)) ? reset($ruleValue) : $ruleValue;
+                    /** @var array $alternativeEnum */
+                    $alternativeEnum = is_array(reset($ruleValue)) ? reset($ruleValue) : $ruleValue;
                     break;
                 case 'alternativeRuleSet':
-                    /** @var ValidationRuleSet $alternative_rule_set */
-                    $alternative_rule_set = $ruleValue;
+                    /** @var ValidationRuleSet $alternativeRuleSet */
+                    $alternativeRuleSet = $ruleValue;
                     break;
                 case 'tableElements':
-                    $table_elements = $ruleValue;
+                    $tableElements = $ruleValue;
                     break;
                 case 'listItems':
                     // No need to check for type; ValidationRuleSet do that,
                     // and makes it object.
-                    $list_items = $ruleValue;
+                    $listItems = $ruleValue;
                     break;
                 default:
                     if (!in_array($ruleKey, $this->ruleMethods)) {
@@ -324,7 +329,7 @@ class ValidateAgainstRuleSet
                     if (!$this->ruleProvider->{$rule}($subject)) {
                         $failed = true;
                         if ($this->recordFailure) {
-                            $record[] = $rule . '(*)';
+                            $record[] = $this->recordCurrent($rule);
                         }
                         break;
                     }
@@ -335,7 +340,7 @@ class ValidateAgainstRuleSet
                     if (!$this->enum($subject, $enum)) {
                         $failed = true;
                         if ($this->recordFailure) {
-                            $record[] = $rule . '(*)';
+                            $record[] = $this->recordCurrent($rule, $enum);
                         }
                         break;
                     }
@@ -364,11 +369,10 @@ class ValidateAgainstRuleSet
                                         $tmp[] = '(' . $arg_type . ')';
                                 }
                             }
-                            $record[] = $rule . '(*, ' . join(', ', $tmp) . ')';
-                            unset($tmp, $arg, $arg_type);
+                            $record[] = $this->recordCurrent($rule, $args);
                         }
                         else {
-                            $record[] = $rule . '(*)';
+                            $record[] = $this->recordCurrent($rule);
                         }
                     }
                     break;
@@ -378,43 +382,31 @@ class ValidateAgainstRuleSet
 
         if ($failed) {
             // Matches one of a list of alternative (scalar|null) values?
-            if ($alternative_enum) {
+            if ($alternativeEnum) {
                 // Use own pre-checked enum() because ValidationRuleSet checks
                 // that all allowed values are scalar|null.
-                if ($this->enum($subject, $alternative_enum)) {
+                if ($this->enum($subject, $alternativeEnum)) {
                     return true;
                 }
-                if (!$alternative_rule_set) {
+                if (!$alternativeRuleSet) {
                     if ($this->recordFailure) {
-                        $v = null;
-                        if (is_scalar($subject)) {
-                            $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
-                                (substr($subject, 50) . '...(truncated)');
-                        }
-                        $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
-                            . ', alternativeEnum(*, ...) - saw type '
-                            . Helper::getType($subject) . ($v === null ? '' : (' value ' . $v));
+                        $record[] = $this->recordCurrent('alternativeEnum', $alternativeEnum);
+                        $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
                     }
                     return false;
                 }
             }
-            if ($alternative_rule_set) {
-                return $this->internalChallenge($subject, $alternative_rule_set, $depth + 1, $keyPath);
+            if ($alternativeRuleSet) {
+                return $this->internalChallenge($subject, $alternativeRuleSet, $depth + 1, $keyPath);
             }
             if ($this->recordFailure) {
-                $v = null;
-                if (is_scalar($subject)) {
-                    $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
-                        (substr($subject, 50) . '...(truncated)');
-                }
-                $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . join(', ', $record)
-                    . ' - saw type ' . Helper::getType($subject) . ($v === null ? '' : (' value ' . $v));
+                $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
             }
             return false;
         }
 
         // Didn't fail.
-        if (!$table_elements && !$list_items) {
+        if (!$tableElements && !$listItems) {
             return true;
         }
 
@@ -426,11 +418,15 @@ class ValidateAgainstRuleSet
             // the 'tableElements' and/or 'list_item_prototype' rule, without
             // explicitly defining/using a container type checker.
             if ($this->recordFailure) {
-                $this->record[] = '(' . $depth . ') ' . $keyPath . ': tableElements - ' . Helper::getType($subject)
-                    . ' is not a loopable container';
+                $this->recordCumulative(
+                    $subject, $depth, $keyPath, ($tableElements ? 'tableElements' : 'listItems') . '.loopable'
+                );
             }
             return false;
         }
+
+        // @todo: tableElements, listItems get checked after alternativeRuleSet.
+        // @todo: tableElements, listItems combined is legal, but if tableElements pass then listItems won't be used/checked.
 
         // tableElements combined with listItems is allowed.
         // Relevant for a container derived from XML, which allows hash table
@@ -439,16 +435,16 @@ class ValidateAgainstRuleSet
         // declared tableElements out of list validation.
         $item_list_skip_keys = [];
 
-        if ($table_elements) {
+        if ($tableElements) {
             $subject_keys = $specified_keys = [];
             $exclusive = $whitelist = $blacklist = false;
-            if (!empty($table_elements->exclusive)) {
+            if (!empty($tableElements->exclusive)) {
                 $exclusive = true;
-                $specified_keys = array_keys(get_object_vars($table_elements->rulesByElements));
-            } elseif (!empty($table_elements->whitelist)) {
+                $specified_keys = array_keys(get_object_vars($tableElements->rulesByElements));
+            } elseif (!empty($tableElements->whitelist)) {
                 $whitelist = true;
-                $specified_keys = array_keys(get_object_vars($table_elements->rulesByElements));
-            } elseif (!empty($table_elements->blacklist)) {
+                $specified_keys = array_keys(get_object_vars($tableElements->rulesByElements));
+            } elseif (!empty($tableElements->blacklist)) {
                 $blacklist = true;
             }
             if ($exclusive || $whitelist || $blacklist) {
@@ -487,7 +483,7 @@ class ValidateAgainstRuleSet
                         }
                     }
                 } elseif ($whitelist) {
-                    if (($illegal_keys = array_diff($subject_keys, $specified_keys, $table_elements->whitelist))) {
+                    if (($illegal_keys = array_diff($subject_keys, $specified_keys, $tableElements->whitelist))) {
                         if ($this->recordFailure) {
                             $this->record[] = '(' . $depth . ') ' . $keyPath
                                 . ': tableElements whitelist - subject has key(s)'
@@ -498,7 +494,7 @@ class ValidateAgainstRuleSet
                             return false;
                         }
                     }
-                } elseif (($illegal_keys = array_intersect($table_elements->blacklist, $subject_keys))) {
+                } elseif (($illegal_keys = array_intersect($tableElements->blacklist, $subject_keys))) {
                     if ($this->recordFailure) {
                         $this->record[] = '(' . $depth . ') ' . $keyPath
                             . ': tableElements blacklist - subject has blacklisted key(s) \''
@@ -516,7 +512,7 @@ class ValidateAgainstRuleSet
                 case 'array':
                 case 'arrayAccess':
                     $is_array = $container_type == 'array';
-                    foreach ($table_elements->rulesByElements as $key => $element_rule_set) {
+                    foreach ($tableElements->rulesByElements as $key => $element_rule_set) {
                         if ($is_array ? !array_key_exists($key, $subject) : !$subject->offsetExists($key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -545,7 +541,7 @@ class ValidateAgainstRuleSet
                     break;
                 default:
                     // Traversable, object.
-                    foreach ($table_elements->rulesByElements as $key => $element_rule_set) {
+                    foreach ($tableElements->rulesByElements as $key => $element_rule_set) {
                         if (!property_exists($subject, $key)) {
                             // An element is required, unless explicitly 'optional'.
                             if (empty($element_rule_set->optional)) {
@@ -577,7 +573,7 @@ class ValidateAgainstRuleSet
         // @todo: tableElements, listItems are allowed combined in validation ruleset.
         // @todo: but subject must only match one of them.
 
-        if ($list_items) {
+        elseif ($listItems) {
             switch ($container_type) {
                 case 'array':
                 case 'arrayAccess':
@@ -594,7 +590,7 @@ class ValidateAgainstRuleSet
                     ++$occurrence;
                     // Recursion.
                     if (!$this->internalChallenge(
-                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $list_items->itemRules)
+                        $depth + 1, $keyPath . $prefix . $index . $suffix, $item, $listItems->itemRules)
                     ) {
                         if ($this->recordFailure) {
                             // Don't stop on failure when recording.
@@ -604,7 +600,7 @@ class ValidateAgainstRuleSet
                     }
                 }
             }
-            $minOccur = $list_items->minOccur ?? 0;
+            $minOccur = $listItems->minOccur ?? 0;
             if ($minOccur && $occurrence < $minOccur) {
                 if ($this->recordFailure) {
                     $this->record[] = '(' . $depth . ') ' . $keyPath
@@ -614,7 +610,7 @@ class ValidateAgainstRuleSet
                     return false;
                 }
             }
-            $maxOccur = $list_items->maxOccur ?? 0;
+            $maxOccur = $listItems->maxOccur ?? 0;
             if ($maxOccur && $occurrence > $maxOccur) {
                 if ($this->recordFailure) {
                     $this->record[] = '(' . $depth . ') ' . $keyPath . ': listItems - saw more instances '
@@ -668,7 +664,80 @@ class ValidateAgainstRuleSet
      */
     protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
     {
-        return false;
+        $failed = false;
+        $record = [];
+        $keys_found = [];
+        foreach ($subject as $key => $value) {
+            if (!in_array($key, $tableElements->keys, true)) {
+                if ($tableElements->exclusive) {
+                    if ($this->recordFailure) {
+                        $failed = true;
+                        $record[] = $this->recordCurrent(
+                            'tableElements excludes key[' . $key . ']'
+                        );
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                elseif ($tableElements->whitelist) {
+                    if (!in_array($key, $tableElements->whitelist, true)) {
+                        if ($this->recordFailure) {
+                            $failed = true;
+                            $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                }
+                elseif ($tableElements->blacklist && in_array($key, $tableElements->blacklist, true)) {
+                    if ($this->recordFailure) {
+                        $failed = true;
+                        $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                // Don't validate.
+                continue;
+            }
+
+            if (!$this->internalChallenge(
+                $value, $tableElements->rulesByElements[$key], $depth + 1, $keyPath . ' > ' . $key
+            )) {
+                if ($this->recordFailure) {
+                    $failed = true;
+                    // Don't record failure of child here.
+                }
+                else {
+                    return false;
+                }
+            }
+
+            $keys_found[] = $key;
+        }
+
+        // Find missing keys that aren't defined optional.
+        $missing = array_diff($tableElements->keys, $keys_found);
+        foreach ($missing as $key) {
+            if (empty($tableElements->rulesByElements[$key]->optional)) {
+                if ($this->recordFailure) {
+                    $failed = true;
+                    $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
+        if ($failed && $this->recordFailure && $record) {
+            $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
+        }
+
+        return !$failed;
     }
 
     /**
@@ -684,5 +753,62 @@ class ValidateAgainstRuleSet
     protected function listItems($subject, ListItems $listItems, int $depth, string $keyPath) : bool
     {
         return false;
+    }
+
+    /**
+     * @param string $ruleOrMessage
+     * @param array|null $arguments
+     *
+     * @return string
+     */
+    protected function recordCurrent(string $ruleOrMessage, array $arguments = null) : string
+    {
+        if ($arguments === null) {
+            return $ruleOrMessage;
+        }
+        $s = [];
+        foreach ($arguments as $arg) {
+            $arg_type = Helper::getType($arg);
+            switch ($arg_type) {
+                case 'boolean':
+                    $s[] = $arg ? 'true' : 'false';
+                    break;
+                case 'integer':
+                case 'float':
+                    $s[] = '' . $arg;
+                    break;
+                case 'string':
+                    $s[] = "'" . $arg . "'";
+                    break;
+                default:
+                    $s[] = '(' . $arg_type . ')';
+            }
+        }
+        return $ruleOrMessage . '(' . join(', ', $s) . ')';
+    }
+
+    /**
+     * @param mixed $subject
+     * @param int $depth
+     * @param string $keyPath
+     * @param string $message
+     */
+    protected function recordCumulative($subject, int $depth, string $keyPath, string $message) : void
+    {
+        $v = null;
+        if (is_scalar($subject)) {
+            $v = !is_string($subject) || strlen($subject) <= 50 ? $subject :
+                (substr($subject, 50) . '...(truncated)');
+        }
+        $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . $message
+            . ' - saw type[' . Helper::getType($subject) . ']'. ($v === null ? '' : (' value[' . $v . ']')) . '.';
+    }
+
+    /**
+     * @return array
+     */
+    public function __debugInfo()
+    {
+        return get_object_vars($this);
     }
 }

@@ -15,6 +15,16 @@ namespace SimpleComplex\Validate;
 class Helper
 {
     /**
+     * @param object $object
+     *
+     * @return array
+     */
+    public static function getPublicProperties(object $object) : array
+    {
+        return get_object_vars($object);
+    }
+
+    /**
      * To overcome the fact that a class/object cannot within itself
      * discriminate between public and private methods.
      *

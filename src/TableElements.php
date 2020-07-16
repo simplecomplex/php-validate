@@ -13,10 +13,14 @@ use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
- * Pseudo rule listing ValidationRuleSets of elements of object|array subject.
+ * Pseudo rule listing ValidationRuleSets of elements of a 'loopable'
+ * object|array subject.
+ * @see Validate::loopable()
+ *
+ * TableElements is an optional property of ValidationRuleSet.
  * @see ValidationRuleSet::$tableElements
  *
- * Flags/lists exclusive, whitelist and blacklist are mutually exclusive.
+ * Modifiers exclusive, whitelist and blacklist are mutually exclusive.
  *
  * tableElements combined with listItems is allowed.
  * Relevant for a container derived from XML, which allows hash table
@@ -33,13 +37,28 @@ class TableElements
     const CLASS_RULE_SET = ValidationRuleSet::class;
 
     /**
-     * @var ValidationRuleSet
+     * @var mixed[]
+     */
+    const MODIFIERS = [
+        'exclusive' => null,
+        'whitelist' => null,
+        'blacklist' => null,
+    ];
+
+    /**
+     * @var ValidationRuleSet[]
      */
     public $rulesByElements = [];
 
     /**
-     * Subject object|array must not contain any other keys
-     * than those defined by rulesByElements.
+     * Keys of the elements specified.
+     *
+     * @var string[]
+     */
+    public $keys = [];
+
+    /**
+     * Subject object|array must only contain keys defined by rulesByElements.
      *
      * @var bool
      */
@@ -75,6 +94,20 @@ class TableElements
     public function __construct(
         object $tableElements, RuleProviderInterface $ruleProvider, int $depth = 0, string $keyPath = 'root'
     ) {
+        // Body moved to separate methods for simpler override.
+        $this->defineModifiers($tableElements, $depth, $keyPath);
+        $this->defineRulesByElements($tableElements, $ruleProvider, $depth, $keyPath);
+    }
+
+    /**
+     * @see TableElements::__construct()
+     *
+     * @param object $tableElements
+     * @param int $depth
+     * @param string $keyPath
+     */
+    protected function defineModifiers($tableElements, $depth, $keyPath) : void
+    {
         $modifiers = [];
         if (!empty($tableElements->exclusive)) {
             $this->exclusive = true;
@@ -107,7 +140,22 @@ class TableElements
                 . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }
+    }
 
+    /**
+     * Assumes that arg $tableElements in itself is the rulesByElements
+     * hashtable, if $tableElements doesn't have a rulesByElements property
+     * nor any of the modifier properties.
+     *
+     * @see TableElements::__construct()
+     *
+     * @param object $tableElements
+     * @param RuleProviderInterface $ruleProvider
+     * @param int $depth
+     * @param string $keyPath
+     */
+    protected function defineRulesByElements($tableElements, $ruleProvider, $depth, $keyPath) : void
+    {
         if (property_exists($tableElements, 'rulesByElements')) {
             if (!is_object($tableElements->rulesByElements) && !is_array($tableElements->rulesByElements)) {
                 throw new InvalidRuleException(
@@ -118,22 +166,26 @@ class TableElements
             $self_rulesByElements = false;
             $rulesByElements = $tableElements->rulesByElements;
         }
-        elseif (
-            !property_exists($tableElements, 'exclusive')
-            && !property_exists($tableElements, 'whitelist')
-            && !property_exists($tableElements, 'blacklist')
-        ) {
+        else {
             // Assume that arg $tableElements in itself is the rulesByElements
             // hashtable.
             $self_rulesByElements = true;
+            // Ensure that no modifier exists.
+            $mods = array_keys(static::MODIFIERS);
+            foreach ($mods as $mod) {
+                if (property_exists($tableElements, $mod)) {
+                    $self_rulesByElements = false;
+                    break;
+                }
+            }
+            if (!$self_rulesByElements) {
+                throw new InvalidRuleException(
+                    'Validation tableElements misses child rulesByElements, and has one or more modifiers'
+                    . ', thus cannot assume tableElements in itself is the rulesByElements'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
             $rulesByElements = $tableElements;
-        }
-        else {
-            throw new InvalidRuleException(
-                'Validation tableElements misses child rulesByElements, and has one or more modifiers'
-                . ', thus cannot assume tableElements in itself is the rulesByElements'
-                . ', at (' . $depth . ') ' . $keyPath . '.'
-            );
         }
 
         $class_rule_set = static::CLASS_RULE_SET;
@@ -165,6 +217,23 @@ class TableElements
                     . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
+
+            if ($this->whitelist) {
+                if (in_array($key, $this->whitelist, true)) {
+                    throw new InvalidRuleException(
+                        'Validation tableElements.whitelist cannot contain key[' . $key. '] also specified'
+                        . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
+                    );
+                }
+            }
+            elseif ($this->blacklist && in_array($key, $this->blacklist, true)) {
+                throw new InvalidRuleException(
+                    'Validation tableElements.blacklist cannot contain key[' . $key. '] also specified'
+                    . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
+
+            $this->keys[] = $key;
         }
     }
 }

@@ -12,6 +12,18 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ### Changed
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
+  
+* alternativeRuleSet is now allowed to contain own alternativeRuleSet.
+
+* tableElements, listItems combined is legal, but if tableElements pass then
+  listItems won't be used/checked.
+
+* Recursive validation (ValidateAgainstRuleSet) now iterates tableElements
+  by subject buckets (instead of tableElements.rulesByElements), and then checks
+  for missing non-optional keys of subject afterwards.
+  That alters the sequence of failure records, from (pretty) order given
+  by tableElements to arbitrary order given by subject.
+  
 * Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
 * Removed class RuleProviderInfo.
 * Class ValidationRuleSet tableElements|listItems properties are now instances

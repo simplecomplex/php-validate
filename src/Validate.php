@@ -334,6 +334,8 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules.
      *
+     * Stops on first failure.
+     *
      * Reuses the same ValidateAgainstRuleSet across Validate instances
      * and calls to this method.
      *
@@ -358,6 +360,8 @@ class Validate implements RuleProviderInterface
     /**
      * Validate by a list of rules, recording validation failures.
      *
+     * Doesn't stop on failure, continues to the very end.
+     *
      * Creates a new ValidateAgainstRuleSet instance on every call.
      *
      * @code
@@ -380,7 +384,7 @@ class Validate implements RuleProviderInterface
      * @throws \Throwable
      *      Propagated.
      */
-    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root')
+    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root') : array
     {
         $validate_by_rules = new ValidateAgainstRuleSet($this, [
             'recordFailure' => true,
