@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
+
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -51,13 +52,6 @@ class TableElements
     public $rulesByElements = [];
 
     /**
-     * Keys of the elements specified.
-     *
-     * @var string[]
-     */
-    public $keys = [];
-
-    /**
      * Subject object|array must only contain keys defined by rulesByElements.
      *
      * @var bool
@@ -86,17 +80,17 @@ class TableElements
      * hashtable, if $tableElements doesn't have a rulesByElements property
      * nor any of the modifier properties.
      *
+     * @param RuleSetFactory $ruleSetFactory
      * @param object $tableElements
-     * @param RuleProviderInterface $ruleProvider
      * @param int $depth
      * @param string $keyPath
      */
     public function __construct(
-        object $tableElements, RuleProviderInterface $ruleProvider, int $depth = 0, string $keyPath = 'root'
+        RuleSetFactory $ruleSetFactory, object $tableElements, int $depth = 0, string $keyPath = 'root'
     ) {
         // Body moved to separate methods for simpler override.
         $this->defineModifiers($tableElements, $depth, $keyPath);
-        $this->defineRulesByElements($tableElements, $ruleProvider, $depth, $keyPath);
+        $this->defineRulesByElements($ruleSetFactory, $tableElements, $depth, $keyPath);
     }
 
     /**
@@ -149,12 +143,12 @@ class TableElements
      *
      * @see TableElements::__construct()
      *
+     * @param RuleSetFactory $ruleSetFactory
      * @param object $tableElements
-     * @param RuleProviderInterface $ruleProvider
      * @param int $depth
      * @param string $keyPath
      */
-    protected function defineRulesByElements($tableElements, $ruleProvider, $depth, $keyPath) : void
+    protected function defineRulesByElements(RuleSetFactory $ruleSetFactory, $tableElements, $depth, $keyPath) : void
     {
         if (property_exists($tableElements, 'rulesByElements')) {
             if (!is_object($tableElements->rulesByElements) && !is_array($tableElements->rulesByElements)) {
@@ -172,16 +166,17 @@ class TableElements
             $self_rulesByElements = true;
             // Ensure that no modifier exists.
             $mods = array_keys(static::MODIFIERS);
+            $mods_found = [];
             foreach ($mods as $mod) {
                 if (property_exists($tableElements, $mod)) {
                     $self_rulesByElements = false;
-                    break;
+                    $mods_found[] = $mod;
                 }
             }
             if (!$self_rulesByElements) {
                 throw new InvalidRuleException(
-                    'Validation tableElements misses child rulesByElements, and has one or more modifiers'
-                    . ', thus cannot assume tableElements in itself is the rulesByElements'
+                    'Validation tableElements misses child rulesByElements, and has modifiers['
+                    . join(', ', $mods_found) . '], thus can\'t assume tableElements in itself is rulesByElements'
                     . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
@@ -190,7 +185,7 @@ class TableElements
 
         $class_rule_set = static::CLASS_RULE_SET;
         foreach ($rulesByElements as $key => $ruleSet) {
-            if ($ruleSet instanceof ValidationRuleSet) {
+            if ($ruleSet instanceof $class_rule_set) {
                 $this->rulesByElements[$key] = $ruleSet;
             }
             elseif (is_object($ruleSet)) {
@@ -199,7 +194,7 @@ class TableElements
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
                      */
-                    new $class_rule_set($ruleSet, $ruleProvider, $depth + 1, $keyPath . ' > ' . $key);
+                    $ruleSetFactory->make($ruleSet, $depth + 1, $keyPath . ' > ' . $key);
             }
             elseif (is_array($ruleSet)) {
                 $this->rulesByElements[$key] =
@@ -207,7 +202,7 @@ class TableElements
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
                      */
-                    new $class_rule_set((object) $ruleSet, $ruleProvider, $depth + 1, $keyPath . ' > ' . $key);
+                    $ruleSetFactory->make((object) $ruleSet, $depth + 1, $keyPath . ' > ' . $key);
             }
             else {
                 throw new InvalidRuleException(
@@ -232,8 +227,6 @@ class TableElements
                     . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
-
-            $this->keys[] = $key;
         }
     }
 }

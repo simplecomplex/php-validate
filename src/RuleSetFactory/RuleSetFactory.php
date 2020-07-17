@@ -46,6 +46,11 @@ class RuleSetFactory
     public $typeCheckingMethods;
 
     /**
+     * @var int[]
+     */
+    public $typeInference;
+
+    /**
      * @see
      *
      * @var int[]
@@ -67,6 +72,7 @@ class RuleSetFactory
         $this->rulesSupported = $ruleProvider->getRuleMethods();
         $this->rulesRenamed = $ruleProvider->getRulesRenamed();
         $this->typeCheckingMethods = $ruleProvider->getTypeMethods();
+        $this->typeInference = $ruleProvider->getTypeInference();
 
         $parameterSpecs = $ruleProvider->getParameterSpecs();
         $this->paramsRequired = $parameterSpecs['required'];

@@ -482,11 +482,12 @@ class ValidateAgainstRuleSet
      */
     protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
     {
+        $table_keys = array_keys($tableElements->rulesByElements);
         $failed = false;
         $record = [];
         $keys_found = [];
         foreach ($subject as $key => $value) {
-            if (!in_array($key, $tableElements->keys, true)) {
+            if (!in_array($key, $table_keys, true)) {
                 if ($tableElements->exclusive) {
                     if ($this->recordFailure) {
                         $failed = true;
@@ -538,7 +539,7 @@ class ValidateAgainstRuleSet
         }
 
         // Find missing keys that aren't defined optional.
-        $missing = array_diff($tableElements->keys, $keys_found);
+        $missing = array_diff($table_keys, $keys_found);
         foreach ($missing as $key) {
             if (empty($tableElements->rulesByElements[$key]->optional)) {
                 if ($this->recordFailure) {

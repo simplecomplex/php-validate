@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleSetFactory;
 
-
+use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\Helper;
 use SimpleComplex\Validate\ValidationRuleSet;
 use SimpleComplex\Validate\TableElements;
@@ -22,6 +22,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * Creates a single validation ruleset,
  * possibly a child and/or parent of other rulesets.
  *
+ * @see RuleSetFactory::make()
  *
  * @package SimpleComplex\Validate
  */
@@ -81,6 +82,15 @@ class RuleSetGenerator
     ];
 
     /**
+     * @var string[]
+     */
+    const TYPE_INFERENCE_METHOD = [
+        Type::NUMERIC => 'numeric',
+        Type::STRINGABLE => 'stringableScalar',
+        Type::LOOPABLE => 'loopable',
+    ];
+
+    /**
      * @var RuleSetFactory
      */
     protected $factory;
@@ -121,7 +131,7 @@ class RuleSetGenerator
     protected $allowNull;
 
     /**
-     * Type-checking rules must go near or at the top of the ruleset.
+     * Type-checking rules must be the first real rules of the ruleset.
      *
      * @var RuleSetRule[]
      */
@@ -149,11 +159,15 @@ class RuleSetGenerator
     protected $rulesPlain = [];
 
     /**
+     * Goes at bottom, for clarity only.
+     *
      * @var mixed[]|null
      */
     protected $alternativeEnum;
 
     /**
+     * Goes at bottom, for clarity only.
+     *
      * @var ValidationRuleSet|null
      */
     protected $alternativeRuleSet;
@@ -174,6 +188,8 @@ class RuleSetGenerator
 
 
     /**
+     * @see RuleSetFactory::make()
+     *
      * @param RuleSetFactory $factory
      * @param object|array $rules
      *      ArrayAccess is not supported.
@@ -222,11 +238,11 @@ class RuleSetGenerator
         foreach ($this->rulesRaw as $rule => $argument) {
             // Simple non-parameter rule declared by value instead of key.
             if (ctype_digit('' . $rule)) {
-                $this->ruleByValue($rule, $argument);
+                $this->ruleByValue((int) $rule, $argument);
             }
             // Rule by key, value true|array.
             else {
-                $this->ruleByValue($rule, $argument);
+                $this->ruleByKey($rule, $argument);
             }
         }
 
@@ -236,12 +252,69 @@ class RuleSetGenerator
             $this->ensureTypeChecking();
         }
 
-        $class_ruleset = static::CLASS_RULE_SET;
-        return new $class_ruleset();
+        return $this->passRules();
     }
 
     /**
+     * @see RuleSetGenerator::CLASS_RULE_SET
      *
+     * @return string
+     */
+    public function classRuleSet() : string
+    {
+        return static::CLASS_RULE_SET;
+    }
+
+    /**
+     * @return ValidationRuleSet
+     */
+    protected function passRules() : ValidationRuleSet
+    {
+        $class_ruleset = static::CLASS_RULE_SET;
+        /** @var ValidationRuleSet $ruleset */
+        $ruleset = new $class_ruleset();
+
+        // At top for clarity.
+        if ($this->optional) {
+            $ruleset->optional = true;
+        }
+        if ($this->allowNull) {
+            $ruleset->allowNull = true;
+        }
+
+        // Type-checking rules must be the first real rules of the ruleset.
+        foreach ($this->rulesTypeChecking as $rule) {
+            $ruleset->{$rule->name} = $rule->argument;
+        }
+
+        // Goes after type-checking, but don't require type-checking.
+        if ($this->empty) {
+            $ruleset->empty = true;
+        }
+        elseif ($this->nonEmpty) {
+            $ruleset->nonEmpty = true;
+        }
+
+        // Non-type-checking rules must go after type-checking.
+        foreach ($this->rulesPlain as $rule) {
+            $ruleset->{$rule->name} = $rule->argument;
+        }
+
+        // Pseudo rules go at bottom of the ruleset, for clarity only.
+        foreach (['alternativeEnum', 'alternativeRuleSet', 'tableElements', 'listItems'] as $pseudoRule) {
+            if ($this->{$pseudoRule}) {
+                $ruleset->{$pseudoRule} = $this->{$pseudoRule};
+            }
+        }
+
+        return $ruleset;
+    }
+
+    /**
+     * Ensures that the ruleset will contain a type-checking method,
+     * if necessary.
+     *
+     * Also checks that the resulting ruleset isn't effectively empty.
      *
      * @throws InvalidRuleException
      */
@@ -271,13 +344,109 @@ class RuleSetGenerator
 
         // tableElements|listItems require loopable container.
         if ($this->tableElements || $this->listItems) {
-            $this->rulesTypeChecking['loopable'] = new RuleSetRule('loopable', true);
+            $method = static::TYPE_INFERENCE_METHOD[Type::LOOPABLE];
+            $this->rulesTypeChecking[$method] = new RuleSetRule($method, true);
             return;
         }
 
+        if (!$this->rulesPlain) {
+            throw new \LogicException(__CLASS__ . '::$rulesPlain cannot be at this stage.');
+        }
+        $rule = reset($this->rulesPlain);
+        $typeInference = $this->factory->typeInference[$rule->name] ?? null;
+        if (!$typeInference) {
+            throw new \LogicException(
+                'Rule provider ' . get_class($this->factory->ruleProvider)
+                . ' misses type inference for rule[' . $rule->name . '].'
+            );
+        }
+        $method = static::TYPE_INFERENCE_METHOD[$typeInference];
+        $this->rulesTypeChecking[$method] = new RuleSetRule($method, true);
     }
 
+    /**
+     * Checks arguments of rules, and passes them to lists
+     * of either type-checking or plain rules.
+     */
+    protected function resolveCandidates() : void
+    {
+        foreach ($this->ruleCandidates as $name => $rule) {
+            // Check argument(s).
+            if ($rule->argument === true) {
+                if ($rule->paramsRequired) {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg(
+                            $rule, ' requires array(' . $rule->paramsRequired . ') - saw type[true]'
+                        )
+                    );
+                }
+            }
+            elseif (is_array($rule->argument)) {
+                if (!$rule->argument && !$rule->paramsRequired && !$rule->paramsAllowed) {
+                    // Allow empty array when no parameters supported.
+                    $rule->argument = true;
+                }
+                else {
+                    $n_args = count($rule->argument);
+                    if ($n_args < $rule->paramsRequired) {
+                        throw new InvalidRuleException(
+                            $this->candidateErrorMsg(
+                                $rule, ' requires array(' . $rule->paramsRequired . ') - saw array(' . $n_args . ')'
+                            )
+                        );
+                    }
+                    // Allowed may be more than required.
+                    $paramsSupported = $rule->paramsAllowed ? $rule->paramsAllowed : $rule->paramsRequired;
+                    if ($n_args > $paramsSupported) {
+                        if (!$paramsSupported) {
+                            throw new InvalidRuleException(
+                                $this->candidateErrorMsg(
+                                    $rule, ' takes no arguments - saw array(' . count($rule->argument) . ')'
+                                )
+                            );
+                        }
+                        throw new InvalidRuleException(
+                            $this->candidateErrorMsg(
+                                $rule, ' supports array(' . $paramsSupported . ') - saw array(' . $n_args . ')'
+                            )
+                        );
+                    }
+                }
+            }
+            elseif (is_scalar($rule->argument)) {
+                if ($rule->paramsRequired == 1 || $rule->paramsAllowed == 1) {
+                    // Allow scalar (not true, though) if single parameter supported.
+                    $rule->argument = [
+                        $rule->argument
+                    ];
+                }
+                else {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg(
+                            $rule, ' takes no arguments - saw type[' . Helper::getType($rule->argument) . ']'
+                        )
+                    );
+                }
+            }
+            else {
+                throw new InvalidRuleException(
+                    $this->candidateErrorMsg(
+                        $rule, ' invalid value type[' . Helper::getType($rule->argument) . ']'
+                    )
+                );
+            }
 
+            if (in_array($name, $this->factory->typeCheckingMethods, true)) {
+                $this->rulesTypeChecking[$name] = $rule;
+            }
+            else {
+                $this->rulesPlain[$name] = $rule;
+            }
+        }
+
+        // All done, clear references.
+        $this->ruleCandidates = [];
+    }
 
     /**
      * @param string $rule
@@ -310,7 +479,7 @@ class RuleSetGenerator
             case 'enum':
                 // Is type-checking. Must be, because also used
                 // for alternativeEnum.
-                $this->rulesTypeChecking['enum'] = $this->enum($rule, $argument);
+                $this->rulesTypeChecking['enum'] = new RuleSetRule('enum', $this->enum($rule, $argument));
                 break;
 
             case 'alternativeEnum':
@@ -438,90 +607,6 @@ class RuleSetGenerator
     }
 
     /**
-     * Checks arguments of rules, and passes them to lists
-     * of either type-checking or plain rules.
-     */
-    protected function resolveCandidates() : void
-    {
-        foreach ($this->ruleCandidates as $name => $rule) {
-            // Check argument(s).
-            if ($rule->argument === true) {
-                if ($rule->paramsRequired) {
-                    throw new InvalidRuleException(
-                        $this->candidateErrorMsg(
-                            $rule, ' requires array(' . $rule->paramsRequired . ') - saw type[true]'
-                        )
-                    );
-                }
-            }
-            elseif (is_array($rule->argument)) {
-                if (!$rule->argument && !$rule->paramsRequired && !$rule->paramsAllowed) {
-                    // Allow empty array when no parameters supported.
-                    $rule->argument = true;
-                }
-                else {
-                    $n_args = count($rule->argument);
-                    if ($n_args < $rule->paramsRequired) {
-                        throw new InvalidRuleException(
-                            $this->candidateErrorMsg(
-                                $rule, ' requires array(' . $rule->paramsRequired . ') - saw array(' . $n_args . ')'
-                            )
-                        );
-                    }
-                    // Allowed may be more than required.
-                    $paramsSupported = $rule->paramsAllowed ? $rule->paramsAllowed : $rule->paramsRequired;
-                    if ($n_args > $paramsSupported) {
-                        if (!$paramsSupported) {
-                            throw new InvalidRuleException(
-                                $this->candidateErrorMsg(
-                                    $rule, ' takes no arguments - saw array(' . count($rule->argument) . ')'
-                                )
-                            );
-                        }
-                        throw new InvalidRuleException(
-                            $this->candidateErrorMsg(
-                                $rule, ' supports array(' . $paramsSupported . ') - saw array(' . $n_args . ')'
-                            )
-                        );
-                    }
-                }
-            }
-            elseif (is_scalar($rule->argument)) {
-                if ($rule->paramsRequired == 1 || $rule->paramsAllowed == 1) {
-                    // Allow scalar (not true, though) if single parameter supported.
-                    $rule->argument = [
-                        $rule->argument
-                    ];
-                }
-                else {
-                    throw new InvalidRuleException(
-                        $this->candidateErrorMsg(
-                            $rule, ' takes no arguments - saw type[' . Helper::getType($rule->argument) . ']'
-                        )
-                    );
-                }
-            }
-            else {
-                throw new InvalidRuleException(
-                    $this->candidateErrorMsg(
-                        $rule, ' invalid value type[' . Helper::getType($rule->argument) . ']'
-                    )
-                );
-            }
-
-            if (in_array($name, $this->factory->typeCheckingMethods, true)) {
-                $this->rulesTypeChecking[$name] = $rule;
-            }
-            else {
-                $this->rulesPlain[$name] = $rule;
-            }
-        }
-
-        // All done, clear references.
-        $this->ruleCandidates = [];
-    }
-
-    /**
      * @param RuleSetRule $rule
      * @param string $message
      *
@@ -546,7 +631,6 @@ class RuleSetGenerator
         }
         return $msg . $message . ', at (' . $this->depth . ') ' . $this->keyPath . '.';
     }
-
 
     /**
      * Pseudo rule listing valid values.
@@ -610,27 +694,28 @@ class RuleSetGenerator
      * @throws InvalidRuleException
      *      Arg $arguments not object|array.
      */
-    protected function tableElements($argument) : TableElements {
+    protected function tableElements($argument) : TableElements
+    {
+        $class_table_elements = static::CLASS_TABLE_ELEMENTS;
         if (is_object($argument)) {
-            if ($argument instanceof TableElements) {
+            if ($argument instanceof $class_table_elements) {
+                // IDE stupid.
                 return $argument;
             }
             else {
-                $class = static::CLASS_TABLE_ELEMENTS;
                 /**
                  * new TableElements(
                  * @see TableElements::__construct()
                  */
-                return new $class($argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+                return new $class_table_elements($this->factory, $argument, $this->depth, $this->keyPath);
             }
         }
         elseif (is_array($argument)) {
-            $class = static::CLASS_TABLE_ELEMENTS;
             /**
              * new TableElements(
              * @see TableElements::__construct()
              */
-            return new $class((object) $argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+            return new $class_table_elements($this->factory, (object) $argument, $this->depth, $this->keyPath);
         }
         throw new InvalidRuleException(
             'Validation \'tableElements\' type[' . Helper::getType($argument)
@@ -650,17 +735,18 @@ class RuleSetGenerator
      */
     protected function listItems($argument) : ListItems
     {
+        $class_list_items = static::CLASS_LIST_ITEMS;
         if (is_object($argument)) {
-            if ($argument instanceof ListItems) {
+            if ($argument instanceof $class_list_items) {
+                // IDE stupid.
                 return $argument;
             }
             else {
-                $class = static::CLASS_LIST_ITEMS;
                 /**
                  * new ListItems(
                  * @see ListItems::__construct()
                  */
-                return new $class($argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+                return new $class_list_items($this->factory, $argument, $this->depth, $this->keyPath);
             }
         }
         elseif (is_array($argument)) {
@@ -669,7 +755,7 @@ class RuleSetGenerator
              * new ListItems(
              * @see ListItems::__construct()
              */
-            return new $class((object) $argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+            return new $class($this->factory, (object) $argument, $this->depth, $this->keyPath);
         }
         throw new InvalidRuleException(
             'Validation \'listItems\' type[' . Helper::getType($argument)

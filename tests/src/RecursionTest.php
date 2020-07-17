@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\ValidationRuleSet;
+use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
 /**
  * @code
@@ -41,7 +42,7 @@ class RecursionTest extends TestCase
 
         $source = BicycleRuleSets::original();
 
-        $ruleSet = new ValidationRuleSet($source, $validate);
+        $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
         \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
     }

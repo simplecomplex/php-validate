@@ -50,6 +50,16 @@ interface RuleProviderInterface
     public function getTypeMethods() : array;
 
     /**
+     * Methods that don't do type-checking, and what type they implicitly
+     * expects.
+     *
+     * @return int[]
+     *
+     * @see Validate::getTypeInference()
+     */
+    public function getTypeInference() : array;
+
+    /**
      * Lists rules renamed; current rule name by old rule name.
      *
      * @return string[]

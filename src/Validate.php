@@ -69,9 +69,7 @@ class Validate implements RuleProviderInterface
      *
      * First object instantiated via this method, being class of class called on.
      *
-     * Consider using a dependency injection container instead.
-     * @see \SimpleComplex\Utils\Dependency
-     * @see \Slim\Container
+     * @see Validate::challenge()
      *
      * @param mixed ...$constructorParams
      *      Validate child class constructor may have parameters.
@@ -102,13 +100,11 @@ class Validate implements RuleProviderInterface
     const NON_RULE_METHODS = [
         'getInstance' => null,
         '__construct' => null,
-        //'getNonRuleMethods' => null,
         'getRuleMethods' => null,
-        'getTypeMethods' => null,
-        'getParameterMethods' => null,
-        'getParametersRequired' => null,
-        'getParametersAllowed' => null,
         'getRulesRenamed' => null,
+        'getTypeMethods' => null,
+        'getTypeInference' => null,
+        'getParametersSpecs' => null,
         '__call' => null,
         'challenge' => null,
         'challengeRecording' => null,
@@ -118,12 +114,21 @@ class Validate implements RuleProviderInterface
      * Methods that explicitly promise to check the subject's type
      * or that subject's type is a simple and sensibly coercible scalar.
      *
+     * @see Validate::getTypeMethods()
+     *
      * No type rule is allowed to take other arguments than the subject,
      * except the 'class' rule (which requires class name argument).
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
-     * of these methods then ValidationRuleSet makes a guess; ultimately string.
-     * @see ValidationRuleSet::inferTypeCheckingRule()
+     * of these methods then RuleSetGenerator makes a guess.
+     * @see Validate::TYPE_INFERENCE
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * Keys are methods names, values may be anything.
+     * Allows a child class to extend parent's list by doing
+     * const TYPE_METHODS = [
+     *   'someMethod' => null,
+     * ] + ParentClass::TYPE_METHODS;
      *
      * @var mixed[]
      */
@@ -157,7 +162,19 @@ class Validate implements RuleProviderInterface
         'indexedArray' => null,
     ];
 
-    const RULE_TYPE_INFER = [
+    /**
+     * Methods that don't do type-checking, and what type they implicitly
+     * expects.
+     *
+     * @see Validate::getTypeInference()
+     *
+     * Used by RuleSetGenerator to secure a type checking rule when none such
+     * mentioned in the source of a validation rule set (e.g. JSON).
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * @var int[]
+     */
+    const TYPE_INFERENCE = [
         'bit32' => Type::NUMERIC,
         'bit64' => Type::NUMERIC,
         'positive' => Type::NUMERIC,
@@ -201,50 +218,12 @@ class Validate implements RuleProviderInterface
         'email' => Type::STRINGABLE,
     ];
 
-//    /**
-//     * Methods of this class that takes more arguments than just the subject.
-//     *
-//     * The arguments are required if the method bucket is true.
-//     *
-//     * @see Validate::getParameterMethods()
-//     *
-//     * @var array[]
-//     */
-//    const PARAMETER_METHODS = [
-//        'enum' => [1, 1],
-//        'class' => [1, 1],
-//        'min' => [1, 1],
-//        'max' => [1, 1],
-//        'range' => [2, 2],
-//        'regex' => [1, 1],
-//        'unicodeMultiLine' => [0, 1],
-//        'unicodeMinLength' => [1, 1],
-//        'unicodeMaxLength' => [1, 1],
-//        'unicodeExactLength' => [1, 1],
-//        'hex' => [0, 1],
-//        'asciiMultiLine' => [0, 1],
-//        'minLength' => [1, 1],
-//        'maxLength' => [1, 1],
-//        'exactLength' => [1, 1],
-//        'alphaNum' => [0, 1],
-//        'name' => [0, 1],
-//        'camelName' => [0, 1],
-//        'snakeName' => [0, 1],
-//        'lispName' => [0, 1],
-//        'uuid' => [0, 1],
-//        'dateISO8601' => [0, 1],
-//        'timeISO8601' => [0, 1],
-//        'dateTimeISO8601' => [0, 1],
-//        'dateTimeISO8601Zonal' => [0, 1],
-//        'dateTimeISOUTC' => [0, 1],
-//    ];
-
     /**
      * Number of required parameters, by rule method name.
      *
      * @var int[]
      */
-    const RULE_PARAMS_REQUIRED = [
+    const PARAMS_REQUIRED = [
         'enum' => 1,
         'class' => 1,
         'min' => 1,
@@ -265,7 +244,7 @@ class Validate implements RuleProviderInterface
      *
      * @var int[]
      */
-    const RULE_PARAMS_ALLOWED = [
+    const PARAMS_ALLOWED = [
         'unicodeMultiLine' => 1,
         'hex' => 1,
         'asciiMultiLine' => 1,
@@ -298,24 +277,15 @@ class Validate implements RuleProviderInterface
     /**
      * Instance vars are not allowed to have state
      * -------------------------------------------
-     * because that could affect the challenge() method, making calls leak state
+     * except general instance info.
+     * Because that could affect the challenge() method, making calls leak state
      * to eachother.
      * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
      * requested and returned instance are effectively identical.
      *
-     * Var unicode do not infringe that principle, because Unicode instances
-     * have no state. Neither do nonRuleMethods.
-     *
      * @see Validate::challenge()
      * @see ValidateAgainstRuleSet::getInstance()
      */
-
-//    /**
-//     * @see Validate::getNonRuleMethods()
-//     *
-//     * @var string[]
-//     */
-//    protected $nonRuleMethods = [];
 
     /**
      * @see Validate::getRuleMethods()
@@ -338,19 +308,6 @@ class Validate implements RuleProviderInterface
     {
     }
 
-//    /**
-//     * Lists names of public methods that aren't validation rule methods.
-//     *
-//     * @return string[]
-//     */
-//    public function getNonRuleMethods() : array
-//    {
-//        if (!$this->nonRuleMethods) {
-//            $this->nonRuleMethods = array_keys(static::NON_RULE_METHODS);
-//        }
-//        return $this->nonRuleMethods;
-//    }
-
     /**
      * Lists names of validation rule methods.
      *
@@ -371,24 +328,6 @@ class Validate implements RuleProviderInterface
     }
 
     /**
-     * Lists names of rule methods that explicitly promise to check
-     * the subject's type.
-     *
-     * If the source of a validation rule set (e.g. JSON) doesn't contain any
-     * of these methods then ValidationRuleSet makes a guess; ultimately string.
-     * @see ValidationRuleSet::inferTypeCheckingRule()
-     *
-     * @return string[]
-     */
-    public function getTypeMethods() : array
-    {
-        if (!$this->typeMethods) {
-            $this->typeMethods = array_keys(static::TYPE_METHODS);
-        }
-        return $this->typeMethods;
-    }
-
-    /**
      * Lists rule methods renamed.
      *
      * Keys is old name, value new name.
@@ -401,25 +340,58 @@ class Validate implements RuleProviderInterface
     }
 
     /**
+     * Lists names of rule methods that explicitly promise to check
+     * the subject's type.
+     *
+     * If the source of a validation rule set (e.g. JSON) doesn't contain any
+     * of these methods then ValidationRuleSet makes a guess; ultimately string.
+     * @see RuleSetGenerator::inferTypeCheckingRule()
+     *
+     * @return string[]
+     */
+    public function getTypeMethods() : array
+    {
+        if (!$this->typeMethods) {
+            $this->typeMethods = array_keys(static::TYPE_METHODS);
+        }
+        return $this->typeMethods;
+    }
+
+    /**
+     * Methods that don't do type-checking, and what type they implicitly
+     * expects.
+     *
+     * Used by RuleSetGenerator to secure a type checking rule when none such
+     * mentioned in the source of a validation rule set (e.g. JSON).
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * @return int[]
+     */
+    public function getTypeInference() : array
+    {
+        return static::TYPE_INFERENCE;
+    }
+
+    /**
      * Two lists of number of required/allowed arguments.
      *
      * Number of required parameters, by rule method name.
-     * @see Validate::RULE_PARAMS_REQUIRED
+     * @return int[][] {
+     * @see Validate::PARAMS_ALLOWED
+     *
+     * @see Validate::PARAMS_REQUIRED
      *
      * Number of allowed parameters - if none required
      * or if allows more than required - by rule method name.
-     * @see Validate::RULE_PARAMS_ALLOWED
-     *
-     * @return int[][] {
-     *      @var int[] $required
+     * @var int[] $required
      *      @var int[] $allowed
      * }
      */
     public function getParameterSpecs() : array
     {
         return [
-            'required' => static::RULE_PARAMS_REQUIRED,
-            'allowed' => static::RULE_PARAMS_ALLOWED,
+            'required' => static::PARAMS_REQUIRED,
+            'allowed' => static::PARAMS_ALLOWED,
         ];
     }
 

@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
+
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -53,13 +54,13 @@ class ListItems
      * if $listItems doesn't have a itemRules property
      * nor any of the modifier properties.
      *
+     * @param RuleSetFactory $ruleSetFactory
      * @param object $listItems
-     * @param RuleProviderInterface $ruleProvider
      * @param int $depth
      * @param string $keyPath
      */
     public function __construct(
-        object $listItems, RuleProviderInterface $ruleProvider, int $depth = 0, string $keyPath = 'root'
+        RuleSetFactory $ruleSetFactory, object $listItems, int $depth = 0, string $keyPath = 'root'
     ) {
         if (isset($listItems->minOccur)) {
             if (!is_int($listItems->minOccur)) {
@@ -94,31 +95,28 @@ class ListItems
             }
         }
 
+        $class_rule_set = static::CLASS_RULE_SET;
         if (property_exists($listItems, 'itemRules')) {
             if (is_object($listItems->itemRules)) {
-                if ($listItems->itemRules instanceof ValidationRuleSet) {
+                if ($listItems->itemRules instanceof $class_rule_set) {
                     $this->itemRules = $listItems->itemRules;
                 }
                 else {
-                    $class_rule_set = static::CLASS_RULE_SET;
                     $this->itemRules =
                         /**
                          * new ValidationRuleSet(
                          * @see ValidationRuleSet::__construct()
                          */
-                        new $class_rule_set($listItems->itemRules, $ruleProvider, $depth + 1, $keyPath . '(itemRules)');
+                        $ruleSetFactory->make($listItems->itemRules, $depth + 1, $keyPath . '(itemRules)');
                 }
             }
             elseif (is_array($listItems->itemRules)) {
-                $class_rule_set = static::CLASS_RULE_SET;
                 $this->itemRules =
                     /**
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
                      */
-                    new $class_rule_set(
-                        (object) $listItems->itemRules, $ruleProvider, $depth + 1, $keyPath . '(itemRules)'
-                    );
+                    $ruleSetFactory->make((object) $listItems->itemRules, $depth + 1, $keyPath . '(itemRules)');
             }
             else {
                 throw new InvalidRuleException(
@@ -127,30 +125,29 @@ class ListItems
                 );
             }
         }
-        elseif (
-            !property_exists($listItems, 'minOccur')
-            && !property_exists($listItems, 'maxOccur')
-        ) {
-            // Assume that arg $listItems in itself is the itemRules ruleset.
-            if ($listItems instanceof ValidationRuleSet) {
-                $this->itemRules = $listItems;
+        else {
+            $mods_found = [];
+            foreach (['minOccur', 'maxOccur'] as $mod) {
+                if (property_exists($listItems, $mod)) {
+                    $mods_found[] = $mod;
+                }
             }
-            else {
-                $class_rule_set = static::CLASS_RULE_SET;
+            if (!$mods_found) {
+                // Assume that arg $listItems in itself is the itemRules ruleset.
                 $this->itemRules =
                     /**
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
                      */
-                    new $class_rule_set($listItems, $ruleProvider, $depth + 1, $keyPath . '(itemRules)');
+                    $ruleSetFactory->make($listItems, $depth + 1, $keyPath . '(itemRules)');
             }
-        }
-        else {
-            throw new InvalidRuleException(
-                'Validation listItems misses child itemRules, and has one or more modifiers'
-                . ', thus cannot assume listItems in itself is the itemRules'
-                . ', at (' . $depth . ') ' . $keyPath . '.'
-            );
+            else {
+                throw new InvalidRuleException(
+                    'Validation listItems misses child itemRules, and has modifiers[' . join(', ', $mods_found)
+                    . '], thus can\'t assume listItems in itself is itemRules'
+                    . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
         }
     }
 }

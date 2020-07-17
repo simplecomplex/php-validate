@@ -12,22 +12,39 @@ namespace SimpleComplex\Validate;
 
 class Type
 {
+    /**
+     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
+     * @see Validate::numeric()
+     *
+     * @var int
+     */
     const NUMERIC = 4;
 
+    /**
+     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
+     * @see Validate::stringable()
+     *
+     * @var int
+     */
     const STRINGABLE = 64;
 
+    /**
+     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
+     * @see Validate::loopable()
+     *
+     * @var int
+     */
     const LOOPABLE = 1024;
 
-
-    const RULES_NUMERIC = [
-        'integer', 'float', 'number', 'digital', 'numeric',
-    ];
-
-    const RULES_STRINGABLE = [
-        'string', 'stringableScalar', 'stringableObject', 'stringable',
-    ];
-
-    const RULES_LOOPABLE = [
-        'indexedArray', 'keyedArray', 'array', 'indexedLoopable', 'keyedLoopable', 'loopable',
-    ];
+//    const RULES_NUMERIC = [
+//        'integer', 'float', 'number', 'digital', 'numeric',
+//    ];
+//
+//    const RULES_STRINGABLE = [
+//        'string', 'stringableScalar', 'stringableObject', 'stringable',
+//    ];
+//
+//    const RULES_LOOPABLE = [
+//        'indexedArray', 'keyedArray', 'array', 'indexedLoopable', 'keyedLoopable', 'loopable',
+//    ];
 }
