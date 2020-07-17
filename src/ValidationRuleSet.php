@@ -101,6 +101,9 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * of access for other purposes is not a priority.
  *
  *
+ * @property \stdClass|undefined $tmp
+ *      Temporary instance var which only exists during construction.
+ *
  * @package SimpleComplex\Validate
  */
 class ValidationRuleSet
@@ -157,7 +160,7 @@ class ValidationRuleSet
      *      Arg $rules is \ArrayAccess.
      * @throws InvalidRuleException
      */
-    public function __construct($rules, $ruleProvider, int $depth = 0, string $keyPath = 'root')
+    public function __construct($rules, RuleProviderInterface $ruleProvider, int $depth = 0, string $keyPath = 'root')
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -185,10 +188,21 @@ class ValidationRuleSet
             );
         }
 
+        // Declare dynamically.
+        $this->tmp = new \stdClass();
+        $this->tmp->ruleProvider = $ruleProvider;
+        $this->tmp->depth = $depth;
+        $this->tmp->keyPath = $keyPath;
+
+
+
         $rules_supported = $ruleProvider->getRuleMethods();
         $type_rules_supported = $ruleProvider->getTypeMethods();
         // List of provider rules taking arguments.
-        $parameter_rules = $ruleProvider->getParameterMethods();
+//        $params_required = $ruleProvider->getParametersRequired();
+//        $params_allowed = $ruleProvider->getParametersAllowed();
+
+        //$parameter_rules = $ruleProvider->getParameterMethods();
         $rules_renamed = $ruleProvider->getRulesRenamed();
 
         $skip_rules = [];
@@ -425,6 +439,8 @@ class ValidationRuleSet
                 }
             }
         }
+
+        unset($this->tmp);
     }
 
     /**
@@ -471,6 +487,9 @@ class ValidationRuleSet
          */
         return 'string';
     }
+
+
+    //protected function rule()
 
     /**
      * Pseudo rule listing valid values.

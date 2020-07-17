@@ -13,28 +13,23 @@ namespace SimpleComplex\Validate\Interfaces;
  * Describes required properties of a class - a 'rule provider' - that can
  * provide validation rules for a ValidateAgainstRuleSet instance.
  *
- * Rule method directives
- * ----------------------
- * I  Type declaring the $subject parameter is illegal.
- * Because until everybody uses strict type mode, the outcome of passing an
- * argument of other type to a type declared parameter is ambiguous; coercion
- * or TypeError(?).
- * II  Illegal rule method names:
- * - optional, alternativeEnum, tableElements, listItems
+ * Illegal rule method names
+ * -------------------------
+ * optional, allowNull, alternativeEnum, alternativeRuleSet, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
  *
  * @package SimpleComplex\Validate
  */
 interface RuleProviderInterface
 {
-    /**
-     * Lists public methods that aren't validation rule methods.
-     *
-     * @return string[]
-     *
-     * @see Validate::getNonRuleMethods()
-     */
-    public function getNonRuleMethods() : array;
+//    /**
+//     * Lists public methods that aren't validation rule methods.
+//     *
+//     * @return string[]
+//     *
+//     * @see Validate::getNonRuleMethods()
+//     */
+//    public function getNonRuleMethods() : array;
 
     /**
      * Lists validation rule methods.
@@ -55,20 +50,27 @@ interface RuleProviderInterface
     public function getTypeMethods() : array;
 
     /**
-     * Lists rule methods that accept/require other arguments(s) than subject.
-     *
-     * @return string[]
-     *
-     * @see Validate::getParameterMethods()
-     */
-    public function getParameterMethods() : array;
-
-    /**
      * Lists rules renamed; current rule name by old rule name.
      *
      * @return string[]
      */
     public function getRulesRenamed() : array;
+
+    /**
+     * Two lists of numbers of required/allowed arguments.
+     *
+     * required: Number of required parameters, by rule method name.
+     *
+     * allowed: Number of allowed parameters - if none required
+     *      or if allows more than required - by rule method name.
+     *
+     * @return int[][] {
+     *      @var int[] $required
+     *      @var int[] $allowed
+     * }
+     */
+    public function getParameterSpecs() : array;
+
 
     /**
      * Subject is falsy or array|object is empty.

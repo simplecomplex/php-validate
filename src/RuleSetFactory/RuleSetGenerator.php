@@ -1,0 +1,679 @@
+<?php
+/**
+ * SimpleComplex PHP Validate
+ * @link      https://github.com/simplecomplex/php-validate
+ * @copyright Copyright (c) 2020 Jacob Friis Mathiasen
+ * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
+ */
+declare(strict_types=1);
+
+namespace SimpleComplex\Validate\RuleSetFactory;
+
+
+use SimpleComplex\Validate\Helper;
+use SimpleComplex\Validate\ValidationRuleSet;
+use SimpleComplex\Validate\TableElements;
+use SimpleComplex\Validate\ListItems;
+
+use SimpleComplex\Validate\Exception\OutOfRangeException;
+use SimpleComplex\Validate\Exception\InvalidRuleException;
+
+/**
+ * Creates a single validation ruleset,
+ * possibly a child and/or parent of other rulesets.
+ *
+ *
+ * @package SimpleComplex\Validate
+ */
+class RuleSetGenerator
+{
+    /**
+     * Recursion emergency brake.
+     *
+     * Ideally the depth of a rule set describing objects/arrays having nested
+     * objects/arrays should limit recursion, naturally/orderly.
+     * But circular references within the rule set - or a programmatic error
+     * in this library - could (without this hardcoded limit) result in
+     * perpetual recursion.
+     *
+     * @see ValidateAgainstRuleSet::RECURSION_LIMIT
+     *
+     * @var int
+     */
+    const RECURSION_LIMIT = 10;
+
+    /**
+     * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
+     */
+
+    /**
+     * @var string
+     */
+    const CLASS_RULE_SET = ValidationRuleSet::class;
+
+    /**
+     * @var string
+     */
+    const CLASS_TABLE_ELEMENTS = TableElements::class;
+
+    /**
+     * @var string
+     */
+    const CLASS_LIST_ITEMS = ListItems::class;
+
+    /**
+     * @var mixed[]
+     */
+    const ILLEGAL_BY_VALUE = [
+        'alternativeEnum' => null,
+        'alternativeRuleSet' => null,
+        'tableElements' => null,
+        'listItems' => null,
+    ];
+
+    /**
+     * @var mixed[]
+     */
+    const ALTERNATIVE_RULESET_ILLEGALS = [
+        'alternativeRuleSet' => null,
+        'tableElements' => null,
+        'listItems' => null,
+    ];
+
+    /**
+     * @var RuleSetFactory
+     */
+    protected $factory;
+
+    /**
+     * @var object
+     */
+    protected $rulesRaw;
+
+    /**
+     * @var int
+     */
+    protected $depth;
+
+    /**
+     * @var string
+     */
+    protected $keyPath;
+
+    /**
+     * @var RuleSetRule[]
+     */
+    protected $ruleCandidates = [];
+
+    /**
+     * Goes at top of the ruleset, for clarity only.
+     * Could go anywhere.
+     *
+     * @var bool|null
+     */
+    protected $optional;
+
+    /**
+     * Goes at top of the ruleset, for clarity only.
+     *
+     * @var bool|null
+     */
+    protected $allowNull;
+
+    /**
+     * Type-checking rules must go near or at the top of the ruleset.
+     *
+     * @var RuleSetRule[]
+     */
+    protected $rulesTypeChecking = [];
+
+    /**
+     * Goes after type-checking, but doesn't require type-checking.
+     *
+     * @var bool|null
+     */
+    protected $empty;
+
+    /**
+     * Goes after type-checking, but doesn't require type-checking.
+     *
+     * @var bool|null
+     */
+    protected $nonEmpty;
+
+    /**
+     * Non-type-checking rules must go after type-checking.
+     *
+     * @var RuleSetRule[]
+     */
+    protected $rulesPlain = [];
+
+    /**
+     * @var mixed[]|null
+     */
+    protected $alternativeEnum;
+
+    /**
+     * @var ValidationRuleSet|null
+     */
+    protected $alternativeRuleSet;
+
+    /**
+     * Goes at bottom, for clarity only.
+     *
+     * @var TableElements|null
+     */
+    protected $tableElements;
+
+    /**
+     * Goes at bottom, for clarity only.
+     *
+     * @var ListItems|null
+     */
+    protected $listItems;
+
+
+    /**
+     * @param RuleSetFactory $factory
+     * @param object|array $rules
+     *      ArrayAccess is not supported.
+     * @param int $depth
+     * @param string $keyPath
+     */
+    public function __construct(RuleSetFactory $factory, $rules, int $depth = 0, string $keyPath = 'root')
+    {
+        if ($depth >= static::RECURSION_LIMIT) {
+            throw new OutOfRangeException(
+                'Stopped recursive validation rule set definition at limit['
+                . static::RECURSION_LIMIT . ']' . ', at (' . $depth . ') ' . $keyPath . '.'
+            );
+        }
+
+        $this->factory = $factory;
+
+        if (is_object($rules)) {
+            if ($rules instanceof \ArrayAccess) {
+                throw new \InvalidArgumentException(
+                    'Arg rules type[' . Helper::getType($rules)
+                    . '] \ArrayAccess is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
+                );
+            }
+            $this->rulesRaw = $rules;
+        }
+        elseif (is_array($rules)) {
+            $this->rulesRaw = (object) $rules;
+        }
+        else {
+            throw new \TypeError(
+                'Arg rules type[' . Helper::getType($rules)
+                . '] is not object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
+            );
+        }
+
+        $this->depth = $depth;
+        $this->keyPath = $keyPath;
+    }
+
+    /**
+     * @return ValidationRuleSet
+     */
+    public function generate() : ValidationRuleSet
+    {
+        foreach ($this->rulesRaw as $rule => $argument) {
+            // Simple non-parameter rule declared by value instead of key.
+            if (ctype_digit('' . $rule)) {
+                $this->ruleByValue($rule, $argument);
+            }
+            // Rule by key, value true|array.
+            else {
+                $this->ruleByValue($rule, $argument);
+            }
+        }
+
+        $this->resolveCandidates();
+
+        if (!$this->rulesTypeChecking) {
+            $this->ensureTypeChecking();
+        }
+
+        $class_ruleset = static::CLASS_RULE_SET;
+        return new $class_ruleset();
+    }
+
+    /**
+     *
+     *
+     * @throws InvalidRuleException
+     */
+    protected function ensureTypeChecking() : void
+    {
+        // Sanity check.
+        if ($this->rulesTypeChecking) {
+            return;
+        }
+
+        // Necessary?
+        if (!$this->rulesPlain
+            && !$this->tableElements
+            && !$this->listItems
+        ) {
+            // Least possible conditions is empty|nonEmpty.
+            if (!$this->empty && !$this->nonEmpty) {
+                throw new InvalidRuleException(
+                    'Validation ruleset '
+                    . (!$this->alternativeEnum && !$this->alternativeRuleSet ? 'completely' : 'effectively') . ' empty'
+                    . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                );
+            }
+            // Fine, simply checks empty|nonEmpty.
+            return;
+        }
+
+        // tableElements|listItems require loopable container.
+        if ($this->tableElements || $this->listItems) {
+            $this->rulesTypeChecking['loopable'] = new RuleSetRule('loopable', true);
+            return;
+        }
+
+    }
+
+
+
+    /**
+     * @param string $rule
+     * @param mixed $argument
+     *
+     * @throws InvalidRuleException
+     */
+    protected function ruleByKey(string $rule, $argument) : void
+    {
+        switch ($rule) {
+            case 'optional':
+            case 'allowNull':
+                // Allow falsy, but then don't set.
+                if ($argument) {
+                    $this->{$rule} = true;
+                }
+                break;
+
+            case 'empty':
+            case 'nonEmpty':
+                if (($this->empty && $rule == 'nonEmpty') || ($this->nonEmpty && $rule == 'empty')) {
+                    throw new InvalidRuleException(
+                        'Validation rules \'empty\' and \'nonEmpty\' cannot co-exist'
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
+                $this->{$rule} = true;
+                break;
+
+            case 'enum':
+                // Is type-checking. Must be, because also used
+                // for alternativeEnum.
+                $this->rulesTypeChecking['enum'] = $this->enum($rule, $argument);
+                break;
+
+            case 'alternativeEnum':
+                $this->alternativeEnum = $this->enum($rule, $argument);
+                break;
+
+            case 'alternativeRuleSet':
+                $class_ruleset = static::CLASS_RULE_SET;
+                if ($argument instanceof $class_ruleset) {
+                    $this->alternativeRuleSet = $argument;
+                }
+                else {
+                    // new ValidationRuleSet(.
+                    $this->alternativeRuleSet = $this->factory->make(
+                        $argument, $this->depth + 1, $this->keyPath . '(alternativeRuleSet)'
+                    );
+                }
+                // alternativeRuleSet illegal children.
+                foreach (static::ALTERNATIVE_RULESET_ILLEGALS as $illegal_child) {
+                    if (isset($this->alternativeRuleSet->{$illegal_child})) {
+                        throw new InvalidRuleException(
+                            'Validation \'alternativeRuleSet\' is not allowed to contain \'' . $illegal_child . '\''
+                            . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                        );
+                    }
+                }
+                break;
+
+            case 'tableElements':
+                // Declare dynamically.
+                $this->tableElements = $this->tableElements($argument);
+                break;
+
+            case 'listItems':
+                // Declare dynamically.
+                $this->listItems = $this->listItems($argument);
+                break;
+
+            default:
+                $method = $rule;
+                $candidate = new RuleSetRule($method, $argument);
+                // Unsupported or renamed.
+                if (!in_array($method, $this->factory->rulesSupported, true)) {
+                    if (!isset($this->factory->rulesRenamed[$method])) {
+                        throw new InvalidRuleException($this->candidateErrorMsg($candidate, ' is not supported'));
+                    }
+                    $method = $this->factory->rulesRenamed[$method];
+                    $candidate->rename($method);
+                }
+                // Parameters.
+                $candidate->paramsRequired = $this->factory->paramsRequired[$method] ?? 0;
+                $candidate->paramsAllowed = $this->factory->paramsAllowed[$method] ?? 0;
+                // Dupe.
+                if (isset($this->ruleCandidates[$method])) {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg($candidate, ' conflicts with rule-by-value of same name')
+                    );
+                }
+                $this->ruleCandidates[$method] = $candidate;
+        }
+    }
+
+    /**
+     * @param int $index
+     * @param mixed $rule
+     *      Errs if not string.
+     *
+     * @throws InvalidRuleException
+     */
+    protected function ruleByValue(int $index, $rule) : void
+    {
+        if (!is_string($rule) || !$rule) {
+            throw new InvalidRuleException(
+                'Validation rule-by-value at numeric index[' . $index . '] value type[' . Helper::getType($rule)
+                . '] is not non-empty string' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+            );
+        }
+        switch ($rule) {
+            case 'optional':
+            case 'allowNull':
+                $this->{$rule} = true;
+                break;
+
+            case 'empty':
+            case 'nonEmpty':
+                if (($this->empty && $rule == 'nonEmpty') || ($this->nonEmpty && $rule == 'empty')) {
+                    throw new InvalidRuleException(
+                        'Validation rules \'empty\' and \'nonEmpty\' cannot co-exist'
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
+                $this->{$rule} = true;
+                break;
+
+            default:
+                $method = $rule;
+                $candidate = new RuleSetRule($method, true, $index);
+                // Unsupported or renamed.
+                if (!in_array($method, $this->factory->rulesSupported, true)) {
+                    if (!isset($this->factory->rulesRenamed[$method])) {
+                        throw new InvalidRuleException($this->candidateErrorMsg($candidate, ' is not supported'));
+                    }
+                    $method = $this->factory->rulesRenamed[$method];
+                    $candidate->rename($method);
+                }
+                // Illegal by-value.
+                if (isset(static::ILLEGAL_BY_VALUE[$method])) {
+                    throw new InvalidRuleException($this->candidateErrorMsg($candidate, ' is illegal'));
+                }
+                // Method cannot take arguments.
+                $paramsRequired = $this->factory->paramsRequired[$method] ?? 0;
+                if ($paramsRequired) {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg($candidate, ' requires ' . $paramsRequired . ' argument(s)')
+                    );
+                }
+                // Dupe.
+                if (isset($this->ruleCandidates[$method])) {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg($candidate, ' conflicts with rule-by-key of same name')
+                    );
+                }
+                $this->ruleCandidates[$method] = $candidate;
+        }
+    }
+
+    /**
+     * Checks arguments of rules, and passes them to lists
+     * of either type-checking or plain rules.
+     */
+    protected function resolveCandidates() : void
+    {
+        foreach ($this->ruleCandidates as $name => $rule) {
+            // Check argument(s).
+            if ($rule->argument === true) {
+                if ($rule->paramsRequired) {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg(
+                            $rule, ' requires array(' . $rule->paramsRequired . ') - saw type[true]'
+                        )
+                    );
+                }
+            }
+            elseif (is_array($rule->argument)) {
+                if (!$rule->argument && !$rule->paramsRequired && !$rule->paramsAllowed) {
+                    // Allow empty array when no parameters supported.
+                    $rule->argument = true;
+                }
+                else {
+                    $n_args = count($rule->argument);
+                    if ($n_args < $rule->paramsRequired) {
+                        throw new InvalidRuleException(
+                            $this->candidateErrorMsg(
+                                $rule, ' requires array(' . $rule->paramsRequired . ') - saw array(' . $n_args . ')'
+                            )
+                        );
+                    }
+                    // Allowed may be more than required.
+                    $paramsSupported = $rule->paramsAllowed ? $rule->paramsAllowed : $rule->paramsRequired;
+                    if ($n_args > $paramsSupported) {
+                        if (!$paramsSupported) {
+                            throw new InvalidRuleException(
+                                $this->candidateErrorMsg(
+                                    $rule, ' takes no arguments - saw array(' . count($rule->argument) . ')'
+                                )
+                            );
+                        }
+                        throw new InvalidRuleException(
+                            $this->candidateErrorMsg(
+                                $rule, ' supports array(' . $paramsSupported . ') - saw array(' . $n_args . ')'
+                            )
+                        );
+                    }
+                }
+            }
+            elseif (is_scalar($rule->argument)) {
+                if ($rule->paramsRequired == 1 || $rule->paramsAllowed == 1) {
+                    // Allow scalar (not true, though) if single parameter supported.
+                    $rule->argument = [
+                        $rule->argument
+                    ];
+                }
+                else {
+                    throw new InvalidRuleException(
+                        $this->candidateErrorMsg(
+                            $rule, ' takes no arguments - saw type[' . Helper::getType($rule->argument) . ']'
+                        )
+                    );
+                }
+            }
+            else {
+                throw new InvalidRuleException(
+                    $this->candidateErrorMsg(
+                        $rule, ' invalid value type[' . Helper::getType($rule->argument) . ']'
+                    )
+                );
+            }
+
+            if (in_array($name, $this->factory->typeCheckingMethods, true)) {
+                $this->rulesTypeChecking[$name] = $rule;
+            }
+            else {
+                $this->rulesPlain[$name] = $rule;
+            }
+        }
+
+        // All done, clear references.
+        $this->ruleCandidates = [];
+    }
+
+    /**
+     * @param RuleSetRule $rule
+     * @param string $message
+     *
+     * @return string
+     *
+     * @throws \InvalidArgumentException
+     *      Arg $message empty.
+     */
+    protected function candidateErrorMsg(RuleSetRule $rule, string $message) : string
+    {
+        if ($message === '') {
+            throw new \InvalidArgumentException('Arg $message cannot be empty.');
+        }
+        if ($rule->passedByValueAtIndex === null) {
+            $msg = 'Validation rule-by-key[' . $rule->name . ']';
+        } else {
+            $msg = 'Validation rule-by-value[' . $rule->name
+                . '] at numeric index[' . $rule->passedByValueAtIndex . ']';
+        }
+        if ($rule->renamedFrom) {
+            $msg .= ' renamed from[' . $rule->renamedFrom . ']';
+        }
+        return $msg . $message . ', at (' . $this->depth . ') ' . $this->keyPath . '.';
+    }
+
+
+    /**
+     * Pseudo rule listing valid values.
+     *
+     * Bucket values must be scalar|null.
+     *
+     * @see ValidationRuleSet::$enum
+     * @see ValidationRuleSet::$alternativeEnum
+     *
+     * @param string $ruleName
+     *      Value: enum|alternativeEnum.
+     * @param mixed $argument
+     *      Errs if not array.
+     *
+     * @return array
+     *
+     * @throws InvalidRuleException
+     */
+    protected function enum(string $ruleName, $argument) : array
+    {
+        if (!$argument || !is_array($argument)) {
+            throw new InvalidRuleException(
+                'Validation \'' . $ruleName . '\' type[' . Helper::getType($argument)
+                . '] is not non-empty array' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+            );
+        }
+        // Support definition as nested array, because enum used to require
+        // (overly formalistic) that the allowed values array was nested;
+        // since the allowed values array is the second argument to be passed
+        // to the enum() method.
+        if (is_array(reset($argument))) {
+            $allowed_values = current($argument);
+        }
+        else {
+            $allowed_values = $argument;
+        }
+
+        // Check once and for all that allowed values are scalar|null.
+        $i = -1;
+        foreach ($allowed_values as $value) {
+            ++$i;
+            if ($value !== null && !is_scalar($value)) {
+                throw new InvalidRuleException(
+                    'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
+                    . '] type[' . Helper::getType($value)
+                    . '] is not scalar or null' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                );
+            }
+        }
+
+        return $allowed_values;
+    }
+
+    /**
+     * Pseudo rule listing ValidationRuleSets of elements of object|array subject.
+     *
+     * @param object|array $argument
+     *
+     * @return TableElements
+     *
+     * @throws InvalidRuleException
+     *      Arg $arguments not object|array.
+     */
+    protected function tableElements($argument) : TableElements {
+        if (is_object($argument)) {
+            if ($argument instanceof TableElements) {
+                return $argument;
+            }
+            else {
+                $class = static::CLASS_TABLE_ELEMENTS;
+                /**
+                 * new TableElements(
+                 * @see TableElements::__construct()
+                 */
+                return new $class($argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+            }
+        }
+        elseif (is_array($argument)) {
+            $class = static::CLASS_TABLE_ELEMENTS;
+            /**
+             * new TableElements(
+             * @see TableElements::__construct()
+             */
+            return new $class((object) $argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+        }
+        throw new InvalidRuleException(
+            'Validation \'tableElements\' type[' . Helper::getType($argument)
+            . '] is not a object|array' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+        );
+    }
+
+    /**
+     * Pseudo rule representing every element of object|array subject.
+     *
+     * @param object|array $argument
+     *
+     * @return ListItems
+     *
+     * @throws InvalidRuleException
+     *      Arg $arguments not object|array.
+     */
+    protected function listItems($argument) : ListItems
+    {
+        if (is_object($argument)) {
+            if ($argument instanceof ListItems) {
+                return $argument;
+            }
+            else {
+                $class = static::CLASS_LIST_ITEMS;
+                /**
+                 * new ListItems(
+                 * @see ListItems::__construct()
+                 */
+                return new $class($argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+            }
+        }
+        elseif (is_array($argument)) {
+            $class = static::CLASS_LIST_ITEMS;
+            /**
+             * new ListItems(
+             * @see ListItems::__construct()
+             */
+            return new $class((object) $argument, $this->factory->ruleProvider, $this->depth, $this->keyPath);
+        }
+        throw new InvalidRuleException(
+            'Validation \'listItems\' type[' . Helper::getType($argument)
+            . '] is not a object|array' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+        );
+    }
+}

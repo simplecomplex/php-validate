@@ -20,6 +20,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
+* tableElements, listItems are no longer ignored if self has alternativeRuleSet
+  and that alternativeRuleSet passes.
 
 * tableElements, listItems combined is legal, but if tableElements pass then
   listItems won't be used/checked.
@@ -30,13 +32,17 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   That alters the sequence of failure records, from (pretty) order given
   by tableElements to arbitrary order given by subject.
   
-* Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
-* Removed class RuleProviderInfo.
 * Class ValidationRuleSet tableElements|listItems properties are now instances
   of TableElements|ListItems, and enum value is now an un-nested array.  
   Existing <v3.0 ValidationRuleSet instances, whether declared in code or cached
   as PHP serials, will hardly be compatible; whereas PHP array|stdClass rulesets
   and JSON-formatted rulesets should work fine.
+
+* Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
+* Removed class RuleProviderInfo.
+* Removed RuleProviderInterface|Validate::getNonRuleMethods().
+* Removed RuleProviderInterface|Validate::getParameterMethods().
+  
 * Require PHP 64-bit >=7.2.
 * Don't require simplecomplex/utils.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
