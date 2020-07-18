@@ -31,12 +31,6 @@ class RuleSetGenerator
     /**
      * Recursion emergency brake.
      *
-     * Ideally the depth of a rule set describing objects/arrays having nested
-     * objects/arrays should limit recursion, naturally/orderly.
-     * But circular references within the rule set - or a programmatic error
-     * in this library - could (without this hardcoded limit) result in
-     * perpetual recursion.
-     *
      * @see ValidateAgainstRuleSet::RECURSION_LIMIT
      *
      * @var int
@@ -236,9 +230,15 @@ class RuleSetGenerator
     public function generate() : ValidationRuleSet
     {
         foreach ($this->rulesRaw as $rule => $argument) {
+            if ($rule === '') {
+                throw new InvalidRuleException(
+                    'Validation ruleset key cannot be string \'\'' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                );
+            }
             // Simple non-parameter rule declared by value instead of key.
-            if (ctype_digit('' . $rule)) {
-                $this->ruleByValue((int) $rule, $argument);
+            elseif (ctype_digit('' . $rule)) {
+                // PHP numeric index is not consistently integer.
+                $this->ruleByValue('' . $rule, $argument);
             }
             // Rule by key, value true|array.
             else {
@@ -253,16 +253,6 @@ class RuleSetGenerator
         }
 
         return $this->passRules();
-    }
-
-    /**
-     * @see RuleSetGenerator::CLASS_RULE_SET
-     *
-     * @return string
-     */
-    public function classRuleSet() : string
-    {
-        return static::CLASS_RULE_SET;
     }
 
     /**
@@ -413,9 +403,10 @@ class RuleSetGenerator
                     }
                 }
             }
-            elseif (is_scalar($rule->argument)) {
-                if ($rule->paramsRequired == 1 || $rule->paramsAllowed == 1) {
-                    // Allow scalar (not true, though) if single parameter supported.
+            // Scalar but not true.
+            elseif (is_scalar($rule->argument) /*&& $rule->argument !== true*/) {
+                if (($rule->paramsRequired || $rule->paramsAllowed) && $rule->paramsRequired < 2) {
+                    // Allow scalar (not true) if single parameter supported.
                     $rule->argument = [
                         $rule->argument
                     ];
@@ -423,7 +414,12 @@ class RuleSetGenerator
                 else {
                     throw new InvalidRuleException(
                         $this->candidateErrorMsg(
-                            $rule, ' takes no arguments - saw type[' . Helper::getType($rule->argument) . ']'
+                            $rule,
+                            (
+                                $rule->paramsRequired > 1 ? (' requires array(' . $rule->paramsRequired . ')') :
+                                    (' takes no arguments')
+                            )
+                            . ' - saw type[' . Helper::getType($rule->argument) . ']'
                         )
                     );
                 }
@@ -449,6 +445,8 @@ class RuleSetGenerator
     }
 
     /**
+     * Resolve rule defined as (key) rule-name -> (value) argument.
+     *
      * @param string $rule
      * @param mixed $argument
      *
@@ -543,20 +541,23 @@ class RuleSetGenerator
     }
 
     /**
-     * @param int $index
+     * Resolve rule defined as (index) int -> (value) rule-name.
+     *
+     * @param string $index
+     *      PHP numeric index is not consistently integer.
      * @param mixed $rule
      *      Errs if not string.
      *
      * @throws InvalidRuleException
      */
-    protected function ruleByValue(int $index, $rule) : void
+    protected function ruleByValue(string $index, $rule) : void
     {
-        if (!is_string($rule) || !$rule) {
-            throw new InvalidRuleException(
-                'Validation rule-by-value at numeric index[' . $index . '] value type[' . Helper::getType($rule)
-                . '] is not non-empty string' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
-            );
-        }
+//        if (!is_string($rule) || !$rule) {
+//            throw new InvalidRuleException(
+//                'Validation rule-by-value at numeric index[' . $index . '] value type[' . Helper::getType($rule)
+//                . '] is not non-empty string' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+//            );
+//        }
         switch ($rule) {
             case 'optional':
             case 'allowNull':
@@ -576,7 +577,7 @@ class RuleSetGenerator
 
             default:
                 $method = $rule;
-                $candidate = new RuleSetRule($method, true, $index);
+                $candidate = new RuleSetRule($method, true, (int) $index);
                 // Unsupported or renamed.
                 if (!in_array($method, $this->factory->rulesSupported, true)) {
                     if (!isset($this->factory->rulesRenamed[$method])) {
@@ -699,7 +700,7 @@ class RuleSetGenerator
         $class_table_elements = static::CLASS_TABLE_ELEMENTS;
         if (is_object($argument)) {
             if ($argument instanceof $class_table_elements) {
-                // IDE stupid.
+                // IDE: it _is_ TableElements.
                 return $argument;
             }
             else {
@@ -738,7 +739,7 @@ class RuleSetGenerator
         $class_list_items = static::CLASS_LIST_ITEMS;
         if (is_object($argument)) {
             if ($argument instanceof $class_list_items) {
-                // IDE stupid.
+                // IDE: it _is_ TableElements.
                 return $argument;
             }
             else {

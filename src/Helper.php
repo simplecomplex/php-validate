@@ -85,6 +85,19 @@ class Helper
     }
 
     /**
+     * Class name without namespace.
+     *
+     * @param string $className
+     *
+     * @return string
+     */
+    public static function classUnqualified(string $className) : string
+    {
+        $pos = strrpos($className, '\\');
+        return $pos !== false ? substr($className, $pos + 1) : $className;
+    }
+
+    /**
      * Get subject class name or (non-object) type.
      *
      * Counter to native gettype() this method returns:

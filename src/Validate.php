@@ -245,6 +245,7 @@ class Validate implements RuleProviderInterface
      * @var int[]
      */
     const PARAMS_ALLOWED = [
+        'class' => 2,
         'unicodeMultiLine' => 1,
         'hex' => 1,
         'asciiMultiLine' => 1,
@@ -995,7 +996,7 @@ class Validate implements RuleProviderInterface
      */
     public function object($subject) : bool
     {
-        return $subject && is_object($subject);
+        return is_object($subject);
     }
 
     /**
@@ -1007,18 +1008,23 @@ class Validate implements RuleProviderInterface
      * @param mixed $subject
      *      object to pass validation.
      * @param string $className
+     * @param bool $unqualified
+     *      True: without namespace, and then $className cannot be an interface.
      *
      * @return bool
      *
      * @throws InvalidArgumentException
      *      Arg className empty.
      */
-    public function class($subject, string $className) : bool
+    public function class($subject, string $className, bool $unqualified = false) : bool
     {
         if (!$className) {
             throw new InvalidArgumentException('Arg className is empty.');
         }
-        return $subject && $subject instanceof $className;
+        if (!$unqualified) {
+            return $subject instanceof $className;
+        }
+        return is_object($subject) && $className === Helper::classUnqualified(get_class($subject));
     }
 
     /**

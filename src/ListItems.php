@@ -31,6 +31,14 @@ class ListItems
     const CLASS_RULE_SET = ValidationRuleSet::class;
 
     /**
+     * @var mixed[]
+     */
+    const MODIFIERS = [
+        'minOccur' => null,
+        'maxOccur' => null,
+    ];
+
+    /**
      * Zero means no limitation.
      *
      * @var int
@@ -50,9 +58,8 @@ class ListItems
     public $itemRules;
 
     /**
-     * Assumes that arg $listItems in itself is the itemRules ruleset,
-     * if $listItems doesn't have a itemRules property
-     * nor any of the modifier properties.
+     * If no itemRules nor modifiers then arg $tableElements itself
+     * is used as item-rules.
      *
      * @param RuleSetFactory $ruleSetFactory
      * @param object $listItems
@@ -62,6 +69,17 @@ class ListItems
     public function __construct(
         RuleSetFactory $ruleSetFactory, object $listItems, int $depth = 0, string $keyPath = 'root'
     ) {
+        $this->defineModifiers($listItems, $depth, $keyPath);
+        $this->defineItemRules($ruleSetFactory, $listItems, $depth, $keyPath);
+    }
+
+    /**
+     * @param object $listItems
+     * @param int $depth
+     * @param string $keyPath
+     */
+    protected function defineModifiers($listItems, $depth, $keyPath) : void
+    {
         if (isset($listItems->minOccur)) {
             if (!is_int($listItems->minOccur)) {
                 throw new InvalidRuleException(
@@ -94,7 +112,16 @@ class ListItems
                 $this->maxOccur = $listItems->maxOccur;
             }
         }
+    }
 
+    /**
+     * @param RuleSetFactory $ruleSetFactory
+     * @param object $listItems
+     * @param int $depth
+     * @param string $keyPath
+     */
+    protected function defineItemRules($ruleSetFactory, $listItems, $depth, $keyPath) : void
+    {
         $class_rule_set = static::CLASS_RULE_SET;
         if (property_exists($listItems, 'itemRules')) {
             if (is_object($listItems->itemRules)) {
@@ -127,7 +154,7 @@ class ListItems
         }
         else {
             $mods_found = [];
-            foreach (['minOccur', 'maxOccur'] as $mod) {
+            foreach (static::MODIFIERS as $mod) {
                 if (property_exists($listItems, $mod)) {
                     $mods_found[] = $mod;
                 }

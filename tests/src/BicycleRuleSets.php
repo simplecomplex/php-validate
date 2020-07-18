@@ -9,7 +9,7 @@ class BicycleRuleSets
     {
         return [
             'class' => [
-                'Bicycle'
+                Bicycle::class
             ],
             'tableElements' => [
                 //'exclusive' => true,
@@ -61,6 +61,76 @@ class BicycleRuleSets
                                     'numeric',
                                     'optional'
                                 ]
+                            ]
+                        ]
+                    ],
+                    'various' => [
+                        'array',
+                        'optional',
+                        'alternativeEnum' => [
+                            null,
+                        ],
+                        'listItems' => [
+                            'maxOccur' => 5,
+                            'itemRules' => [
+                                'string',
+                                'alternativeEnum' => [
+                                    // Correctly defined as un-nested array.
+                                    true,
+                                    false,
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    public static function numericIndex()
+    {
+        return [
+            'class' => [
+                'Bicycle'
+            ],
+            'tableElements' => [
+                //'exclusive' => true,
+                //'whitelist' => ['unspecified_1'],
+                //'blacklist' => ['saddle', 'accessories'],
+                'rulesByElements' => [
+                    'wheels' => [
+                        'integer',
+                        'range' => [
+                            1,
+                            3
+                        ]
+                    ],
+                    'saddle' => [
+                        'integer',
+                        'alternativeEnum' => [
+                            true,
+                        ]
+                    ],
+                    'sound' => [
+                        'string' => true,
+                        'enum' => [
+                            'silent',
+                            'swooshy',
+                            'clattering',
+                        ]
+                    ],
+                    'accessories' => [
+                        'array',
+                        'tableElements' => [
+                            'rulesByElements' => [
+                                // Numeric index
+                                [
+                                    'string' => true,
+                                ],
+                                'rubbish' => [
+                                    'optional' => true,
+                                    'string' => true,
+                                ],
                             ]
                         ]
                     ],

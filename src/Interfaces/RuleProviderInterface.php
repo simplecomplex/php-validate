@@ -163,21 +163,6 @@ interface RuleProviderInterface
     public function container($subject);
 
     /**
-     * Array or Traversable object.
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     *
-     * @see Validate::iterable()
-     */
-    public function iterable($subject);
-
-    /**
      * Array or Traversable object, or non-Traversable non-ArrayAccess object.
      *
      * 'arrayAccess' is a Traversable ArrayAccess object.

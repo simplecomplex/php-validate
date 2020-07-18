@@ -245,12 +245,10 @@ class ValidateAgainstRuleSet
         // to secure checks.
         return $this->internalChallenge(
             $subject,
-            new ValidationRuleSet(
-                is_object($ruleSet) ? $ruleSet : ((object) $ruleSet),
-                $this->ruleProvider,
-                0,
-                $keyPath
-            ),
+            // Not great performance-wise, but referring RuleSetFactory
+            // would lock RuleSetFactory and rule-provider together too tightly.
+            (new RuleSetFactory\RuleSetFactory($this->ruleProvider))
+                ->make($ruleSet, 0, $keyPath),
             0,
             $keyPath
         );
@@ -376,14 +374,25 @@ class ValidateAgainstRuleSet
                         break;
                     }
                 }
-                // No need to check for falsy nor non-array $args;
-                // ValidationRuleSet do that.
-                elseif (!$this->ruleProvider->{$method}($subject, ...$args)) {
-                    $failed = true;
-                    if ($this->recordFailure) {
-                        $record[] = $this->recordCurrent($method, $args);
+                /**
+                 * RuleSetGenerator checks for falsy nor non-array $args,
+                 * but we play safe.
+                 * @see RuleSetFactory\RuleSetGenerator::resolveCandidates()
+                 */
+                elseif (is_array($args)) {
+                    if (!$this->ruleProvider->{$method}($subject, ...$args)) {
+                        $failed = true;
+                        if ($this->recordFailure) {
+                            $record[] = $this->recordCurrent($method, $args);
+                        }
+                        break;
                     }
-                    break;
+                }
+                else {
+                    throw new InvalidRuleException(
+                        'Validation ruleset rule[' . $method . '] argument type[' . Helper::getType($args) . ']'
+                        . ' is not true|array' . ', at (' . $depth . ') ' . $keyPath . '.'
+                    );
                 }
             }
         }
@@ -400,7 +409,10 @@ class ValidateAgainstRuleSet
                 }
             }
             if ($alternativeRuleSet) {
-                $failed = $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
+                $passed = $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
+                if (!$passed) {
+                    $failed = true;
+                }
             }
             if ($failed) {
                 if ($this->recordFailure) {
@@ -427,7 +439,10 @@ class ValidateAgainstRuleSet
 
         // If tableElements pass then listItems will be ignored.
         if ($tableElements) {
-            $failed = $this->tableElements($subject, $tableElements, $depth, $keyPath);
+            $passed = $this->tableElements($subject, $tableElements, $depth, $keyPath);
+            if (!$passed) {
+                $failed = true;
+            }
             if (!$failed) {
                 return true;
             }
@@ -436,7 +451,8 @@ class ValidateAgainstRuleSet
             }
         }
 
-        return $this->listItems($subject, $listItems, $depth, $keyPath);
+        $passed = $this->listItems($subject, $listItems, $depth, $keyPath);
+        return $passed;
     }
 
     /**
@@ -448,10 +464,10 @@ class ValidateAgainstRuleSet
 
     /**
      * Enum rule method which doesn't check that all allowed values
-     * are scalar|null; ValidationRuleSet checks that.
+     * are scalar|null; RuleSetGenerator checks that.
      *
      * @see Validate::enum()
-     * @see ValidationRuleSet::enum()
+     * @see RuleSetFactory\RuleSetGenerator::enum()
      *
      * @param mixed $subject
      * @param array $allowedValues
@@ -482,12 +498,17 @@ class ValidateAgainstRuleSet
      */
     protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
     {
+        // @todo: recreate tableElements.keys to avoid having to stringify array_keys() repetetively.
+        // PHP numeric index is not consistently integer.
         $table_keys = array_keys($tableElements->rulesByElements);
+
         $failed = false;
         $record = [];
         $keys_found = [];
         foreach ($subject as $key => $value) {
-            if (!in_array($key, $table_keys, true)) {
+            // PHP numeric index is not consistently integer.
+            $sKey = '' . $key;
+            if (!in_array($sKey, $table_keys, true)) {
                 if ($tableElements->exclusive) {
                     if ($this->recordFailure) {
                         $failed = true;
@@ -500,7 +521,7 @@ class ValidateAgainstRuleSet
                     }
                 }
                 elseif ($tableElements->whitelist) {
-                    if (!in_array($key, $tableElements->whitelist, true)) {
+                    if (!in_array($sKey, $tableElements->whitelist, true)) {
                         if ($this->recordFailure) {
                             $failed = true;
                             $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
@@ -510,7 +531,7 @@ class ValidateAgainstRuleSet
                         }
                     }
                 }
-                elseif ($tableElements->blacklist && in_array($key, $tableElements->blacklist, true)) {
+                elseif ($tableElements->blacklist && in_array($sKey, $tableElements->blacklist, true)) {
                     if ($this->recordFailure) {
                         $failed = true;
                         $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
@@ -524,7 +545,7 @@ class ValidateAgainstRuleSet
             }
 
             if (!$this->internalChallenge(
-                $value, $tableElements->rulesByElements[$key], $depth + 1, $keyPath . ' > ' . $key
+                $value, $tableElements->rulesByElements[$sKey], $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
                     $failed = true;
@@ -535,13 +556,15 @@ class ValidateAgainstRuleSet
                 }
             }
 
-            $keys_found[] = $key;
+            $keys_found[] = $sKey;
         }
 
         // Find missing keys that aren't defined optional.
         $missing = array_diff($table_keys, $keys_found);
         foreach ($missing as $key) {
-            if (empty($tableElements->rulesByElements[$key]->optional)) {
+            // PHP numeric index is not consistently integer.
+            $sKey = '' . $key;
+            if (empty($tableElements->rulesByElements[$sKey]->optional)) {
                 if ($this->recordFailure) {
                     $failed = true;
                     $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');

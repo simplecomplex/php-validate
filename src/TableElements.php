@@ -47,11 +47,6 @@ class TableElements
     ];
 
     /**
-     * @var ValidationRuleSet[]
-     */
-    public $rulesByElements = [];
-
-    /**
      * Subject object|array must only contain keys defined by rulesByElements.
      *
      * @var bool
@@ -74,8 +69,16 @@ class TableElements
      */
     public $blacklist = [];
 
+    /**
+     * @var ValidationRuleSet[]
+     */
+    public $rulesByElements = [];
+
 
     /**
+     * If no rulesByElements nor modifiers then arg $tableElements itself
+     * is used as rules-by-elements.
+     *
      * Assumes that arg $tableElements in itself is the rulesByElements
      * hashtable, if $tableElements doesn't have a rulesByElements property
      * nor any of the modifier properties.
@@ -88,7 +91,6 @@ class TableElements
     public function __construct(
         RuleSetFactory $ruleSetFactory, object $tableElements, int $depth = 0, string $keyPath = 'root'
     ) {
-        // Body moved to separate methods for simpler override.
         $this->defineModifiers($tableElements, $depth, $keyPath);
         $this->defineRulesByElements($ruleSetFactory, $tableElements, $depth, $keyPath);
     }
@@ -114,7 +116,10 @@ class TableElements
                     . '] is not array' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
-            $this->whitelist = $tableElements->whitelist;
+            // PHP numeric index is not consistently integer.
+            foreach ($tableElements->whitelist as $key) {
+                $this->whitelist[] = '' . $key;
+            }
             $modifiers[] = 'whitelist';
         }
         if (!empty($tableElements->blacklist)) {
@@ -124,7 +129,10 @@ class TableElements
                     . '] is not array' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
-            $this->blacklist = $tableElements->blacklist;
+            // PHP numeric index is not consistently integer.
+            foreach ($tableElements->blacklist as $key) {
+                $this->blacklist[] = '' . $key;
+            }
             $modifiers[] = 'blacklist';
         }
         if (count($modifiers) > 1) {
@@ -148,7 +156,7 @@ class TableElements
      * @param int $depth
      * @param string $keyPath
      */
-    protected function defineRulesByElements(RuleSetFactory $ruleSetFactory, $tableElements, $depth, $keyPath) : void
+    protected function defineRulesByElements($ruleSetFactory, $tableElements, $depth, $keyPath) : void
     {
         if (property_exists($tableElements, 'rulesByElements')) {
             if (!is_object($tableElements->rulesByElements) && !is_array($tableElements->rulesByElements)) {
@@ -185,11 +193,13 @@ class TableElements
 
         $class_rule_set = static::CLASS_RULE_SET;
         foreach ($rulesByElements as $key => $ruleSet) {
+            // PHP numeric index is not consistently integer.
+            $sKey = '' . $key;
             if ($ruleSet instanceof $class_rule_set) {
-                $this->rulesByElements[$key] = $ruleSet;
+                $this->rulesByElements[$sKey] = $ruleSet;
             }
             elseif (is_object($ruleSet)) {
-                $this->rulesByElements[$key] =
+                $this->rulesByElements[$sKey] =
                     /**
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
@@ -197,7 +207,7 @@ class TableElements
                     $ruleSetFactory->make($ruleSet, $depth + 1, $keyPath . ' > ' . $key);
             }
             elseif (is_array($ruleSet)) {
-                $this->rulesByElements[$key] =
+                $this->rulesByElements[$sKey] =
                     /**
                      * new ValidationRuleSet(
                      * @see ValidationRuleSet::__construct()
@@ -214,14 +224,14 @@ class TableElements
             }
 
             if ($this->whitelist) {
-                if (in_array($key, $this->whitelist, true)) {
+                if (in_array($sKey, $this->whitelist, true)) {
                     throw new InvalidRuleException(
                         'Validation tableElements.whitelist cannot contain key[' . $key. '] also specified'
                         . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
                     );
                 }
             }
-            elseif ($this->blacklist && in_array($key, $this->blacklist, true)) {
+            elseif ($this->blacklist && in_array($sKey, $this->blacklist, true)) {
                 throw new InvalidRuleException(
                     'Validation tableElements.blacklist cannot contain key[' . $key. '] also specified'
                     . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
