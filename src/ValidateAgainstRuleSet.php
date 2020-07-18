@@ -35,9 +35,6 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * benefit that it's far simpler to determine which (Validate) methods are
  * rule methods.
  *
- * @see simple_complex_validate_test_cli()
- *      For example of use.
- *
  * @internal
  *
  * @package SimpleComplex\Validate
