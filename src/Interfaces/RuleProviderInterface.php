@@ -134,6 +134,13 @@ interface RuleProviderInterface
      *
      * @return bool
      */
+    public function null($subject) : bool;
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
     public function string($subject) : bool;
 
     /**

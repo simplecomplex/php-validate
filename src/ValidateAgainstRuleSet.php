@@ -290,6 +290,7 @@ class ValidateAgainstRuleSet
                      */
                     break;
                 case 'allowNull':
+                case 'null':
                     $allowNull = true;
                     break;
                 case 'enum':
@@ -334,7 +335,7 @@ class ValidateAgainstRuleSet
         }
 
         // Roll it.
-        $failed = false;
+        $passed = true;
         $record = [];
 
         if ($subject === null) {
@@ -344,18 +345,18 @@ class ValidateAgainstRuleSet
             // If enum rule, then that may allow null.
             if (!$enum) {
                 // Continue to alternativeEnum check.
-                $failed = true;
+                $passed = false;
             }
             // Otherwise let enum rule in ruleSet iteration do validation.
         }
 
-        if (!$failed) {
+        if ($passed) {
             foreach ($rule_methods as $method => $args) {
                 // We expect more boolean trues than arrays;
                 // few Validate methods take secondary args.
                 if ($args === true) {
                     if (!$this->ruleProvider->{$method}($subject)) {
-                        $failed = true;
+                        $passed = false;
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent($method);
                         }
@@ -364,7 +365,7 @@ class ValidateAgainstRuleSet
                 }
                 elseif ($method == 'enum') {
                     if (!$this->enum($subject, $enum)) {
-                        $failed = true;
+                        $passed = false;
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent($method, $enum);
                         }
@@ -378,7 +379,7 @@ class ValidateAgainstRuleSet
                  */
                 elseif (is_array($args)) {
                     if (!$this->ruleProvider->{$method}($subject, ...$args)) {
-                        $failed = true;
+                        $passed = false;
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent($method, $args);
                         }
@@ -394,7 +395,7 @@ class ValidateAgainstRuleSet
             }
         }
 
-        if ($failed) {
+        if (!$passed) {
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternativeEnum) {
                 if ($this->enum($subject, $alternativeEnum)) {
@@ -407,11 +408,8 @@ class ValidateAgainstRuleSet
             }
             if ($alternativeRuleSet) {
                 $passed = $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
-                if (!$passed) {
-                    $failed = true;
-                }
             }
-            if ($failed) {
+            if (!$passed) {
                 if ($this->recordFailure) {
                     $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
                 }
@@ -437,10 +435,7 @@ class ValidateAgainstRuleSet
         // If tableElements pass then listItems will be ignored.
         if ($tableElements) {
             $passed = $this->tableElements($subject, $tableElements, $depth, $keyPath);
-            if (!$passed) {
-                $failed = true;
-            }
-            if (!$failed) {
+            if ($passed) {
                 return true;
             }
             if (!$listItems) {
@@ -498,7 +493,7 @@ class ValidateAgainstRuleSet
         // PHP numeric index is not consistently integer.
         $table_keys = $tableElements->keys;
 
-        $failed = false;
+        $passed = true;
         $record = [];
         $keys_found = [];
         foreach ($subject as $key => $value) {
@@ -507,7 +502,7 @@ class ValidateAgainstRuleSet
             if (!in_array($sKey, $table_keys, true)) {
                 if ($tableElements->exclusive) {
                     if ($this->recordFailure) {
-                        $failed = true;
+                        $passed = false;
                         $record[] = $this->recordCurrent(
                             'tableElements excludes key[' . $key . ']'
                         );
@@ -519,7 +514,7 @@ class ValidateAgainstRuleSet
                 elseif ($tableElements->whitelist) {
                     if (!in_array($sKey, $tableElements->whitelist, true)) {
                         if ($this->recordFailure) {
-                            $failed = true;
+                            $passed = false;
                             $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
                         }
                         else {
@@ -529,7 +524,7 @@ class ValidateAgainstRuleSet
                 }
                 elseif ($tableElements->blacklist && in_array($sKey, $tableElements->blacklist, true)) {
                     if ($this->recordFailure) {
-                        $failed = true;
+                        $passed = false;
                         $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
                     }
                     else {
@@ -544,7 +539,7 @@ class ValidateAgainstRuleSet
                 $value, $tableElements->rulesByElements[$sKey], $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
-                    $failed = true;
+                    $passed = false;
                     // Don't record failure of child here.
                 }
                 else {
@@ -562,7 +557,7 @@ class ValidateAgainstRuleSet
             $sKey = '' . $key;
             if (empty($tableElements->rulesByElements[$sKey]->optional)) {
                 if ($this->recordFailure) {
-                    $failed = true;
+                    $passed = false;
                     $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');
                 }
                 else {
@@ -571,11 +566,11 @@ class ValidateAgainstRuleSet
             }
         }
 
-        if ($failed && $this->recordFailure && $record) {
+        if (!$passed && $this->recordFailure && $record) {
             $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
         }
 
-        return !$failed;
+        return $passed;
     }
 
     /**
@@ -592,7 +587,7 @@ class ValidateAgainstRuleSet
      */
     protected function listItems($subject, ListItems $listItems, int $depth, string $keyPath) : bool
     {
-        $failed = false;
+        $passed = true;
         $record = [];
 
         $length = 0;
@@ -601,7 +596,7 @@ class ValidateAgainstRuleSet
             ++$length;
             if ($maxOccur && $length > $maxOccur) {
                 if ($this->recordFailure) {
-                    $failed = true;
+                    $passed = false;
                     $record[] = $this->recordCurrent(
                         'listItems max length ' . $maxOccur . ' exceeded at key[' . $key . ']'
                     );
@@ -616,7 +611,7 @@ class ValidateAgainstRuleSet
                 $value, $listItems->itemRules, $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
-                    $failed = true;
+                    $passed = false;
                     // Don't record failure of child here.
                 }
                 else {
@@ -627,7 +622,7 @@ class ValidateAgainstRuleSet
 
         if ($listItems->minOccur && $length < $listItems->minOccur) {
             if ($this->recordFailure) {
-                $failed = true;
+                $passed = false;
                 $record[] = $this->recordCurrent(
                     'listItems min length ' . $listItems->minOccur . ' not satisfied'
                 );
@@ -637,11 +632,11 @@ class ValidateAgainstRuleSet
             }
         }
 
-        if ($failed && $this->recordFailure && $record) {
+        if (!$passed && $this->recordFailure && $record) {
             $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
         }
 
-        return !$failed;
+        return $passed;
     }
 
     /**

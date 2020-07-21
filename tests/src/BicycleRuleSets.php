@@ -97,11 +97,7 @@ class BicycleRuleSets
                 //'blacklist' => ['saddle', 'accessories'],
                 'rulesByElements' => [
                     'wheels' => [
-                        'integer',
-                        'range' => [
-                            1,
-                            3
-                        ]
+                        'null',
                     ],
                     'saddle' => [
                         'integer',

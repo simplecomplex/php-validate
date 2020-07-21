@@ -114,7 +114,7 @@ class RecursionTest extends TestCase
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
-            2,
+            null,
             true,
             'swooshy',
             [
