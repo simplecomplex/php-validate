@@ -372,8 +372,8 @@ class ValidateAgainstRuleSet
                     }
                 }
                 /**
-                 * RuleSetGenerator checks for falsy nor non-array $args,
-                 * but we play safe.
+                 * RuleSetGenerator also checks for falsy nor non-array $args,
+                 * but we play safe in case the ruleset has been tampered with.
                  * @see RuleSetFactory\RuleSetGenerator::resolveCandidates()
                  */
                 elseif (is_array($args)) {
@@ -495,9 +495,8 @@ class ValidateAgainstRuleSet
      */
     protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
     {
-        // @todo: recreate tableElements.keys to avoid having to stringify array_keys() repetetively.
         // PHP numeric index is not consistently integer.
-        $table_keys = array_keys($tableElements->rulesByElements);
+        $table_keys = $tableElements->keys;
 
         $failed = false;
         $record = [];

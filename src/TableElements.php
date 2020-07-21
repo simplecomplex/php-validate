@@ -47,6 +47,20 @@ class TableElements
     ];
 
     /**
+     * Keys of the elements specified.
+     *
+     * Helps securing that all keys are string.
+     * PHP numeric index is not consistently integer.
+     * Without
+     *
+     *
+     * recreate tableElements.keys to avoid having to stringify array_keys() repetetively.
+     *
+     * @var string[]
+     */
+    public $keys = [];
+
+    /**
      * Subject object|array must only contain keys defined by rulesByElements.
      *
      * @var bool
@@ -237,6 +251,8 @@ class TableElements
                     . ' in rulesByElements' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
             }
+
+            $this->keys[] = $sKey;
         }
     }
 }

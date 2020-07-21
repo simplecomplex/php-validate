@@ -83,10 +83,6 @@ class RecursionTest extends TestCase
             'rubbish',
             //'luggageCarrier' => 'handy',
         ];
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable(array_keys($bike->accessories))->log();
-        $ruleSet->class = [
-            get_class($bike)
-        ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         // Wrong, not array listItems string|bool.
@@ -99,9 +95,6 @@ class RecursionTest extends TestCase
 //        }
 //        static::assertTrue($valid, 'pre-converted');
 
-        // Try with raw ruleset source, to be processed runtime.
-        // unqualified class name.
-        $source['class'][] = true;
         $valid = $validate->challenge($bike, $source);
 //        $record = $validate->challengeRecording($bike, $source);
 //        if (!$record['passed']) {
@@ -132,10 +125,6 @@ class RecursionTest extends TestCase
 
         $bike->accessories = [
             false,
-        ];
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable(array_keys($bike->accessories))->log();
-        $ruleSet->class = [
-            get_class($bike)
         ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 

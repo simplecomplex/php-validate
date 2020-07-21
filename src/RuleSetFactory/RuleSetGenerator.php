@@ -153,14 +153,14 @@ class RuleSetGenerator
     protected $rulesPlain = [];
 
     /**
-     * Goes at bottom, for clarity only.
+     * Goes after ordinary rules, for clarity only.
      *
      * @var mixed[]|null
      */
     protected $alternativeEnum;
 
     /**
-     * Goes at bottom, for clarity only.
+     * Goes after ordinary rules, for clarity only.
      *
      * @var ValidationRuleSet|null
      */
@@ -192,6 +192,10 @@ class RuleSetGenerator
      */
     public function __construct(RuleSetFactory $factory, $rules, int $depth = 0, string $keyPath = 'root')
     {
+        // Constructor deliberately takes all the needed parameters,
+        // to make it clear that a generator isn't reusable.
+        // Dependency injection must take place on factory level.
+
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
                 'Stopped recursive validation rule set definition at limit['
@@ -252,13 +256,13 @@ class RuleSetGenerator
             $this->ensureTypeChecking();
         }
 
-        return $this->passRules();
+        return $this->toRuleSet();
     }
 
     /**
      * @return ValidationRuleSet
      */
-    protected function passRules() : ValidationRuleSet
+    protected function toRuleSet() : ValidationRuleSet
     {
         $class_ruleset = static::CLASS_RULE_SET;
         /** @var ValidationRuleSet $ruleset */
@@ -552,12 +556,6 @@ class RuleSetGenerator
      */
     protected function ruleByValue(string $index, $rule) : void
     {
-//        if (!is_string($rule) || !$rule) {
-//            throw new InvalidRuleException(
-//                'Validation rule-by-value at numeric index[' . $index . '] value type[' . Helper::getType($rule)
-//                . '] is not non-empty string' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
-//            );
-//        }
         switch ($rule) {
             case 'optional':
             case 'allowNull':

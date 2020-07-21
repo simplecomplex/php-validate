@@ -8,9 +8,7 @@ class BicycleRuleSets
     public static function original()
     {
         return [
-            'class' => [
-                Bicycle::class
-            ],
+            'class' => Bicycle::class,
             'tableElements' => [
                 //'exclusive' => true,
                 //'whitelist' => ['unspecified_1'],
@@ -91,7 +89,7 @@ class BicycleRuleSets
     {
         return [
             'class' => [
-                'Bicycle'
+                Bicycle::class
             ],
             'tableElements' => [
                 //'exclusive' => true,
