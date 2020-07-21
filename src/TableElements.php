@@ -51,10 +51,7 @@ class TableElements
      *
      * Helps securing that all keys are string.
      * PHP numeric index is not consistently integer.
-     * Without
-     *
-     *
-     * recreate tableElements.keys to avoid having to stringify array_keys() repetetively.
+     * Without keys we would have to do array_keys() repetetively.
      *
      * @var string[]
      */

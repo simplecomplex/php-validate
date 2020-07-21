@@ -123,9 +123,12 @@ class RecursionTest extends TestCase
             null
         );
 
-        $bike->accessories = [
-            false,
-        ];
+        unset($bike->saddle);
+        $bike->sound = false;
+
+//        $bike->accessories = [
+//            false,
+//        ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $valid = $validate->challenge($bike, $ruleSet);
