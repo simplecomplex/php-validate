@@ -160,6 +160,7 @@ class Validate implements RuleProviderInterface
         'indexedLoopable' => null,
         'keyedLoopable' => null,
         'indexedArray' => null,
+        'keyedArray' => null,
     ];
 
     /**
