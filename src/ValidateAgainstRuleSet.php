@@ -294,17 +294,12 @@ class ValidateAgainstRuleSet
                     $allowNull = true;
                     break;
                 case 'enum':
-                    // Support definition as nested array, because enum used to require
-                    // (overly formalistic) that the allowed values array was nested;
-                    // since the allowed values array is the second argument to be passed
-                    // to the enum() method.
                     /** @var array $enum */
-                    $enum = is_array(reset($argument)) ? reset($argument) : $argument;
+                    $enum = reset($argument);
                     break;
                 case 'alternativeEnum':
-                    // Like 'enum'; backwards compatibility.
                     /** @var array $alternativeEnum */
-                    $alternativeEnum = is_array(reset($argument)) ? reset($argument) : $argument;
+                    $alternativeEnum = $argument;
                     break;
                 case 'alternativeRuleSet':
                     /** @var ValidationRuleSet $alternativeRuleSet */

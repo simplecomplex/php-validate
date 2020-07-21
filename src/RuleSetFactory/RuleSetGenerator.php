@@ -479,9 +479,8 @@ class RuleSetGenerator
                 break;
 
             case 'enum':
-                // Is type-checking. Must be, because also used
-                // for alternativeEnum.
-                $this->rulesTypeChecking['enum'] = new RuleSetRule('enum', $this->enum($rule, $argument));
+                $this->ruleCandidates['enum'] = new RuleSetRule('enum', [$this->enum($rule, $argument)]);
+                $this->ruleCandidates['enum']->paramsRequired = 1;
                 break;
 
             case 'alternativeEnum':

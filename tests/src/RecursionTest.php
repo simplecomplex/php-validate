@@ -44,7 +44,7 @@ class RecursionTest extends TestCase
 
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             2,
@@ -123,12 +123,12 @@ class RecursionTest extends TestCase
             null
         );
 
-        unset($bike->saddle);
-        $bike->sound = false;
+//        unset($bike->saddle);
+//        $bike->sound = false;
 
-//        $bike->accessories = [
-//            false,
-//        ];
+        $bike->accessories = [
+            'whatever',
+        ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $valid = $validate->challenge($bike, $ruleSet);
