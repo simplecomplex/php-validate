@@ -12,6 +12,7 @@ namespace SimpleComplex\Tests\Validate;
 use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\ValidateUnchecked;
 use SimpleComplex\Validate\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
@@ -26,12 +27,20 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class RecursionTest extends TestCase
 {
     /**
-     * @return Validate
+     * @return Validate|ValidateUnchecked
      */
     public function testInstantiation()
     {
-        $validate = new Validate();
+        $validate = ValidateUnchecked::getInstance();
+        static::assertInstanceOf(ValidateUnchecked::class, $validate);
+        $validate = Validate::getInstance();
         static::assertInstanceOf(Validate::class, $validate);
+        static::assertNotInstanceOf(ValidateUnchecked::class, $validate);
+        $validate = ValidateUnchecked::getInstance();
+        static::assertInstanceOf(ValidateUnchecked::class, $validate);
+
+//        $validate = new ValidateUnchecked();
+//        static::assertInstanceOf(ValidateUnchecked::class, $validate);
         return $validate;
     }
 
