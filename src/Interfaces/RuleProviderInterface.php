@@ -15,7 +15,7 @@ namespace SimpleComplex\Validate\Interfaces;
  *
  * Illegal rule names
  * ------------------
- * optional, allowNull, alternativeEnum, alternativeRuleSet, tableElements, listItems
+ * optional, nullable, alternativeEnum, alternativeRuleSet, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
  *
  * Rule methods invalid arg checks
@@ -128,7 +128,9 @@ interface RuleProviderInterface
     /**
      * Checks for equality against a list of scalar|null values.
      *
-     * Method expected by recursive validator.
+     * Implementation is free to forbid (fail on) float.
+     *
+     * Method expected by recursive validator, for alternativeEnum.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param mixed $subject
@@ -144,37 +146,12 @@ interface RuleProviderInterface
     public function enum($subject, array $allowedValues) : bool;
 
     /**
-     * Integer, float or stringed integer/float.
-     *
-     * @see Type::NUMERIC
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (integer|float) on pass,
-     *      boolean false on validation failure.
-     */
-    public function numeric($subject);
-
-    /**
-     * String, number or stringable object.
-     *
-     * @see Type::STRINGABLE
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (string|integer|float|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function stringable($subject);
-
-    /**
      * Array or Traversable object, or non-Traversable non-ArrayAccess object.
      *
      * 'arrayAccess' is a Traversable ArrayAccess object.
      *
-     * @see Type::LOOPABLE
+     * Method expected by recursive validator, for tableElements, listItems.
+     * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param mixed $subject
      *

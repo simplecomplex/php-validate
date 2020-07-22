@@ -25,7 +25,7 @@ namespace SimpleComplex\Validate;
  * @property boolean|undefined $optional
  *      Flags that the object|array subject element do not have to exist.
  *
- * @property boolean|undefined $allowNull
+ * @property boolean|undefined $nullable
  *      Flags that the element is allowed to be null.
  *      Null is not the same as non-existent (optional).
  *

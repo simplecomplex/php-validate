@@ -19,7 +19,7 @@ use SimpleComplex\Validate\Type;
  *
  * Illegal rule method names
  * -------------------------
- * optional, allowNull, alternativeEnum, alternativeRuleSet, tableElements, listItems
+ * optional, nullable, alternativeEnum, alternativeRuleSet, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
  *
  * @package SimpleComplex\Validate

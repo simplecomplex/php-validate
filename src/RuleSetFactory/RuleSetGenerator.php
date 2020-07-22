@@ -123,7 +123,7 @@ class RuleSetGenerator
      *
      * @var bool|null
      */
-    protected $allowNull;
+    protected $nullable;
 
     /**
      * Type-checking rules must be the first real rules of the ruleset.
@@ -273,8 +273,8 @@ class RuleSetGenerator
         if ($this->optional) {
             $ruleset->optional = true;
         }
-        if ($this->allowNull) {
-            $ruleset->allowNull = true;
+        if ($this->nullable) {
+            $ruleset->nullable = true;
         }
 
         // Type-checking rules must be the first real rules of the ruleset.
@@ -461,10 +461,16 @@ class RuleSetGenerator
     {
         switch ($rule) {
             case 'optional':
+                // Allow falsy, but then don't set.
+                if ($argument) {
+                    $this->optional = true;
+                }
+                break;
+            case 'nullable':
             case 'allowNull':
                 // Allow falsy, but then don't set.
                 if ($argument) {
-                    $this->{$rule} = true;
+                    $this->nullable = true;
                 }
                 break;
 
@@ -480,12 +486,22 @@ class RuleSetGenerator
                 break;
 
             case 'enum':
-                $this->ruleCandidates['enum'] = new RuleSetRule('enum', [$this->enum($rule, $argument)]);
-                $this->ruleCandidates['enum']->paramsRequired = 1;
+                $enum = $this->enum($rule, $argument);
+                if ($enum) {
+                    $this->ruleCandidates['enum'] = new RuleSetRule('enum', [$enum]);
+                    $this->ruleCandidates['enum']->paramsRequired = 1;
+                }
+                // Ignore if only contained null bucket.
+                unset($enum);
                 break;
 
             case 'alternativeEnum':
-                $this->alternativeEnum = $this->enum($rule, $argument);
+                $enum = $this->enum($rule, $argument);
+                if ($enum) {
+                    $this->alternativeEnum = $enum;
+                }
+                // Ignore if only contained null bucket.
+                unset($enum);
                 break;
 
             case 'alternativeRuleSet':
@@ -558,8 +574,11 @@ class RuleSetGenerator
     {
         switch ($rule) {
             case 'optional':
+                $this->optional = true;
+                break;
+            case 'nullable':
             case 'allowNull':
-                $this->{$rule} = true;
+                $this->nullable = true;
                 break;
 
             case 'empty':
@@ -636,6 +655,8 @@ class RuleSetGenerator
      *
      * Bucket values must be scalar|null.
      *
+     * Removes null value and sets nullable instead.
+     *
      * @see ValidationRuleSet::$enum
      * @see ValidationRuleSet::$alternativeEnum
      *
@@ -645,6 +666,7 @@ class RuleSetGenerator
      *      Errs if not array.
      *
      * @return array
+     *      Empty if only contained null bucket.
      *
      * @throws InvalidRuleException
      */
@@ -669,9 +691,16 @@ class RuleSetGenerator
 
         // Check once and for all that allowed values are scalar|null.
         $i = -1;
+        $enum = [];
         foreach ($allowed_values as $value) {
             ++$i;
-            if ($value !== null && !is_scalar($value)) {
+            if ($value === null) {
+                $this->nullable = true;
+            }
+            elseif (is_scalar($value)) {
+                $enum[] = $value;
+            }
+            else {
                 throw new InvalidRuleException(
                     'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
                     . '] type[' . Helper::getType($value)
@@ -680,7 +709,7 @@ class RuleSetGenerator
             }
         }
 
-        return $allowed_values;
+        return $enum;
     }
 
     /**

@@ -104,7 +104,7 @@ class ValidateAgainstRuleSet
      */
     const NON_PROVIDER_RULES = [
         'optional',
-        'allowNull',
+        'nullable',
         'alternativeEnum',
         'alternativeRuleSet',
         'tableElements',
@@ -277,8 +277,8 @@ class ValidateAgainstRuleSet
         }
 
         $rule_methods = [];
-        $allowNull = $has_loopable = false;
-        $enum = $alternativeEnum =
+        $nullable = $has_loopable = false;
+        $alternativeEnum =
             $alternativeRuleSet =
             $tableElements = $listItems = null;
         foreach ($ruleSet as $rule => $argument) {
@@ -289,13 +289,14 @@ class ValidateAgainstRuleSet
                      * @see ValidateAgainstRuleSet::tableElements()
                      */
                     break;
+                case 'nullable':
                 case 'allowNull':
                     /**
                      * There must be a null method.
                      * @see RuleProviderInterface::null()
                      */
                 case 'null':
-                    $allowNull = true;
+                    $nullable = true;
                     break;
                 case 'enum':
                     /** @var array $enum */
@@ -338,15 +339,11 @@ class ValidateAgainstRuleSet
         $record = [];
 
         if ($subject === null) {
-            if ($allowNull) {
+            if ($nullable) {
                 return true;
             }
-            // If enum rule, then that may allow null.
-            if (!$enum) {
-                // Continue to alternativeEnum check.
-                $passed = false;
-            }
-            // Otherwise let enum rule in ruleSet iteration do validation.
+            // Continue to alternativeEnum|alternativeRuleSet check.
+            $passed = false;
         }
 
         if ($passed) {
@@ -358,15 +355,6 @@ class ValidateAgainstRuleSet
                         $passed = false;
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent($method);
-                        }
-                        break;
-                    }
-                }
-                elseif ($method == 'enum') {
-                    if (!$this->enum($subject, $enum)) {
-                        $passed = false;
-                        if ($this->recordFailure) {
-                            $record[] = $this->recordCurrent($method, $enum);
                         }
                         break;
                     }
@@ -397,7 +385,7 @@ class ValidateAgainstRuleSet
         if (!$passed) {
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternativeEnum) {
-                if ($this->enum($subject, $alternativeEnum)) {
+                if ($this->ruleProvider->enum($subject, $alternativeEnum)) {
                     // scalar|null; tableElements|listItems irrelevant.
                     return true;
                 }
@@ -451,26 +439,6 @@ class ValidateAgainstRuleSet
      */
     public function getRecord() {
         return $this->record;
-    }
-
-    /**
-     * Enum rule method which doesn't check that all allowed values
-     * are scalar|null; RuleSetGenerator checks that.
-     *
-     * @see Validate::enum()
-     * @see RuleSetFactory\RuleSetGenerator::enum()
-     *
-     * @param mixed $subject
-     * @param array $allowedValues
-     *
-     * @return bool
-     */
-    protected function enum($subject, array $allowedValues) : bool
-    {
-        if ($subject !== null && !is_scalar($subject)) {
-            return false;
-        }
-        return in_array($subject, $allowedValues, true);
     }
 
     /**
