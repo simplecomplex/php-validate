@@ -14,19 +14,19 @@ namespace SimpleComplex\Validate;
  */
 class Helper
 {
-    /**
-     * For listing public properties within method of object self.
-     *
-     * @see get_object_vars()
-     *
-     * @param object $object
-     *
-     * @return array
-     */
-    public static function getPublicProperties(object $object) : array
-    {
-        return get_object_vars($object);
-    }
+//    /**
+//     * For listing public properties within method of object self.
+//     *
+//     * @see get_object_vars()
+//     *
+//     * @param object $object
+//     *
+//     * @return array
+//     */
+//    public static function getPublicProperties(object $object) : array
+//    {
+//        return get_object_vars($object);
+//    }
 
     /**
      * For listing public methods within method of object self.

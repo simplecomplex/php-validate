@@ -100,6 +100,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * Methods that don't do type-checking, and what type they implicitly
      * expects.
      *
+     * @todo: rename to PATTERN_RULES.
+     *
      * @see getTypeInference()
      *
      * Used by RuleSetGenerator to secure a type checking rule when none such
@@ -155,13 +157,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      */
     protected $ruleMethods = [];
 
-    /**
-     * @see getTypeRules()
-     *
-     * @var string[]
-     */
-    protected $typeMethods = [];
-
 
     /**
      * Lists names of validation rule methods.
@@ -173,6 +168,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      */
     public function getRuleMethods() : array
     {
+        // @todo: no longer any need for this; all rules are listed in constants.
+
         if (!$this->ruleMethods) {
             $this->ruleMethods = array_diff(
                 Helper::getPublicMethods($this),
@@ -180,6 +177,11 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             );
         }
         return $this->ruleMethods;
+    }
+
+    public function getRules() : array
+    {
+
     }
 
     /**

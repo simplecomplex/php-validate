@@ -298,10 +298,6 @@ class ValidateAgainstRuleSet
                 case 'null':
                     $nullable = true;
                     break;
-                case 'enum':
-                    /** @var array $enum */
-                    $enum = reset($argument);
-                    break;
                 case 'alternativeEnum':
                     /** @var array $alternativeEnum */
                     $alternativeEnum = $argument;
@@ -314,6 +310,9 @@ class ValidateAgainstRuleSet
                 case 'indexedArray':
                 case 'keyedArray':
                 case 'loopable':
+                case 'indexedLoopable':
+                case 'keyedLoopable':
+                    // @todo: Those loopable rules should not be hardcoded.
                     $has_loopable = true;
                     break;
                 case 'tableElements':
