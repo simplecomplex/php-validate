@@ -38,6 +38,7 @@ class RecursionTest extends TestCase
         static::assertNotInstanceOf(ValidateUnchecked::class, $validate);
         $validate = ValidateUnchecked::getInstance();
         static::assertInstanceOf(ValidateUnchecked::class, $validate);
+        static::assertNotInstanceOf(Validate::class, $validate);
 
 //        $validate = new ValidateUnchecked();
 //        static::assertInstanceOf(ValidateUnchecked::class, $validate);
@@ -53,7 +54,7 @@ class RecursionTest extends TestCase
 
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             2,
@@ -120,7 +121,7 @@ class RecursionTest extends TestCase
 
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             null,

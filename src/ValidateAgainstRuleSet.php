@@ -290,6 +290,10 @@ class ValidateAgainstRuleSet
                      */
                     break;
                 case 'allowNull':
+                    /**
+                     * There must be a null method.
+                     * @see RuleProviderInterface::null()
+                     */
                 case 'null':
                     $allowNull = true;
                     break;
@@ -667,6 +671,10 @@ class ValidateAgainstRuleSet
     }
 
     /**
+     * Saves failure message of a ruleset.
+     *
+     * Includes subject's value if scalar; truncated and sanitized if string.
+     *
      * @param mixed $subject
      * @param int $depth
      * @param string $keyPath
@@ -683,6 +691,7 @@ class ValidateAgainstRuleSet
                     $value = $subject ? 'true' : 'false';
                 }
                 elseif (is_string($subject)) {
+                    // Truncate and sanitize value.
                     $unicode_length = mb_strlen($subject);
                     $type .= ':' . $unicode_length . ':' . strlen($subject);
                     if ($unicode_length > static::RECORD_STRING_TRUNCATE) {
@@ -691,7 +700,7 @@ class ValidateAgainstRuleSet
                     }
                     $value = '`'
                         . addcslashes(
-                            str_replace(static::RECORD_STRING_NEEDLES, static::RECORD_STRING_NEEDLES, $value),
+                            str_replace(static::RECORD_STRING_NEEDLES, static::RECORD_STRING_REPLACERS, $value),
                             "\0..\37"
                         )
                         . '`';

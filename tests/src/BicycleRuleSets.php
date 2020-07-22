@@ -106,7 +106,7 @@ class BicycleRuleSets
                         ]
                     ],
                     'sound' => [
-                        'string' => true,
+                        //'string' => true,
                         'enum' => [
                             'silent',
                             'swooshy',

@@ -12,39 +12,96 @@ namespace SimpleComplex\Validate;
 
 class Type
 {
-    /**
-     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
-     * @see Validate::numeric()
-     *
-     * @var int
-     */
-    const NUMERIC = 4;
+
+    const UNDEFINED = 1;
+
+    const NULL = 2;
+
+    const BOOLEAN = 4;
+
+    const INTEGER = 8;
+
+    const FLOAT = 16;
+
+    const STRING = 32;
+
+    const ARRAY = 64;
+
+    const OBJECT = 128;
+
+    const RESOURCE = 65536;
+
+
+    // Specials.----------------------------------------------------------------
 
     /**
-     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
-     * @see Validate::stringable()
-     *
-     * @var int
+     * Stringed number.
      */
-    const STRINGABLE = 64;
+    const DECIMAL = 1024;
 
     /**
-     * @see RuleSetFactory\RuleSetGenerator::TYPE_INFERENCE_METHOD
-     * @see Validate::loopable()
-     *
-     * @var int
+     * Array or \Traversable object.
      */
-    const LOOPABLE = 1024;
+    const ITERABLE = 2048;
 
-//    const RULES_NUMERIC = [
-//        'integer', 'float', 'number', 'digital', 'numeric',
-//    ];
-//
-//    const RULES_STRINGABLE = [
-//        'string', 'stringableScalar', 'stringableObject', 'stringable',
-//    ];
-//
-//    const RULES_LOOPABLE = [
-//        'indexedArray', 'keyedArray', 'array', 'indexedLoopable', 'keyedLoopable', 'loopable',
-//    ];
+
+    // Composites.--------------------------------------------------------------
+
+    /**
+     * int|float.
+     * 8 + 16
+     */
+    const NUMBER = 24;
+
+    /**
+     * Integer or stringed integer.
+     *
+     * int|string.
+     * 8 + 32
+     */
+    const DIGITAL = 40;
+
+    /**
+     * Integer, float or stringed number.
+     *
+     * int|float|string.
+     * 8 + 16 + 32
+     */
+    const NUMERIC = 56;
+
+    /**
+     * null|bool|int|string.
+     * 2 + 4 + 8 + 32
+     */
+    const EQUATABLE = 62;
+
+    /**
+     * bool|int|float|string.
+     * 4 + 8 + 16 + 32
+     */
+    const SCALAR = 60;
+
+    /**
+     * null|bool|int|float|string.
+     * 2 + 4 + 8 + 16 + 32
+     */
+    const SCALAR_NULLABLE = 62;
+
+    /**
+     * int|float|string|object.
+     * 8 + 16 + 32 + 128
+     */
+    const STRINGABLE = 184;
+
+    /**
+     * array|object.
+     * 64 + 128.
+     */
+    const CONTAINER = 192;
+
+    /**
+     * iterable|object.
+     * 2048 + 128.
+     */
+    const LOOPABLE = 2196;
 }

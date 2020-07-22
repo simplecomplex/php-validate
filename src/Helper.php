@@ -95,6 +95,7 @@ class Helper
      * Like native gettype() this method returns:
      * - 'boolean' not 'bool'
      * - 'integer' not 'int'
+     * - 'resource (closed)'
      * - 'unknown type' for unknown type
      *
      * @param mixed $subject

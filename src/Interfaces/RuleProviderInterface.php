@@ -13,23 +13,22 @@ namespace SimpleComplex\Validate\Interfaces;
  * Describes required properties of a class - a 'rule provider' - that can
  * provide validation rules for a ValidateAgainstRuleSet instance.
  *
- * Illegal rule method names
- * -------------------------
+ * Illegal rule names
+ * ------------------
  * optional, allowNull, alternativeEnum, alternativeRuleSet, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
+ *
+ * Rule methods invalid arg checks
+ * -------------------------------
+ * Rules that take more arguments than the $subject to validate
+ * must check those arguments for type/emptyness and throw exception
+ * on such error.
  *
  * @package SimpleComplex\Validate
  */
 interface RuleProviderInterface
 {
-//    /**
-//     * Lists public methods that aren't validation rule methods.
-//     *
-//     * @return string[]
-//     *
-//     * @see Validate::getNonRuleMethods()
-//     */
-//    public function getNonRuleMethods() : array;
+    // Recursive validation facilitators.---------------------------------------
 
     /**
      * Lists validation rule methods.
@@ -82,16 +81,20 @@ interface RuleProviderInterface
     public function getParameterSpecs() : array;
 
 
+    // Validation rule methods.-------------------------------------------------
+
     /**
      * Subject is falsy or array|object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
      *
+     * Method expected by ruleset generator.
+     * @see RuleSetGenerator::ruleByKey()
+     * @see RuleSetGenerator::ruleByValue()
+     *
      * @param mixed $subject
      *
      * @return bool
-     *
-     * @see Validate::empty()
      */
     public function empty($subject) : bool;
 
@@ -100,36 +103,22 @@ interface RuleProviderInterface
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
      *
+     * Method expected by ruleset generator.
+     * @see RuleSetGenerator::ruleByKey()
+     * @see RuleSetGenerator::ruleByValue()
+     *
      * @param mixed $subject
      *
      * @return bool
-     *
-     * @see Validate::nonEmpty()
      */
     public function nonEmpty($subject) : bool;
 
     /**
-     * Checks for equality against a list of values.
+     * Is null.
      *
-     * Compares type strict, and allowed values must be scalar or null.
+     * Method expected by recursive validator.
+     * @see ValidateAgainstRuleSet::internalChallenge()
      *
-     * The method must log or throw exception if arg allowedValues isn't a non-empty array.
-     *
-     * @param mixed $subject
-     * @param array $allowedValues
-     *      [
-     *          0: some scalar
-     *          1: null
-     *          3: other scalar
-     *      ]
-     *
-     * @return bool
-     *
-     * @see Validate::enum()
-     */
-    public function enum($subject, array $allowedValues) : bool;
-
-    /**
      * @param mixed $subject
      *
      * @return bool
@@ -137,42 +126,55 @@ interface RuleProviderInterface
     public function null($subject) : bool;
 
     /**
+     * Checks for equality against a list of scalar|null values.
+     *
+     * Method expected by recursive validator.
+     * @see ValidateAgainstRuleSet::internalChallenge()
+     *
      * @param mixed $subject
+     * @param mixed[] $allowedValues
+     *      [
+     *          0: some scalar
+     *          1: null
+     *          3: other scalar
+     *      ]
      *
      * @return bool
      */
-    public function string($subject) : bool;
+    public function enum($subject, array $allowedValues) : bool;
 
     /**
-     * Is object and is of that class or interface, or has it as ancestor.
+     * Integer, float or stringed integer/float.
      *
-     * @param mixed $subject
-     *      object to pass validation.
-     * @param string $className
-     *
-     * @return bool
-     */
-    public function class($subject, string $className) : bool;
-
-    /**
-     * Array or object.
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
+     * @see Type::NUMERIC
      *
      * @param mixed $subject
      *
      * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
+     *      String (integer|float) on pass,
      *      boolean false on validation failure.
-     *
-     * @see Validate::container()
      */
-    public function container($subject);
+    public function numeric($subject);
+
+    /**
+     * String, number or stringable object.
+     *
+     * @see Type::STRINGABLE
+     *
+     * @param mixed $subject
+     *
+     * @return string|bool
+     *      String (string|integer|float|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function stringable($subject);
 
     /**
      * Array or Traversable object, or non-Traversable non-ArrayAccess object.
      *
      * 'arrayAccess' is a Traversable ArrayAccess object.
+     *
+     * @see Type::LOOPABLE
      *
      * @param mixed $subject
      *

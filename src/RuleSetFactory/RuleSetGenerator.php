@@ -78,7 +78,8 @@ class RuleSetGenerator
     /**
      * @var string[]
      */
-    const TYPE_INFERENCE_METHOD = [
+    const TYPE_INFERENCE_RULE = [
+        Type::EQUATABLE => 'equatable',
         Type::NUMERIC => 'numeric',
         Type::STRINGABLE => 'stringableScalar',
         Type::LOOPABLE => 'loopable',
@@ -338,7 +339,7 @@ class RuleSetGenerator
 
         // tableElements|listItems require loopable container.
         if ($this->tableElements || $this->listItems) {
-            $method = static::TYPE_INFERENCE_METHOD[Type::LOOPABLE];
+            $method = static::TYPE_INFERENCE_RULE[Type::LOOPABLE];
             $this->rulesTypeChecking[$method] = new RuleSetRule($method, true);
             return;
         }
@@ -354,7 +355,7 @@ class RuleSetGenerator
                 . ' misses type inference for rule[' . $rule->name . '].'
             );
         }
-        $method = static::TYPE_INFERENCE_METHOD[$typeInference];
+        $method = static::TYPE_INFERENCE_RULE[$typeInference];
         $this->rulesTypeChecking[$method] = new RuleSetRule($method, true);
     }
 

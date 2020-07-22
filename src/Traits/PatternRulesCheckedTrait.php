@@ -9,16 +9,64 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Traits;
 
+use SimpleComplex\Validate\Helper;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
+
 /**
- * All rule methods type-checking.
+ * Pattern rules - type-checking implementation.
  *
  *
  * @mixin \SimpleComplex\Validate\ValidateUnchecked
  *
  * @package SimpleComplex\Validate
  */
-trait ValidateCheckedTrait
+trait PatternRulesCheckedTrait
 {
+    /**
+     * Subject strictly equal to a bucket of an array.
+     *
+     * Checks whether all allowed values are bool|int|string|null.
+     * @see TypeRulesTrait::equatable()
+     *
+     * @param mixed $subject
+     * @param mixed[] $allowedValues
+     *      [
+     *          0: some scalar (not float)
+     *          1: null
+     *          3: other scalar (not float)
+     *      ]
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg allowedValues is empty.
+     *      A bucket of arg allowedValues is not bool|int|string|null.
+     */
+    public function enum($subject, array $allowedValues) : bool
+    {
+        if (!$allowedValues) {
+            throw new InvalidArgumentException('Arg allowedValues is empty.');
+        }
+        if ($subject !== null && (is_float($subject) || !is_scalar($subject))) {
+            return false;
+        }
+        $i = -1;
+        foreach ($allowedValues as $allowed) {
+            ++$i;
+            if ($allowed !== null && (is_float($allowed) || !is_scalar($allowed))) {
+                throw new InvalidArgumentException(
+                    'Arg allowedValues bucket ' . $i . ' type[' . Helper::getType($allowed)
+                    . '] is not bool|int|string|null.'
+                );
+            }
+            if ($subject === $allowed) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // Numeric secondaries.-----------------------------------------------------
 
     /**
@@ -26,7 +74,7 @@ trait ValidateCheckedTrait
      */
     public function bit32($subject) : bool
     {
-        if (!$this->digital($subject)) {
+        if (!$this->numeric($subject)) {
             return false;
         }
         return parent::bit32($subject);
@@ -37,7 +85,7 @@ trait ValidateCheckedTrait
      */
     public function bit64($subject) : bool
     {
-        if (!$this->digital($subject)) {
+        if (!$this->numeric($subject)) {
             return false;
         }
         return parent::bit64($subject);
@@ -382,7 +430,7 @@ trait ValidateCheckedTrait
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::timeISO8601($subject);
+        return parent::timeISO8601($subject, $subSeconds);
     }
 
     /**
