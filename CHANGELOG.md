@@ -19,6 +19,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Pseudo-rule nullable renamed; from allowNull. Backwards compatible; ruleset
   generator still supports allowNull.
   
+* regex() no longers passes boolean subject, no matter what pattern provided.
+  
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
 * tableElements, listItems are no longer ignored if self has alternativeRuleSet

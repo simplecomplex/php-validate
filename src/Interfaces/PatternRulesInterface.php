@@ -19,7 +19,6 @@ use SimpleComplex\Validate\Type;
  *
  * Equivalent non type-checking trait:
  * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait
- *
  * Equivalent type-checking trait:
  * @see \SimpleComplex\Validate\Traits\PatternRulesCheckedTrait
  *

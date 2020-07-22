@@ -11,8 +11,10 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
-use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\AbstractValidate;
 use SimpleComplex\Validate\ValidateUnchecked;
+use SimpleComplex\Validate\Validate;
+
 use SimpleComplex\Validate\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
@@ -27,7 +29,7 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class RecursionTest extends TestCase
 {
     /**
-     * @return Validate|ValidateUnchecked
+     * @return AbstractValidate
      */
     public function testInstantiation()
     {

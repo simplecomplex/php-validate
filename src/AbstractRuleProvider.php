@@ -69,7 +69,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         'getRulesRenamed' => null,
         'getTypeRules' => null,
         'getTypeInference' => null,
-        'getParametersSpecs' => null,
+        'getParameterSpecs' => null,
         '__call' => null,
         'challenge' => null,
         'challengeRecording' => null,

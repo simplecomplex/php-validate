@@ -15,8 +15,8 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 /**
  * Pattern rules - type-checking implementation.
  *
- *
- * @mixin \SimpleComplex\Validate\ValidateUnchecked
+ * Equivalent interface:
+ * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface
  *
  * @package SimpleComplex\Validate
  */

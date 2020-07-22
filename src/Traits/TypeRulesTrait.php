@@ -17,9 +17,6 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  * Equivalent interface:
  * @see \SimpleComplex\Validate\Interfaces\TypeRulesInterface
  *
- *
- * mixin \SimpleComplex\Validate\ValidateUnchecked
- *
  * @package SimpleComplex\Validate
  */
 trait TypeRulesTrait

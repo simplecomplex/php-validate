@@ -17,8 +17,8 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  *
  * Methods which don't check subject's type before testing the actual rule.
  *
- *
- * @mixin \SimpleComplex\Validate\ValidateUnchecked
+ * Equivalent interface:
+ * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface
  *
  * @package SimpleComplex\Validate
  */
