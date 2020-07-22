@@ -16,7 +16,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 /**
  * Pseudo rule listing ValidationRuleSets of elements of a 'loopable'
  * object|array subject.
- * @see Validate::loopable()
+ * @see TypeRulesTrait::loopable()
  *
  * TableElements is an optional property of ValidationRuleSet.
  * @see ValidationRuleSet::$tableElements

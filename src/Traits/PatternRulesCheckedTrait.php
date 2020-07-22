@@ -403,67 +403,67 @@ trait PatternRulesCheckedTrait
     /**
      * {@inheritDoc}
      */
-    public function dateISO8601($subject, int $subSeconds = -1) : bool
+    public function dateISO($subject, int $subSeconds = -1) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::dateISO8601($subject, $subSeconds);
+        return parent::dateISO($subject, $subSeconds);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function dateISO8601Local($subject) : bool
+    public function dateISOLocal($subject) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::dateISO8601Local($subject);
+        return parent::dateISOLocal($subject);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function timeISO8601($subject, int $subSeconds = -1) : bool
+    public function timeISO($subject, int $subSeconds = -1) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::timeISO8601($subject, $subSeconds);
+        return parent::timeISO($subject, $subSeconds);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function dateTimeISO8601($subject, int $subSeconds = -1) : bool
+    public function dateTimeISO($subject, int $subSeconds = -1) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::dateTimeISO8601($subject, $subSeconds);
+        return parent::dateTimeISO($subject, $subSeconds);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function dateTimeISO8601Local($subject) : bool
+    public function dateTimeISOLocal($subject) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::dateTimeISO8601Local($subject);
+        return parent::dateTimeISOLocal($subject);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function dateTimeISO8601Zonal($subject, int $subSeconds = -1) : bool
+    public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool
     {
         if (!$this->stringable($subject)) {
             return false;
         }
-        return parent::dateTimeISO8601Zonal($subject, $subSeconds);
+        return parent::dateTimeISOZonal($subject, $subSeconds);
     }
 
     /**

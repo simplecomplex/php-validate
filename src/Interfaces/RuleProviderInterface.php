@@ -35,7 +35,7 @@ interface RuleProviderInterface
      *
      * @return string[]
      *
-     * @see Validate::getRuleMethods()
+     * @see AbstractRuleProvider::getRuleMethods()
      */
     public function getRuleMethods() : array;
 
@@ -44,9 +44,9 @@ interface RuleProviderInterface
      *
      * @return string[]
      *
-     * @see Validate::getTypeMethods()
+     * @see AbstractRuleProvider::getTypeRules()
      */
-    public function getTypeMethods() : array;
+    public function getTypeRules() : array;
 
     /**
      * Methods that don't do type-checking, and what type they implicitly
@@ -54,7 +54,7 @@ interface RuleProviderInterface
      *
      * @return int[]
      *
-     * @see Validate::getTypeInference()
+     * @see AbstractRuleProvider::getTypeInference()
      */
     public function getTypeInference() : array;
 
@@ -62,6 +62,8 @@ interface RuleProviderInterface
      * Lists rules renamed; current rule name by old rule name.
      *
      * @return string[]
+     *
+     * @see AbstractRuleProvider::getRulesRenamed()
      */
     public function getRulesRenamed() : array;
 
@@ -77,6 +79,8 @@ interface RuleProviderInterface
      *      @var int[] $required
      *      @var int[] $allowed
      * }
+     *
+     * @see AbstractRuleProvider::getParameterSpecs()
      */
     public function getParameterSpecs() : array;
 
@@ -95,6 +99,8 @@ interface RuleProviderInterface
      * @param mixed $subject
      *
      * @return bool
+     *
+     * @see TypeRulesTrait::empty()
      */
     public function empty($subject) : bool;
 
@@ -110,6 +116,8 @@ interface RuleProviderInterface
      * @param mixed $subject
      *
      * @return bool
+     *
+     * @see TypeRulesTrait::nonEmpty()
      */
     public function nonEmpty($subject) : bool;
 
@@ -122,6 +130,8 @@ interface RuleProviderInterface
      * @param mixed $subject
      *
      * @return bool
+     *
+     * @see TypeRulesTrait::null()
      */
     public function null($subject) : bool;
 
@@ -142,6 +152,8 @@ interface RuleProviderInterface
      *      ]
      *
      * @return bool
+     *
+     * @see PatternRulesUncheckedTrait::enum()
      */
     public function enum($subject, array $allowedValues) : bool;
 
@@ -159,7 +171,7 @@ interface RuleProviderInterface
      *      String (array|arrayAccess|traversable|object) on pass,
      *      boolean false on validation failure.
      *
-     * @see Validate::loopable()
+     * @see TypeRulesTrait::loopable()
      */
     public function loopable($subject);
 }

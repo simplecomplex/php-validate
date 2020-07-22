@@ -437,7 +437,7 @@ class RuleSetGenerator
                 );
             }
 
-            if (in_array($name, $this->factory->typeCheckingMethods, true)) {
+            if (isset($this->factory->typeRules[$name])) {
                 $this->rulesTypeChecking[$name] = $rule;
             }
             else {
@@ -653,12 +653,10 @@ class RuleSetGenerator
     /**
      * Pseudo rule listing valid values.
      *
-     * Bucket values must be scalar|null.
-     *
      * Removes null value and sets nullable instead.
      *
-     * @see ValidationRuleSet::$enum
-     * @see ValidationRuleSet::$alternativeEnum
+     * Bucket values must be scalar|null or bool|int|string|null.
+     * @see PatternRulesInterface::enum()
      *
      * @param string $ruleName
      *      Value: enum|alternativeEnum.
@@ -689,6 +687,9 @@ class RuleSetGenerator
             $allowed_values = $argument;
         }
 
+        $require_type = $this->factory->typeInference['enum'] ?? $this->factory->typeRules['enum'] ??
+            Type::SCALAR_NULLABLE;
+
         // Check once and for all that allowed values are scalar|null.
         $i = -1;
         $enum = [];
@@ -697,15 +698,30 @@ class RuleSetGenerator
             if ($value === null) {
                 $this->nullable = true;
             }
-            elseif (is_scalar($value)) {
-                $enum[] = $value;
+            elseif ($require_type == Type::EQUATABLE) {
+                if (is_scalar($value) && !is_float($value)) {
+                    $enum[] = $value;
+                }
+                else {
+                    throw new InvalidRuleException(
+                        'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
+                        . '] type[' . Helper::getType($value) . '] is not bool|int|string|null'
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
             }
             else {
-                throw new InvalidRuleException(
-                    'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
-                    . '] type[' . Helper::getType($value)
-                    . '] is not scalar or null' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
-                );
+                // Type::SCALAR_NULLABLE
+                if (is_scalar($value)) {
+                    $enum[] = $value;
+                }
+                else {
+                    throw new InvalidRuleException(
+                        'Validation \'' . $ruleName . '\' allowed values bucket[' . $i
+                        . '] type[' . Helper::getType($value) . '] is not scalar or null'
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
             }
         }
 

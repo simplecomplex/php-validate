@@ -17,7 +17,7 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 /**
  * Do not use this method directly - use Validate->challenge().
  *
- * @see Validate::challenge()
+ * @see AbstractRuleProvider::challenge()
  *
  * Purpose
  * -------
@@ -58,7 +58,7 @@ class ValidateAgainstRuleSet
      * instance state, voiding the warranty that the requested and referred
      * returned instances are effectively identical.
      *
-     * @see Validate::challenge()
+     * @see AbstractRuleProvider::challenge()
      *
      * @param RuleProviderInterface $ruleProvider
      *
@@ -146,8 +146,8 @@ class ValidateAgainstRuleSet
      *
      * Vars ruleProvider and ruleMethods do not infringe that principle.
      *
-     * @see Validate::challenge()
-     * @see Validate::challengeRecording()
+     * @see AbstractRuleProvider::challenge()
+     * @see AbstractRuleProvider::challengeRecording()
      */
 
     /**
@@ -179,7 +179,7 @@ class ValidateAgainstRuleSet
      * Stops validation on first failure,
      * except if truthy options recordFailure.
      *
-     * @see Validate::challenge()
+     * @see AbstractRuleProvider::challenge()
      *
      * @param RuleProviderInterface $ruleProvider
      *      The (most of the) methods of the Validate instance will be
@@ -197,8 +197,8 @@ class ValidateAgainstRuleSet
     /**
      * Use Validate::challenge() instead of this.
      *
-     * @see Validate::challenge()
-     * @see Validate::challengeRecording()
+     * @see AbstractRuleProvider::challenge()
+     * @see AbstractRuleProvider::challengeRecording()
      *
      * @code
      * // Validate a value which should be an integer zero thru two.
@@ -445,7 +445,7 @@ class ValidateAgainstRuleSet
      * Iterates by order of subject buckets.
      *
      * Subject must be loopable, and that must be checked prior to call.
-     * @see Validate::loopable()
+     * @see TypeRulesTrait::loopable()
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param object|array $subject
@@ -542,7 +542,7 @@ class ValidateAgainstRuleSet
 
     /**
      * Subject must be loopable, and that must be checked prior to call.
-     * @see Validate::loopable()
+     * @see TypeRulesTrait::loopable()
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param object|array $subject

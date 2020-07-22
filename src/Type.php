@@ -9,9 +9,20 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Validate\Exception\InvalidRuleException;
 
+
+/**
+ * Type definitions used by ruleset generator to find a type-checking rule
+ * matching a pattern rule.
+ *
+ * @see RuleSetGenerator::ensureTypeChecking()
+ *
+ * @package SimpleComplex\Validate
+ */
 class Type
 {
+    // Simple.------------------------------------------------------------------
 
     const UNDEFINED = 1;
 
@@ -104,4 +115,29 @@ class Type
      * 2048 + 128.
      */
     const LOOPABLE = 2196;
+
+
+    /**
+     * @param int $type
+     *
+     * @return string
+     *
+     * @throws InvalidRuleException
+     *      Arg $type value not supported.
+     */
+    public static function typeName(int $type) : string
+    {
+        // Don't propagate weird unlikely exception types.
+        try {
+            $oRflctn = new \ReflectionClass(get_called_class());
+            $name = array_search($type, $oRflctn->getConstants(), true);
+            if ($name) {
+                return $name;
+            }
+            throw new InvalidRuleException('Arg $type value[' . $type . '] is not supported');
+        }
+        catch (\ReflectionException $xcptn) {
+            throw new InvalidRuleException('See previous.', 0, $xcptn);
+        }
+    }
 }

@@ -29,7 +29,7 @@ interface TypeRulesInterface
     /**
      * Rules that explicitly promise to check the subject's type.
      *
-     * @see RuleProviderInterface::getTypeMethods()
+     * @see RuleProviderInterface::getTypeRules()
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then RuleSetGenerator makes a guess.

@@ -50,7 +50,7 @@ trait PatternRulesUncheckedTrait
     /**
      * 32-bit numeric.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      *
@@ -64,7 +64,7 @@ trait PatternRulesUncheckedTrait
     /**
      * 64-bit numeric.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      *
@@ -78,7 +78,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Positive numeric; not zero and not negative.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      *
@@ -92,7 +92,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Zero or positive numeric.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      *
@@ -106,7 +106,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Negative numeric; not zero and not positive.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      *
@@ -123,7 +123,7 @@ trait PatternRulesUncheckedTrait
      * May produce false negative if args subject and min both are float;
      * comparing floats is inherently imprecise.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      * @param int|float $min
@@ -152,7 +152,7 @@ trait PatternRulesUncheckedTrait
      * @param int|float $max
      *      Stringed number is not accepted.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @return bool
      *
@@ -173,7 +173,7 @@ trait PatternRulesUncheckedTrait
      * May produce false negative if (at least) two of the args are float;
      * comparing floats is inherently imprecise.
      *
-     * @see ValidateUnchecked::numeric()
+     * @see TypeRulesTrait::numeric()
      *
      * @param mixed $subject
      * @param int|float $min
@@ -208,7 +208,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Matches regular expression.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -237,7 +237,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -262,7 +262,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -300,7 +300,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -327,7 +327,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
      * @see unicode()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -355,9 +355,9 @@ trait PatternRulesUncheckedTrait
      * String maximum multibyte/unicode length.
      *
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
-     * @see Validate::unicode()
+     * @see unicode()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -385,9 +385,9 @@ trait PatternRulesUncheckedTrait
      * String exact multibyte/unicode length.
      *
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
-     * @see Validate::unicode()
+     * @see unicode()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -417,7 +417,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Hexadeximal number (string).
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -446,7 +446,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -465,7 +465,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -497,7 +497,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -524,7 +524,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -550,7 +550,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -576,7 +576,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -602,7 +602,7 @@ trait PatternRulesUncheckedTrait
     /**
      * ASCII alphanumeric.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -637,7 +637,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Name: starts with alpha, followed by alphanum/underscore/hyphen.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -670,7 +670,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Camel cased name: starts with alpha, followed by alphanum.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -703,7 +703,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Snake cased name: starts with alpha, followed by alphanum/underscore.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -736,7 +736,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Lisp cased name: starts with alpha, followed by alphanum/dash.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -767,10 +767,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
-     *
-     * @see Validate::asciiLowerCase()
-     * @see Validate::asciiUpperCase()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -801,7 +798,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -814,14 +811,6 @@ trait PatternRulesUncheckedTrait
         return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $subject);
     }
 
-/**
- * Max number of datetime ISO-8601 sub seconds digits.
- *
- * PHP \DateTime constructor max is 8 (PHP 7.0).
- * MS SQL date parser max is 9 (SQL Server 2017).
- */
-//const DATETIME_ISO8601_SUBSECONDS_MAX = 8;
-
     /**
      * Ultimate catch-all ISO-8601 date/datetime timestamp.
      *
@@ -831,21 +820,19 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD([T ]HH(:ii(:ss)?(.m{1,N})?)?(Z|[+- ]HH:?(II)?)?)?
      * The format is supported by native \DateTime constructor.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
-     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Negative: uses class constant DATETIME_ISO_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
      */
-    public function dateISO8601($subject, int $subSeconds = -1) : bool
+    public function dateISO($subject, int $subSeconds = -1) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         if (strlen($v) == 10) {
             return !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
@@ -854,7 +841,7 @@ trait PatternRulesUncheckedTrait
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -870,17 +857,15 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD
      * The format is supported by native \DateTime constructor.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
-    public function dateISO8601Local($subject) : bool
+    public function dateISOLocal($subject) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         return strlen($v) == 10 && !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
     }
@@ -892,27 +877,25 @@ trait PatternRulesUncheckedTrait
      *
      * HH:ii(:ss)?(.m{1,N})?
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
-     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Negative: uses class constant DATETIME_ISO_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
      */
-    public function timeISO8601($subject, int $subSeconds = -1) : bool
+    public function timeISO($subject, int $subSeconds = -1) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 9 + $ss
@@ -933,27 +916,25 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?(Z|[+- ]HH:?(II)?)
      * The format is supported by native \DateTime constructor.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
-     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Negative: uses class constant DATETIME_ISO_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
      */
-    public function dateTimeISO8601($subject, int $subSeconds = -1) : bool
+    public function dateTimeISO($subject, int $subSeconds = -1) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -971,17 +952,15 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD HH:II(:SS)?
      * The format is supported by native \DateTime constructor.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      *
      * @return bool
      */
-    public function dateTimeISO8601Local($subject) : bool
+    public function dateTimeISOLocal($subject) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
     }
@@ -997,27 +976,25 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?[+- ]HH(:II)?
      * The format is supported by native \DateTime constructor.
      *
-     * @@see ValidateUnchecked::stringable()
+     * @@see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
-     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Negative: uses class constant DATETIME_ISO_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
      */
-    public function dateTimeISO8601Zonal($subject, int $subSeconds = -1) : bool
+    public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool
     {
-        // @todo: rename - remove 8601.
-
         $v = '' . $subject;
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -1035,27 +1012,25 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?Z
      * The format is supported by native \DateTime constructor.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
      * @param int $subSeconds
      *      Max number of sub second digits.
-     *      Negative: uses class constant DATETIME_ISO8601_SUBSECONDS_MAX.
+     *      Negative: uses class constant DATETIME_ISO_SUBSECONDS_MAX.
      *      Zero: none.
      *
      * @return bool
      */
     public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool
     {
-        // Ugly method name because \DateTime uses strict acronym camelCasing.
-
         $v = '' . $subject;
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO8601_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 21 + $ss
@@ -1073,7 +1048,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1087,7 +1062,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1101,7 +1076,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1115,7 +1090,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1132,7 +1107,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see ValidateUnchecked::stringable()
+     * @see TypeRulesTrait::stringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.

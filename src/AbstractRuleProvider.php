@@ -34,12 +34,12 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * First object instantiated via this method, being class of class called on.
      *
-     * @see Validate::challenge()
+     * @see challenge()
      *
      * @param mixed ...$constructorParams
      *      Validate child class constructor may have parameters.
      *
-     * @return Validate|static
+     * @return AbstractRuleProvider|static
      */
     public static function getInstance(...$constructorParams)
     {
@@ -52,7 +52,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Non-rule methods.
      *
-     * @see Validate::getRuleMethods()
+     * @see getRuleMethods()
      *
      * Keys are property names, values may be anything.
      * Allows a child class to extend parent's list by doing
@@ -67,7 +67,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         '__construct' => null,
         'getRuleMethods' => null,
         'getRulesRenamed' => null,
-        'getTypeMethods' => null,
+        'getTypeRules' => null,
         'getTypeInference' => null,
         'getParametersSpecs' => null,
         '__call' => null,
@@ -78,7 +78,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Rules that explicitly promise to check the subject's type.
      *
-     * @see getTypeMethods()
+     * @see getTypeRules()
      * @see TypeRulesInterface::MINIMAL_TYPE_RULES
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
@@ -144,19 +144,19 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
      * requested and returned instance are effectively identical.
      *
-     * @see Validate::challenge()
+     * @see challenge()
      * @see ValidateAgainstRuleSet::getInstance()
      */
 
     /**
-     * @see Validate::getRuleMethods()
+     * @see getRuleMethods()
      *
      * @var string[]
      */
     protected $ruleMethods = [];
 
     /**
-     * @see Validate::getTypeMethods()
+     * @see getTypeRules()
      *
      * @var string[]
      */
@@ -195,26 +195,22 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     }
 
     /**
-     * Lists names of rule methods that explicitly promise to check
-     * the subject's type.
+     * Type checking rules, and their type family.
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then ValidationRuleSet makes a guess; ultimately string.
-     * @see RuleSetGenerator::inferTypeCheckingRule()
+     * @see RuleSetGenerator::ensureTypeChecking()
      *
      * @return string[]
      */
-    public function getTypeMethods() : array
+    public function getTypeRules() : array
     {
-        if (!$this->typeMethods) {
-            $this->typeMethods = array_keys(static::TYPE_RULES);
-        }
-        return $this->typeMethods;
+        return static::TYPE_RULES;
     }
 
     /**
-     * Methods that don't do type-checking, and what type they implicitly
-     * expects.
+     * Rules that don't promise to be type-checking, and what type they
+     * implicitly expect.
      *
      * Used by RuleSetGenerator to secure a type checking rule when none such
      * mentioned in the source of a validation rule set (e.g. JSON).
@@ -231,14 +227,14 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * Two lists of number of required/allowed arguments.
      *
      * Number of required parameters, by rule method name.
-     * @return int[][] {
-     * @see Validate::PARAMS_ALLOWED
-     *
-     * @see Validate::PARAMS_REQUIRED
+     * @see AbstractValidate::PARAMS_REQUIRED
      *
      * Number of allowed parameters - if none required
      * or if allows more than required - by rule method name.
-     * @var int[] $required
+     * @see AbstractValidate::PARAMS_ALLOWED
+     *
+     * @return int[][] {
+     *      @var int[] $required
      *      @var int[] $allowed
      * }
      */

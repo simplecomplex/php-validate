@@ -75,12 +75,12 @@ interface PatternRulesInterface
         'lispName' => Type::STRINGABLE,
         'uuid' => Type::STRINGABLE,
         'base64' => Type::STRINGABLE,
-        'dateISO8601' => Type::STRINGABLE,
-        'dateISO8601Local' => Type::STRINGABLE,
-        'timeISO8601' => Type::STRINGABLE,
-        'dateTimeISO8601' => Type::STRINGABLE,
-        'dateTimeISO8601Local' => Type::STRINGABLE,
-        'dateTimeISO8601Zonal' => Type::STRINGABLE,
+        'dateISO' => Type::STRINGABLE,
+        'dateISOLocal' => Type::STRINGABLE,
+        'timeISO' => Type::STRINGABLE,
+        'dateTimeISO' => Type::STRINGABLE,
+        'dateTimeISOLocal' => Type::STRINGABLE,
+        'dateTimeISOZonal' => Type::STRINGABLE,
         'dateTimeISOUTC' => Type::STRINGABLE,
         'plainText' => Type::STRINGABLE,
         'ipAddress' => Type::STRINGABLE,
@@ -124,10 +124,10 @@ interface PatternRulesInterface
         'snakeName' => 1,
         'lispName' => 1,
         'uuid' => 1,
-        'dateISO8601' => 1,
-        'timeISO8601' => 1,
-        'dateTimeISO8601' => 1,
-        'dateTimeISO8601Zonal' => 1,
+        'dateISO' => 1,
+        'timeISO' => 1,
+        'dateTimeISO' => 1,
+        'dateTimeISOZonal' => 1,
         'dateTimeISOUTC' => 1,
     ];
 
@@ -139,9 +139,18 @@ interface PatternRulesInterface
      * @var string[]
      */
     const PATTERN_RULES_RENAMED = [
-        'dateIso8601Local' => 'dateISO8601Local',
-        'dateTimeIso8601' => 'dateTimeISO8601',
+        'dateISO8601' => 'dateISO',
+        'dateISO8601Local' => 'dateISOLocal',
+        'timeISO8601' => 'timeISO',
+        'dateTimeISO8601' => 'dateTimeISO',
+        'dateTimeISO8601Local' => 'dateTimeISOLocal',
+        'dateTimeISO8601Zonal' => 'dateTimeISOZonal',
     ];
+
+    /**
+     * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::dateTimeISO()
+     */
+    const DATETIME_ISO_SUBSECONDS_MAX = 8;
 
 
     public function enum($subject, array $allowedValues) : bool;
@@ -219,17 +228,17 @@ interface PatternRulesInterface
 
     public function base64($subject) : bool;
 
-    public function dateISO8601($subject, int $subSeconds = -1) : bool;
+    public function dateISO($subject, int $subSeconds = -1) : bool;
 
-    public function dateISO8601Local($subject) : bool;
+    public function dateISOLocal($subject) : bool;
 
-    public function timeISO8601($subject, int $subSeconds = -1) : bool;
+    public function timeISO($subject, int $subSeconds = -1) : bool;
 
-    public function dateTimeISO8601($subject, int $subSeconds = -1) : bool;
+    public function dateTimeISO($subject, int $subSeconds = -1) : bool;
 
-    public function dateTimeISO8601Local($subject) : bool;
+    public function dateTimeISOLocal($subject) : bool;
 
-    public function dateTimeISO8601Zonal($subject, int $subSeconds = -1) : bool;
+    public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool;
 
     public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool;
 

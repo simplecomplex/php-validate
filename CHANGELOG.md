@@ -16,7 +16,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * ValidationFailureException no longer extends (SimpleComplex\Utils\Exception\)
   UserMessageException; extends \RuntimeException directly.
   
-* enum is incompatible with tableElements, listItems.
+* Pseudo-rule nullable renamed; from allowNull. Backwards compatible; ruleset
+  generator still supports allowNull.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
@@ -38,6 +39,9 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   as PHP serials, will hardly be compatible; whereas PHP array|stdClass rulesets
   and JSON-formatted rulesets should work fine.
 
+* unicodePrintable() now checks if unicode.
+* ISO-8601 date/time/datetime rules renamed; '8601' removed.
+
 * Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
 * Removed class RuleProviderInfo.
 * Removed RuleProviderInterface|Validate::getNonRuleMethods().
@@ -48,8 +52,12 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
-* Ruleset without type-checking rule must default to 'loopable' container if has
-  tableElements or listItems; otherwise to 'string'.
+* enum/alternativeEnum no longer allows float; must be bool|int|string|null.
+  That behaviour can be changed by overriding the enum rule.
+* ValidateAgainstRuleSet must use the rule-providers enum() for enum 
+  and alternativeEnum; not own custom method.
+* Ruleset without type-checking rule will now default to a rule fitting
+  the pattern rule; not simply default to string.
 
 
 ## [2.5.1] - 2019-07-08

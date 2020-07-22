@@ -12,7 +12,7 @@ namespace SimpleComplex\Validate;
 /**
  * Validation rule set.
  *
- * @see Validate::challenge()
+ * @see AbstractRuleProvider::challenge()
  *
  * Meant to be created by a generator, issued by a factory.
  * @see RuleSetFactory\RuleSetGenerator
@@ -30,10 +30,10 @@ namespace SimpleComplex\Validate;
  *      Null is not the same as non-existent (optional).
  *
  * @property boolean|undefined $empty
- * @see Validate::empty()
+ * @see TypeRulesTrait::empty()
  *
  * @property boolean|undefined $nonEmpty
- * @see Validate::nonEmpty()
+ * @see TypeRulesTrait::nonEmpty()
  *
  * @property array|undefined $alternativeEnum
  *      List of alternative valid values used if subject doesn't comply with

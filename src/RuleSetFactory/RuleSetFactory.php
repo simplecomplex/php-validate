@@ -36,28 +36,36 @@ class RuleSetFactory
     public $rulesSupported;
 
     /**
+     * @see AbstractRuleProvider::getRulesRenamed()
+     *
      * @var string[]
      */
     public $rulesRenamed;
 
     /**
+     * @see AbstractRuleProvider::getTypeRules()
+     *
      * @var string[]
      */
-    public $typeCheckingMethods;
+    public $typeRules;
 
     /**
+     * @see AbstractRuleProvider::getTypeInference()
+     *
      * @var int[]
      */
     public $typeInference;
 
     /**
-     * @see
+     * @see AbstractRuleProvider::getParameterSpecs()
      *
      * @var int[]
      */
     public $paramsRequired;
 
     /**
+     * @see AbstractRuleProvider::getParameterSpecs()
+     *
      * @var int[]
      */
     public $paramsAllowed;
@@ -71,7 +79,7 @@ class RuleSetFactory
 
         $this->rulesSupported = $ruleProvider->getRuleMethods();
         $this->rulesRenamed = $ruleProvider->getRulesRenamed();
-        $this->typeCheckingMethods = $ruleProvider->getTypeMethods();
+        $this->typeRules = $ruleProvider->getTypeRules();
         $this->typeInference = $ruleProvider->getTypeInference();
 
         $parameterSpecs = $ruleProvider->getParameterSpecs();

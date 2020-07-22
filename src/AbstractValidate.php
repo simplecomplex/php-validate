@@ -41,6 +41,7 @@ abstract class AbstractValidate
      * Rules that explicitly promise to check the subject's type.
      *
      * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see AbstractRuleProvider::getTypeRules()
      *
      * @var int[]
      */
@@ -50,6 +51,7 @@ abstract class AbstractValidate
      * Rules that don't promise to check the subject's type.
      *
      * @see PatternRulesInterface::MINIMAL_TYPE_INFERENCE
+     * @see AbstractRuleProvider::getTypeInference()
      *
      * @var int[]
      */
