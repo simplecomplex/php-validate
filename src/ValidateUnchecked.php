@@ -49,9 +49,6 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  * - alternativeEnum, alternativeRuleSet, tableElements, listItems
  *
  *
- * @dependency-injection-container-id validate
- *      Suggested ID of a global Validate instance.
- *
  * @package SimpleComplex\Validate
  */
 class ValidateUnchecked implements RuleProviderInterface
