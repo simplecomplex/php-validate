@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Interfaces;
 
+use SimpleComplex\Validate\Rule;
+
 /**
  * Describes required properties of a class - a 'rule provider' - that can
  * provide validation rules for a ValidateAgainstRuleSet instance.

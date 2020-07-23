@@ -240,6 +240,12 @@ class RuleSetGenerator
             }
             // Simple non-parameter rule declared by value instead of key.
             elseif (ctype_digit('' . $ruleName)) {
+                if (!$argument || !is_string($argument)) {
+                    throw new InvalidRuleException(
+                        'Validation rule-by-value type[' . Helper::getType($argument) . '] is not non-empty string'
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
                 // PHP numeric index is not consistently integer.
                 $this->ruleByValue('' . $ruleName, $argument);
             }
@@ -579,11 +585,10 @@ class RuleSetGenerator
      * @param string $index
      *      PHP numeric index is not consistently integer.
      * @param string $ruleName
-     *      Errs if not string.
      *
      * @throws InvalidRuleException
      */
-    protected function ruleByValue(string $index, $ruleName) : void
+    protected function ruleByValue(string $index, string $ruleName) : void
     {
         switch ($ruleName) {
             case 'optional':
