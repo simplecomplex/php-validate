@@ -119,21 +119,22 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        // Non-parameterized rule methods.
-        $rule_methods = $validate->getRuleMethods();
-        $param_specs = $validate->getParameterSpecs();
-        $simple_rule_methods = array_diff($rule_methods, array_keys($param_specs['required']));
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($simple_rule_methods)->log();
-        foreach ($simple_rule_methods as $rule) {
-            switch ($rule) {
+        // Rules that don't require argument(s).
+        $rule_methods = $validate->getRuleNames();
+        foreach ($rule_methods as $ruleName) {
+            $rule = $validate->getRule($ruleName);
+            if ($rule->paramsRequired) {
+                continue;
+            }
+            switch ($ruleName) {
                 case 'empty':
                 case 'null':
                 case 'scalarNull':
                 case 'equatable':
-                    static::assertTrue($validate->{$rule}(null), 'Rule method (true): ' . $rule);
+                    static::assertTrue($validate->{$ruleName}(null), 'Rule method (true): ' . $ruleName);
                     break;
                 default:
-                    static::assertFalse($validate->{$rule}(null), 'Rule method (false): ' . $rule);
+                    static::assertFalse($validate->{$ruleName}(null), 'Rule method (false): ' . $ruleName);
             }
         }
 

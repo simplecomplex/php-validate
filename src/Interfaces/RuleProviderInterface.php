@@ -35,54 +35,70 @@ interface RuleProviderInterface
      *
      * @return string[]
      *
-     * @see AbstractRuleProvider::getRuleMethods()
+     * @see AbstractRuleProvider::getRuleNames()
      */
-    public function getRuleMethods() : array;
+    public function getRuleNames() : array;
 
     /**
-     * Lists rule methods that explicitly promise to check the subject's type.
+     * Get object describing the rule.
      *
-     * @return string[]
+     * @param string $name
      *
-     * @see AbstractRuleProvider::getTypeRules()
+     * @return Rule|null
+     *      Null: nonexistent rule.
+     *
+     * @see AbstractRuleProvider::getRule()
      */
-    public function getTypeRules() : array;
+    public function getRule(string $name) : ?Rule;
 
     /**
-     * Methods that don't do type-checking, and what type they implicitly
-     * expects.
+     * Get type affiliation of a type-checking rule.
      *
-     * @return int[]
+     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see Type
      *
-     * @see AbstractRuleProvider::getTypeInference()
+     * @param string $name
+     *
+     * @return int|null
+     *
+     * @see AbstractRuleProvider::getTypeRuleType()
      */
-    public function getTypeInference() : array;
+    public function getTypeRuleType(string $name) : ?int;
 
     /**
-     * Lists rules renamed; current rule name by old rule name.
+     * Get type affiliation of a pattern rule.
      *
-     * @return string[]
+     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+     * @see Type
      *
-     * @see AbstractRuleProvider::getRulesRenamed()
+     * @param string $name
+     *
+     * @return int|null
+     *
+     * @see AbstractRuleProvider::getPatternRuleType()
      */
-    public function getRulesRenamed() : array;
+    public function getPatternRuleType(string $name) : ?int;
 
     /**
-     * Two lists of numbers of required/allowed arguments.
+     * Get type rule fitting as type-checker for a pattern rule.
      *
-     * required: Number of required parameters, by rule method name.
+     * For ruleset generator.
+     * @see RuleSetGenerator::ensureTypeChecking()
      *
-     * allowed: Number of allowed parameters - if none required
-     *      or if allows more than required - by rule method name.
+     * @param int|null $patternType
+     *      Required if no $patternRuleName,
+     *      ignored if $patternRuleName.
+     * @param string|null $patternRuleName
      *
-     * @return int[][] {
-     *      @var int[] $required
-     *      @var int[] $allowed
-     * }
+     * @return string|null
+     *      Null: no such pattern rule, or type rule type, found.
      *
-     * @see AbstractRuleProvider::getParameterSpecs()
+     * @throws \InvalidArgumentException
+     *      Both arguments falsy.
+     *
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
      */
-    public function getParameterSpecs() : array;
+    public function patternRuleToTypeRule(int $patternType = null, string $patternRuleName = null) : ?string;
 
 
     // Validation rule methods.-------------------------------------------------

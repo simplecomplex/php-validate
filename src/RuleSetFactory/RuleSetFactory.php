@@ -31,60 +31,11 @@ class RuleSetFactory
     public $ruleProvider;
 
     /**
-     * @var string[]
-     */
-    public $rulesSupported;
-
-    /**
-     * @see AbstractRuleProvider::getRulesRenamed()
-     *
-     * @var string[]
-     */
-    public $rulesRenamed;
-
-    /**
-     * @see AbstractRuleProvider::getTypeRules()
-     *
-     * @var string[]
-     */
-    public $typeRules;
-
-    /**
-     * @see AbstractRuleProvider::getTypeInference()
-     *
-     * @var int[]
-     */
-    public $typeInference;
-
-    /**
-     * @see AbstractRuleProvider::getParameterSpecs()
-     *
-     * @var int[]
-     */
-    public $paramsRequired;
-
-    /**
-     * @see AbstractRuleProvider::getParameterSpecs()
-     *
-     * @var int[]
-     */
-    public $paramsAllowed;
-
-    /**
      * @param RuleProviderInterface $ruleProvider
      */
     public function __construct(RuleProviderInterface $ruleProvider)
     {
         $this->ruleProvider = $ruleProvider;
-
-        $this->rulesSupported = $ruleProvider->getRuleMethods();
-        $this->rulesRenamed = $ruleProvider->getRulesRenamed();
-        $this->typeRules = $ruleProvider->getTypeRules();
-        $this->typeInference = $ruleProvider->getTypeInference();
-
-        $parameterSpecs = $ruleProvider->getParameterSpecs();
-        $this->paramsRequired = $parameterSpecs['required'];
-        $this->paramsAllowed = $parameterSpecs['allowed'];
     }
 
     /**

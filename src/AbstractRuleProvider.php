@@ -9,7 +9,10 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+
+use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
@@ -49,41 +52,39 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
-    /**
-     * Non-rule methods.
-     *
-     * @see getRuleMethods()
-     *
-     * Keys are property names, values may be anything.
-     * Allows a child class to extend parent's list by doing
-     * const NON_RULE_METHODS = [
-     *   'someMethod' => true,
-     * ] + ParentClass::NON_RULE_METHODS;
-     *
-     * @var mixed[]
-     */
-    const NON_RULE_METHODS = [
-        'getInstance' => null,
-        '__construct' => null,
-        'getRuleMethods' => null,
-        'getRulesRenamed' => null,
-        'getTypeRules' => null,
-        'getTypeInference' => null,
-        'getParameterSpecs' => null,
-        '__call' => null,
-        'challenge' => null,
-        'challengeRecording' => null,
-    ];
+//    /**
+//     * Non-rule methods.
+//     *
+//     * @see getRuleNames()
+//     *
+//     * Keys are property names, values may be anything.
+//     * Allows a child class to extend parent's list by doing
+//     * const NON_RULE_METHODS = [
+//     *   'someMethod' => true,
+//     * ] + ParentClass::NON_RULE_METHODS;
+//     *
+//     * @var mixed[]
+//     */
+//    const NON_RULE_METHODS = [
+//        'getInstance' => null,
+//        '__construct' => null,
+//        'getRuleNames' => null,
+//        'getRule' => null,
+//        'getTypeRuleType' => null,
+//        'getPatternRuleType' => null,
+//        '__call' => null,
+//        'challenge' => null,
+//        'challengeRecording' => null,
+//    ];
 
     /**
      * Rules that explicitly promise to check the subject's type.
      *
-     * @see getTypeRules()
      * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see getTypeRuleType()
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then RuleSetGenerator makes a guess.
-     * @see TYPE_INFERENCE
      * @see RuleSetGenerator::ensureTypeChecking()
      *
      * Keys are methods names, values may be anything.
@@ -97,12 +98,11 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     const TYPE_RULES = [];
 
     /**
-     * Methods that don't do type-checking, and what type they implicitly
-     * expects.
+     * Methods that don't promise to be type-checking, and what type they
+     * implicitly expect.
      *
-     * @todo: rename to PATTERN_RULES.
-     *
-     * @see getTypeInference()
+     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+     * @see getPatternRuleType()
      *
      * Used by RuleSetGenerator to secure a type checking rule when none such
      * mentioned in the source of a validation rule set (e.g. JSON).
@@ -110,7 +110,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @var int[]
      */
-    const TYPE_INFERENCE = [];
+    const PATTERN_RULES = [];
 
     /**
      * Number of required parameters, by rule name.
@@ -130,7 +130,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * New rule name by old rule name.
      *
-     * @see getRulesRenamed()
+     * @see getRule()
      *
      * @var string[]
      */
@@ -151,101 +151,204 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      */
 
     /**
-     * @see getRuleMethods()
+     * Cache of Rule objects.
      *
-     * @var string[]
+     * @see getRule()
+     *
+     * @var Rule[]
      */
-    protected $ruleMethods = [];
+    protected $rules = [];
+
+    /**
+     * Lists of type rule names by type.
+     *
+     * @see patternRuleToTypeRule()
+     *
+     * @var string[][]
+     */
+    protected $typeRulesByType;
 
 
     /**
      * Lists names of validation rule methods.
+     *
+     * @param bool $typeRulesOnly
+     * @param bool $patternRulesOnly
      *
      * @return string[]
      *
      * @throws \TypeError  Propagated.
      * @throws \InvalidArgumentException  Propagated.
      */
-    public function getRuleMethods() : array
-    {
-        // @todo: no longer any need for this; all rules are listed in constants.
 
-        if (!$this->ruleMethods) {
-            $this->ruleMethods = array_diff(
-                Helper::getPublicMethods($this),
-                array_keys(static::NON_RULE_METHODS)
+    /**
+     * @param bool $typeRulesOnly
+     * @param bool $patternRulesOnly
+     *
+     * @return string[]
+     */
+    public function getRuleNames(bool $typeRulesOnly = false, bool $patternRulesOnly = false) : array
+    {
+        if ($typeRulesOnly && $patternRulesOnly) {
+            throw new \InvalidArgumentException('Args $typeRulesOnly and $patternRulesOnly cannot both be true.');
+        }
+        if ($typeRulesOnly) {
+            return array_keys(static::TYPE_RULES);
+        }
+        if ($patternRulesOnly) {
+            return array_keys(static::PATTERN_RULES);
+        }
+        return array_merge(
+            array_keys(static::TYPE_RULES),
+            array_keys(static::PATTERN_RULES)
+        );
+    }
+
+    /**
+     * Get object describing the rule.
+     *
+     * Handles that the rule may be renamed.
+     * Thus caller better from now on use Rule::$name instead the possibly
+     * old initial name.
+     *
+     * @param string $name
+     *
+     * @return Rule|null
+     */
+    public function getRule(string $name) : ?Rule
+    {
+        $rule = $this->rules[$name] ?? null;
+        if ($rule) {
+            return $rule;
+        }
+
+        $name_final = static::RULES_RENAMED[$name] ?? null;
+        if ($name_final) {
+            $renamed = true;
+        }
+        else {
+            $renamed = false;
+            $name_final = $name;
+        }
+
+        $type = static::TYPE_RULES[$name_final] ?? null;
+        if ($type) {
+            $isTypeChecking = true;
+        }
+        else {
+            $type = static::PATTERN_RULES[$name_final] ?? null;
+            if (!$type) {
+                return null;
+            }
+            $isTypeChecking = false;
+        }
+
+        $rule = new Rule($name_final, $isTypeChecking, $type);
+        if ($renamed) {
+            $rule->renamedFrom = $name;
+        }
+
+        $params = static::PARAMS_REQUIRED[$name_final] ?? 0;
+        if ($params) {
+            $rule->paramsRequired = $params;
+        }
+        $params = static::PARAMS_ALLOWED[$name_final] ?? $params;
+        if ($params) {
+            $rule->paramsAllowed = $params;
+        }
+
+        $this->rules[$name_final] = $rule;
+        return $rule;
+    }
+
+    /**
+     * Get type affiliation of a type-checking rule.
+     *
+     * @see AbstractRuleProvider::TYPE_RULES
+     * @see Type
+     *
+     * For ValidateAgainstRuleSet.
+     * @see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @param string $name
+     *
+     * @return int|null
+     */
+    public function getTypeRuleType(string $name) : ?int
+    {
+        return static::TYPE_RULES[$name] ?? null;
+    }
+
+    /**
+     * Get type affiliation of a pattern rule.
+     *
+     * @param string $name
+     *
+     * @return int|null
+     *@see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @see AbstractRuleProvider::PATTERN_RULES
+     * @see Type
+     *
+     * For ValidateAgainstRuleSet.
+     */
+    public function getPatternRuleType(string $name) : ?int
+    {
+        return static::PATTERN_RULES[$name] ?? null;
+    }
+
+    /**
+     * Get type rule fitting as type-checker before a pattern rule.
+     *
+     * For ruleset generator.
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * @param int|null $patternType
+     *      Required if no $patternRuleName,
+     *      ignored if $patternRuleName.
+     * @param string|null $patternRuleName
+     *
+     * @return string|null
+     *      Null: no such pattern rule, or type rule type, found.
+     *
+     * @throws \InvalidArgumentException
+     *      Both arguments falsy.
+     */
+    public function patternRuleToTypeRule(int $patternType = null, string $patternRuleName = null) : ?string
+    {
+        if ($patternRuleName) {
+            $type = static::PATTERN_RULES[$patternRuleName] ?? null;
+        }
+        elseif (!$patternType) {
+            throw new \InvalidArgumentException(
+                'Args $patternType type[' . Helper::getType($patternType) . '] and $patternRuleName['
+                . Helper::getType($patternRuleName) . '] cannot both be falsy.'
             );
         }
-        return $this->ruleMethods;
-    }
+        else {
+            $type = $patternType;
+        }
+        if ($type) {
+            // Create lists of type rule names by type.
+            if (!$this->typeRulesByType) {
+                $typeRulesByType = [];
+                foreach (static::TYPE_RULES as $typeRuleName => $typeRuleType) {
+                    if (!isset($typeRulesByType[$typeRuleType])) {
+                        $typeRulesByType[$typeRuleType] = [$typeRuleName];
+                    }
+                    else {
+                        $typeRulesByType[$typeRuleType][] = $typeRuleName;
+                    }
+                }
+                $this->typeRulesByType =& $typeRulesByType;
+            }
 
-    public function getRules() : array
-    {
-
-    }
-
-    /**
-     * Lists rule methods renamed.
-     *
-     * Keys is old name, value new name.
-     *
-     * @return string[]
-     */
-    public function getRulesRenamed() : array
-    {
-        return static::RULES_RENAMED;
-    }
-
-    /**
-     * Type checking rules, and their type family.
-     *
-     * If the source of a validation rule set (e.g. JSON) doesn't contain any
-     * of these methods then ValidationRuleSet makes a guess; ultimately string.
-     * @see RuleSetGenerator::ensureTypeChecking()
-     *
-     * @return string[]
-     */
-    public function getTypeRules() : array
-    {
-        return static::TYPE_RULES;
-    }
-
-    /**
-     * Rules that don't promise to be type-checking, and what type they
-     * implicitly expect.
-     *
-     * Used by RuleSetGenerator to secure a type checking rule when none such
-     * mentioned in the source of a validation rule set (e.g. JSON).
-     * @see RuleSetGenerator::ensureTypeChecking()
-     *
-     * @return int[]
-     */
-    public function getTypeInference() : array
-    {
-        return static::TYPE_INFERENCE;
-    }
-
-    /**
-     * Two lists of number of required/allowed arguments.
-     *
-     * Number of required parameters, by rule method name.
-     * @see AbstractValidate::PARAMS_REQUIRED
-     *
-     * Number of allowed parameters - if none required
-     * or if allows more than required - by rule method name.
-     * @see AbstractValidate::PARAMS_ALLOWED
-     *
-     * @return int[][] {
-     *      @var int[] $required
-     *      @var int[] $allowed
-     * }
-     */
-    public function getParameterSpecs() : array
-    {
-        return [
-            'required' => static::PARAMS_REQUIRED,
-            'allowed' => static::PARAMS_ALLOWED,
-        ];
+            $typeRules = $this->typeRulesByType[$type] ?? null;
+            if ($typeRules) {
+                return reset($typeRules);
+            }
+        }
+        return null;
     }
 
     /**

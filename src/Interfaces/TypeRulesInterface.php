@@ -29,11 +29,12 @@ interface TypeRulesInterface
     /**
      * Rules that explicitly promise to check the subject's type.
      *
-     * @see RuleProviderInterface::getTypeRules()
+     * @see RuleProviderInterface::getRule()
+     * @see RuleProviderInterface::getTypeRuleType()
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then RuleSetGenerator makes a guess.
-     * @see AbstractRuleProvider::TYPE_INFERENCE
+     * @see AbstractRuleProvider::PATTERN_RULES
      * @see RuleSetGenerator::ensureTypeChecking()
      *
      * Keys are methods names, values may be anything.
@@ -55,8 +56,9 @@ interface TypeRulesInterface
         'integer' => Type::INTEGER,
         'float' => Type::FLOAT,
         'string' => Type::STRING,
-        'stringableScalar' => Type::STRINGABLE,
-        'stringableObject' => Type::STRINGABLE,
+        'stringableScalar' => Type::STRINGABLE_SCALAR,
+        'stringableObject' => Type::STRINGABLE_OBJECT,
+        'stringStringableObject' => Type::STRING_STRINGABLE_OBJECT,
         'stringable' => Type::STRINGABLE,
         'resource' => Type::RESOURCE,
         'numeric' => Type::NUMERIC,
@@ -97,7 +99,7 @@ interface TypeRulesInterface
     /**
      * New rule name by old rule name.
      *
-     * @see AbstractRuleProvider::getRulesRenamed()
+     * @see AbstractRuleProvider::getRule()
      *
      * @var string[]
      */
@@ -127,6 +129,8 @@ interface TypeRulesInterface
     public function stringableScalar($subject) : bool;
 
     public function stringableObject($subject) : bool;
+
+    public function stringStringableObject($subject) : bool;
 
     public function stringable($subject);
 

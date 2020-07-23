@@ -27,12 +27,12 @@ class Validate extends AbstractValidate
      */
     const TYPE_RULES =
         ValidateUnchecked::TYPE_RULES
-        + ValidateUnchecked::TYPE_INFERENCE;
+        + ValidateUnchecked::PATTERN_RULES;
 
     /**
      * No need for type inference at all.
      *
-     * @see ValidateUnchecked::TYPE_INFERENCE
+     * @see ValidateUnchecked::PATTERN_RULES
      */
-    const TYPE_INFERENCE = [];
+    const PATTERN_RULES = [];
 }

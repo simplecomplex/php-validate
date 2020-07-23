@@ -9,18 +9,16 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleSetFactory;
 
+use SimpleComplex\Validate\Helper\AbstractRule;
+use SimpleComplex\Validate\Rule;
+
 /**
  * Helper object used when creating ruleset.
  *
  * @package SimpleComplex\Validate
  */
-class RuleSetRule
+class RuleSetRule extends AbstractRule
 {
-    /**
-     * @var string
-     */
-    public $name;
-
     /**
      * Eventually true|array.
      * @see RuleSetGenerator::resolveCandidates()
@@ -30,45 +28,23 @@ class RuleSetRule
     public $argument;
 
     /**
+     * @see RuleSetGenerator::ruleByValue()
+     *
      * @var int|null
      */
     public $passedByValueAtIndex;
 
     /**
-     * @var int
-     */
-    public $paramsAllowed = 0;
-
-    /**
-     * @var int
-     */
-    public $paramsRequired = 0;
-
-    /**
-     * @var string|null
-     */
-    public $renamedFrom;
-
-    /**
-     * @param string $name
+     * @param Rule $rule
      * @param mixed $argument
      * @param int $passedByValueAtIndex
      */
-    public function __construct(string $name, $argument, int $passedByValueAtIndex = null)
+    public function __construct(Rule $rule, $argument, int $passedByValueAtIndex = null)
     {
-        $this->name = $name;
+        foreach ($rule as $key => $value) {
+            $this->{$key} = $value;
+        }
         $this->argument = $argument;
         $this->passedByValueAtIndex = $passedByValueAtIndex;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function rename(string $name) : self
-    {
-        $this->renamedFrom = $this->name;
-        $this->name = $name;
-        return $this;
     }
 }

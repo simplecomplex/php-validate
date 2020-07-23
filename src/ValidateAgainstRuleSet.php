@@ -10,14 +10,18 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+
+use SimpleComplex\Validate\Helper\Helper;
+
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
- * Do not use this method directly - use Validate->challenge().
+ * Do not use this method directly - use ValidateUnchecked::challenge().
  *
  * @see AbstractRuleProvider::challenge()
+ * @see AbstractRuleProvider::challengeRecording()
  *
  * Purpose
  * -------
@@ -98,7 +102,9 @@ class ValidateAgainstRuleSet
     const RECURSION_LIMIT = 10;
 
     /**
-     * Rules that the rules provider doesn't (and shan't) provide.
+     * Pseudo rules that the rules provider shan't (and mustn't) provide.
+     *
+     * IDE: may not be used, but that's fine.
      *
      * @var array
      */
@@ -141,13 +147,11 @@ class ValidateAgainstRuleSet
      * Instance vars are not allowed to have state
      * -------------------------------------------
      * unless related to recording.
-     * Because all Validate instances reuse the same instance of this class,
-     * for every call to Validate::challenge().
-     *
-     * Vars ruleProvider and ruleMethods do not infringe that principle.
-     *
-     * @see AbstractRuleProvider::challenge()
      * @see AbstractRuleProvider::challengeRecording()
+     *
+     * Because all instances of a rule-provider reuse the same instance
+     * of this class, for every call to the rule provider's challenge().
+     * @see AbstractRuleProvider::challenge()
      */
 
     /**
@@ -157,11 +161,6 @@ class ValidateAgainstRuleSet
      * @var RuleProviderInterface
      */
     protected $ruleProvider;
-
-    /**
-     * @var array
-     */
-    protected $ruleMethods = [];
 
     /**
      * @var bool
@@ -190,12 +189,20 @@ class ValidateAgainstRuleSet
      */
     public function __construct(RuleProviderInterface $ruleProvider, array $options = []) {
         $this->ruleProvider = $ruleProvider;
-        $this->ruleMethods = $ruleProvider->getRuleMethods();
         $this->recordFailure = !empty($options['recordFailure']);
     }
 
     /**
-     * Use Validate::challenge() instead of this.
+     * @see AbstractRuleProvider::challengeRecording()
+     *
+     * @return string[]
+     */
+    public function getRecord() {
+        return $this->record;
+    }
+
+    /**
+     * Use ValidateUnchecked::challenge() instead of this.
      *
      * @see AbstractRuleProvider::challenge()
      * @see AbstractRuleProvider::challengeRecording()
@@ -276,13 +283,14 @@ class ValidateAgainstRuleSet
             );
         }
 
+        // Filter pseudo-rules from ordinary rules.-----------------------------
         $rule_methods = [];
         $nullable = $has_loopable = false;
         $alternativeEnum =
             $alternativeRuleSet =
             $tableElements = $listItems = null;
-        foreach ($ruleSet as $rule => $argument) {
-            switch ($rule) {
+        foreach ($ruleSet as $ruleName => $argument) {
+            switch ($ruleName) {
                 case 'optional':
                     /**
                      * Do nothing, ignore here. Only used in tableElements.
@@ -292,7 +300,6 @@ class ValidateAgainstRuleSet
                 case 'nullable':
                 case 'allowNull':
                     /**
-                     * There must be a null method.
                      * @see RuleProviderInterface::null()
                      */
                 case 'null':
@@ -306,30 +313,33 @@ class ValidateAgainstRuleSet
                     /** @var ValidationRuleSet $alternativeRuleSet */
                     $alternativeRuleSet = $argument;
                     break;
-                case 'array':
-                case 'indexedArray':
-                case 'keyedArray':
-                case 'loopable':
-                case 'indexedLoopable':
-                case 'keyedLoopable':
-                    // @todo: Those loopable rules should not be hardcoded.
-                    $has_loopable = true;
-                    break;
                 case 'tableElements':
+                    /** @var TableElements $tableElements */
                     $tableElements = $argument;
                     break;
                 case 'listItems':
-                    // No need to check for type; ValidationRuleSet do that,
-                    // and makes it object.
+                    /** @var ListItems $listItems */
                     $listItems = $argument;
                     break;
                 default:
-                    if (!in_array($rule, $this->ruleMethods)) {
+                    // Get type affiliation, and check that the rule exists.
+                    $type = $this->ruleProvider->getTypeRuleType($ruleName) ??
+                        $this->ruleProvider->getPatternRuleType($ruleName) ?? null;
+                    // Doesn't check for renamed rule here.
+                    // RuleSetGenerator does that.
+                    // All rulesets have to be created anew, from source
+                    // (JSON, PHP arrays), whenever this library is updated.
+                    if (!$type) {
                         throw new InvalidRuleException(
-                            'Unknown validation rule[' . $rule . '], at (' . $depth . ') ' . $keyPath . '.'
+                            'Unknown validation rule[' . $ruleName . '], at (' . $depth . ') ' . $keyPath . '.'
                         );
                     }
-                    $rule_methods[$rule] = $argument;
+                    // tableElements|listItems require loopable check;
+                    // if none found ad hoc check will be used.
+                    if ($type == Type::LOOPABLE) {
+                        $has_loopable = true;
+                    }
+                    $rule_methods[$ruleName] = $argument;
             }
         }
 
@@ -341,11 +351,12 @@ class ValidateAgainstRuleSet
             if ($nullable) {
                 return true;
             }
-            // Continue to alternativeEnum|alternativeRuleSet check.
+            // Continue to alternativeEnum|alternativeRuleSet (if any).
             $passed = false;
         }
 
         if ($passed) {
+            // Do ordinary rules.-----------------------------------------------
             foreach ($rule_methods as $method => $args) {
                 // We expect more boolean trues than arrays;
                 // few Validate methods take secondary args.
@@ -382,6 +393,8 @@ class ValidateAgainstRuleSet
         }
 
         if (!$passed) {
+            // Do alternativeEnum/alternativeRuleSet.---------------------------
+
             // Matches one of a list of alternative (scalar|null) values?
             if ($alternativeEnum) {
                 if ($this->ruleProvider->enum($subject, $alternativeEnum)) {
@@ -392,6 +405,7 @@ class ValidateAgainstRuleSet
                     $record[] = $this->recordCurrent('alternativeEnum', $alternativeEnum);
                 }
             }
+            // Nested alternative fallback ruleset?
             if ($alternativeRuleSet) {
                 $passed = $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
             }
@@ -434,13 +448,9 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * @return array
-     */
-    public function getRecord() {
-        return $this->record;
-    }
-
-    /**
+     * Pseudo rule listing ValidationRuleSets of elements of a 'loopable'
+     * object|array subject.
+     *
      * Iterates by order of subject buckets.
      *
      * Subject must be loopable, and that must be checked prior to call.
@@ -462,11 +472,15 @@ class ValidateAgainstRuleSet
         $passed = true;
         $record = [];
         $keys_found = [];
+
+        // Iterate by order of subject buckets.---------------------------------
         foreach ($subject as $key => $value) {
             // PHP numeric index is not consistently integer.
             $sKey = '' . $key;
             if (!in_array($sKey, $table_keys, true)) {
                 if ($tableElements->exclusive) {
+                    // Subject object|array must only contain keys defined
+                    // by rulesByElements.
                     if ($this->recordFailure) {
                         $passed = false;
                         $record[] = $this->recordCurrent(
@@ -478,6 +492,8 @@ class ValidateAgainstRuleSet
                     }
                 }
                 elseif ($tableElements->whitelist) {
+                    // Subject object|array must _only_ contain these keys,
+                    // apart from the keys defined by rulesByElements.
                     if (!in_array($sKey, $tableElements->whitelist, true)) {
                         if ($this->recordFailure) {
                             $passed = false;
@@ -489,6 +505,8 @@ class ValidateAgainstRuleSet
                     }
                 }
                 elseif ($tableElements->blacklist && in_array($sKey, $tableElements->blacklist, true)) {
+                    // Subject array|object must _not_ contain these keys,
+                    // apart from the keys defined by rulesByElements.
                     if ($this->recordFailure) {
                         $passed = false;
                         $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
@@ -501,6 +519,7 @@ class ValidateAgainstRuleSet
                 continue;
             }
 
+            // Check subject bucket against same-keyed ruleset.
             if (!$this->internalChallenge(
                 $value, $tableElements->rulesByElements[$sKey], $depth + 1, $keyPath . ' > ' . $key
             )) {
@@ -540,6 +559,9 @@ class ValidateAgainstRuleSet
     }
 
     /**
+     * Pseudo rule using a common ruleset on every element of object|array
+     * subject.
+     *
      * Subject must be loopable, and that must be checked prior to call.
      * @see TypeRulesTrait::loopable()
      * @see ValidateAgainstRuleSet::internalChallenge()
@@ -573,6 +595,7 @@ class ValidateAgainstRuleSet
                 break;
             }
 
+            // Check subject bucket against the common ruleset.
             if (!$this->internalChallenge(
                 $value, $listItems->itemRules, $depth + 1, $keyPath . ' > ' . $key
             )) {
@@ -606,6 +629,8 @@ class ValidateAgainstRuleSet
     }
 
     /**
+     * Formats failure message of a single failure.
+     *
      * @param string $ruleOrMessage
      * @param array|null $arguments
      *

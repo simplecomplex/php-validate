@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Traits;
 
-use SimpleComplex\Validate\Helper;
+use SimpleComplex\Validate\Helper\Helper;
+
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
@@ -276,7 +277,7 @@ trait PatternRulesUncheckedTrait
         if ($v === '') {
             return true;
         }
-        // @todo: changelog unicodePrintable() now checks if unicode.
+        // Check unicode.
         if (!preg_match('/./us', $v)) {
             return false;
         }
@@ -292,8 +293,6 @@ trait PatternRulesUncheckedTrait
         return !strcmp($v, $filtered)
             && strpos($v, chr(127)) === false;
     }
-
-    // @todo: changelog unicodeMultiLine() now checks if unicode.
 
     /**
      * Unicode printable that allows newline and (default) carriage return.

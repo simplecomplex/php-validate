@@ -16,13 +16,11 @@ use SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait;
 use SimpleComplex\Validate\Traits\TypeRulesTrait;
 
 /**
- * Intermediate class allowing Validate not to extend
+ * Intermediate class allowing Validate _not_ to extend
  * ValidateUnchecked.
- *
  *
  * @see Validate
  * @see ValidateUnchecked
- *
  *
  * @package SimpleComplex\Validate
  */
@@ -41,7 +39,8 @@ abstract class AbstractValidate
      * Rules that explicitly promise to check the subject's type.
      *
      * @see TypeRulesInterface::MINIMAL_TYPE_RULES
-     * @see AbstractRuleProvider::getTypeRules()
+     * @see AbstractRuleProvider::getRule()
+     * @see AbstractRuleProvider::getTypeRuleType()
      *
      * @var int[]
      */
@@ -50,12 +49,13 @@ abstract class AbstractValidate
     /**
      * Rules that don't promise to check the subject's type.
      *
-     * @see PatternRulesInterface::MINIMAL_TYPE_INFERENCE
-     * @see AbstractRuleProvider::getTypeInference()
+     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+     * @see AbstractRuleProvider::getRule()
+     * @see AbstractRuleProvider::getPatternRuleType()
      *
      * @var int[]
      */
-    const TYPE_INFERENCE = PatternRulesInterface::MINIMAL_TYPE_INFERENCE;
+    const PATTERN_RULES = PatternRulesInterface::MINIMAL_PATTERN_RULES;
 
     /**
      * Number of required parameters, by rule name.
@@ -79,7 +79,7 @@ abstract class AbstractValidate
     /**
      * New rule name by old rule name.
      *
-     * @see AbstractRuleProvider::getRulesRenamed()
+     * @see AbstractRuleProvider::getRule()
      *
      * @see TypeRulesInterface::TYPE_RULES_RENAMED
      * @see PatternRulesInterface::PATTERN_RULES_RENAMED

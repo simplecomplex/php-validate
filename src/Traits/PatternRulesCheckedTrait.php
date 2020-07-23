@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Traits;
 
-use SimpleComplex\Validate\Helper;
+use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
@@ -405,7 +405,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateISO($subject, $subSeconds);
@@ -416,7 +416,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateISOLocal($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateISOLocal($subject);
@@ -427,7 +427,7 @@ trait PatternRulesCheckedTrait
      */
     public function timeISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::timeISO($subject, $subSeconds);
@@ -438,7 +438,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateTimeISO($subject, $subSeconds);
@@ -449,7 +449,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOLocal($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateTimeISOLocal($subject);
@@ -460,7 +460,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateTimeISOZonal($subject, $subSeconds);
@@ -471,7 +471,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->stringStringableObject($subject)) {
             return false;
         }
         return parent::dateTimeISOUTC($subject, $subSeconds);

@@ -226,8 +226,10 @@ trait TypeRulesTrait
     }
 
     /**
+     * Alternatives:
      * @see stringableScalar()
      * @see stringableObject()
+     * @see stringStringableObject()
      * @see stringable()
      *
      * @param mixed $subject
@@ -242,8 +244,10 @@ trait TypeRulesTrait
     /**
      * String or number.
      *
+     * Alternatives:
      * @see string()
      * @see stringableObject()
+     * @see stringStringableObject()
      * @see stringable()
      *
      * @param mixed $subject
@@ -257,10 +261,12 @@ trait TypeRulesTrait
     }
 
     /**
-     * Stringable object.
+     * Stringable object, not string.
      *
+     * Alternatives:
      * @see string()
      * @see stringableScalar()
+     * @see stringStringableObject()
      * @see stringable()
      *
      * @param mixed $subject
@@ -273,11 +279,30 @@ trait TypeRulesTrait
     }
 
     /**
+     * String or stringable object.
+     *
+     * Alternatives:
+     * @see string()
+     * @see stringableScalar()
+     * @see stringableObject()
+     * @see stringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function stringStringableObject($subject) : bool
+    {
+        return is_string($subject) || (is_object($subject) && method_exists($subject, '__toString'));
+    }
+
+    /**
      * String, number or stringable object.
      *
      * @see string()
      * @see stringableScalar()
      * @see stringableObject()
+     * @see stringStringableObject()
      *
      * @param mixed $subject
      *

@@ -34,17 +34,19 @@ interface PatternRulesInterface
     /**
      * Rules that don't promise to check the subject's type.
      *
-     * @see AbstractRuleProvider::getTypeInference()
+     * @see AbstractRuleProvider::getPatternRuleType()
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
      *
      * Used by RuleSetGenerator to secure a type checking rule when none such
      * mentioned in the source of a validation rule set (e.g. JSON).
-     * @see AbstractRuleProvider::TYPE_INFERENCE
+     * @see AbstractRuleProvider::PATTERN_RULES
      * @see RuleSetGenerator::ensureTypeChecking()
      *
      * @var int[]
      */
-    const MINIMAL_TYPE_INFERENCE = [
+    const MINIMAL_PATTERN_RULES = [
         'enum' => Type::EQUATABLE,
+
         'bit32' => Type::NUMERIC,
         'bit64' => Type::NUMERIC,
         'positive' => Type::NUMERIC,
@@ -53,6 +55,11 @@ interface PatternRulesInterface
         'min' => Type::NUMERIC,
         'max' => Type::NUMERIC,
         'range' => Type::NUMERIC,
+
+        /**
+         * Consider stringable scalar, if stringable object not expected.
+         * @see Type::STRINGABLE_SCALAR
+         */
         'regex' => Type::STRINGABLE,
         'unicode' => Type::STRINGABLE,
         'unicodePrintable' => Type::STRINGABLE,
@@ -74,13 +81,20 @@ interface PatternRulesInterface
         'lispName' => Type::STRINGABLE,
         'uuid' => Type::STRINGABLE,
         'base64' => Type::STRINGABLE,
-        'dateISO' => Type::STRINGABLE,
-        'dateISOLocal' => Type::STRINGABLE,
-        'timeISO' => Type::STRINGABLE,
-        'dateTimeISO' => Type::STRINGABLE,
-        'dateTimeISOLocal' => Type::STRINGABLE,
-        'dateTimeISOZonal' => Type::STRINGABLE,
-        'dateTimeISOUTC' => Type::STRINGABLE,
+
+        // Datetimes cannot be int|float.
+        'dateISO' => Type::STRING_STRINGABLE_OBJECT,
+        'dateISOLocal' => Type::STRING_STRINGABLE_OBJECT,
+        'timeISO' => Type::STRING_STRINGABLE_OBJECT,
+        'dateTimeISO' => Type::STRING_STRINGABLE_OBJECT,
+        'dateTimeISOLocal' => Type::STRING_STRINGABLE_OBJECT,
+        'dateTimeISOZonal' => Type::STRING_STRINGABLE_OBJECT,
+        'dateTimeISOUTC' => Type::STRING_STRINGABLE_OBJECT,
+
+        /**
+         * Consider stringable scalar, if stringable object not expected.
+         * @see Type::STRINGABLE_SCALAR
+         */
         'plainText' => Type::STRINGABLE,
         'ipAddress' => Type::STRINGABLE,
         'url' => Type::STRINGABLE,
@@ -133,7 +147,7 @@ interface PatternRulesInterface
     /**
      * New rule name by old rule name.
      *
-     * @see AbstractRuleProvider::getRulesRenamed()
+     * @see AbstractRuleProvider::getRule()
      *
      * @var string[]
      */
