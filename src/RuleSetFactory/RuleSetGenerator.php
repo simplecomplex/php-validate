@@ -643,44 +643,23 @@ class RuleSetGenerator
     }
 
     /**
-     * @param RuleSetRule $rule
-     * @param string $message
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException
-     *      Arg $message empty.
-     */
-    protected function candidateErrorMsg(RuleSetRule $rule, string $message) : string
-    {
-        if ($message === '') {
-            throw new \InvalidArgumentException('Arg $message cannot be empty.');
-        }
-        if ($rule->passedByValueAtIndex === null) {
-            $msg = 'Validation rule-by-key[' . $rule->name . ']';
-        } else {
-            $msg = 'Validation rule-by-value[' . $rule->name
-                . '] at numeric index[' . $rule->passedByValueAtIndex . ']';
-        }
-        if ($rule->renamedFrom) {
-            $msg .= ' renamed from[' . $rule->renamedFrom . ']';
-        }
-        return $msg . $message . ', at (' . $this->depth . ') ' . $this->keyPath . '.';
-    }
-
-    /**
-     * Pseudo rule listing valid values.
+     * Checks/prepares argument for enum/alternativeEnum.
      *
      * Removes null value and sets nullable instead.
      *
-     * Bucket values must be scalar|null or bool|int|string|null.
-     * @see PatternRulesInterface::enum()
+     * Bucket values must be scalar|null
+     * @see Type::SCALAR_NULLABLE
+     * or bool|int|string|null.
+     * @see Type::EQUATABLE
+     * Type definition of the 'enum' pattern rule decides which:
+     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
      *
      * @param Rule $rule
      *      enum Rule.
      * @param mixed $argument
      *      Errs if not array.
      * @param string|null $actualRuleName
+     *      If other than 'enum'.
      *
      * @return array
      *      Empty if only contained null bucket.
@@ -821,5 +800,31 @@ class RuleSetGenerator
             'Validation \'listItems\' type[' . Helper::getType($argument)
             . '] is not a object|array' . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
         );
+    }
+
+    /**
+     * @param RuleSetRule $rule
+     * @param string $message
+     *
+     * @return string
+     *
+     * @throws \InvalidArgumentException
+     *      Arg $message empty.
+     */
+    protected function candidateErrorMsg(RuleSetRule $rule, string $message) : string
+    {
+        if ($message === '') {
+            throw new \InvalidArgumentException('Arg $message cannot be empty.');
+        }
+        if ($rule->passedByValueAtIndex === null) {
+            $msg = 'Validation rule-by-key[' . $rule->name . ']';
+        } else {
+            $msg = 'Validation rule-by-value[' . $rule->name
+                . '] at numeric index[' . $rule->passedByValueAtIndex . ']';
+        }
+        if ($rule->renamedFrom) {
+            $msg .= ' renamed from[' . $rule->renamedFrom . ']';
+        }
+        return $msg . $message . ', at (' . $this->depth . ') ' . $this->keyPath . '.';
     }
 }

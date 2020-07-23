@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
@@ -51,31 +50,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             // IDE: child class constructor may have parameters.
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
-
-//    /**
-//     * Non-rule methods.
-//     *
-//     * @see getRuleNames()
-//     *
-//     * Keys are property names, values may be anything.
-//     * Allows a child class to extend parent's list by doing
-//     * const NON_RULE_METHODS = [
-//     *   'someMethod' => true,
-//     * ] + ParentClass::NON_RULE_METHODS;
-//     *
-//     * @var mixed[]
-//     */
-//    const NON_RULE_METHODS = [
-//        'getInstance' => null,
-//        '__construct' => null,
-//        'getRuleNames' => null,
-//        'getRule' => null,
-//        'getTypeRuleType' => null,
-//        'getPatternRuleType' => null,
-//        '__call' => null,
-//        'challenge' => null,
-//        'challengeRecording' => null,
-//    ];
 
     /**
      * Rules that explicitly promise to check the subject's type.
@@ -136,11 +110,18 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      */
     const RULES_RENAMED = [];
 
+    /**
+     * Flags controlling behaviours of rules.
+     *
+     * @var mixed[]
+     */
+    const RULE_FLAGS = [];
+
 
     /**
      * Instance vars are not allowed to have state
      * -------------------------------------------
-     * except general instance info.
+     * except general instance or rule info.
      * Because that could affect the challenge() method, making calls leak state
      * to eachother.
      * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
@@ -214,6 +195,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @param string $name
      *
      * @return Rule|null
+     *      Null: nonexisting rule.
      */
     public function getRule(string $name) : ?Rule
     {

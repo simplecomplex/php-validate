@@ -89,4 +89,13 @@ abstract class AbstractValidate
     const RULES_RENAMED =
         TypeRulesInterface::TYPE_RULES_RENAMED
         + PatternRulesInterface::PATTERN_RULES_RENAMED;
+
+    /**
+     * Flags controlling behaviours of rules.
+     *
+     * @var mixed[]
+     */
+    const RULE_FLAGS =
+        TypeRulesInterface::TYPE_RULE_FLAGS
+        + PatternRulesInterface::PATTERN_RULE_FLAGS;
 }

@@ -96,7 +96,7 @@ trait TypeRulesTrait
     }
 
 
-    // Real type-checking rules.------------------------------------------------
+    // Scalar/null.-------------------------------------------------------------
 
     /**
      * @param mixed $subject
@@ -225,6 +225,9 @@ trait TypeRulesTrait
         return is_float($subject);
     }
 
+
+    // String/stringable.-------------------------------------------------------
+
     /**
      * Alternatives:
      * @see stringableScalar()
@@ -329,6 +332,9 @@ trait TypeRulesTrait
         return false;
     }
 
+
+    // Odd types.---------------------------------------------------------------
+
     /**
      * @param mixed $subject
      *
@@ -366,26 +372,14 @@ trait TypeRulesTrait
         if (is_float($subject)) {
             return 'float';
         }
+
+        /**
+         * Same algo as decimal(), but this returns string on pass.
+         * @see decimal()
+         */
         if (!is_string($subject)) {
             return false;
         }
-
-//        if (
-//            !is_numeric($subject)
-//            || strpos($subject, ' ') !== false
-//            || strpos($subject, '+') !== false
-//        ) {
-//            return false;
-//        }
-//
-//        if (strpos($subject, '.') !== false) {
-//            if (strlen($subject) == 1) {
-//                return false;
-//            }
-//            return !ctype_digit(str_replace('.', '', $subject)) ? false : 'float';
-//        }
-//        return !ctype_digit($subject) ? false : 'integer';
-
         $w = strlen($subject);
         if (!$w) {
             return false;
@@ -397,7 +391,13 @@ trait TypeRulesTrait
         if (!$w_num || $w_num < $w - 1) {
             return false;
         }
+        $negative = $w_num == $w - 1;
+
         if (ctype_digit($num)) {
+            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
             return 'integer';
         }
 
@@ -408,47 +408,14 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
+            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
             return 'float';
         }
 
         return false;
-
-//        // Why not native is_numeric()?
-//        // Native is_numeric() accepts (at least) e/E notation,
-//        // leading plus and leading space.
-//        // And (no blame ;-) it doesn't return type on success.
-//        $v = '' . $subject;
-//        $le = strlen($v);
-//        if (!$le) {
-//            return false;
-//        }
-//        // Remove leading hyphen, for later digital check.
-//        if ($v[0] === '-') {
-//            $v = substr($v, 1);
-//            --$le;
-//            if (!$le) {
-//                return false;
-//            }
-//        }
-//        $float = false;
-//        // Remove dot, for later digital check.
-//        if (strpos($v, '.') !== false) {
-//            if ($le == 1) {
-//                return false;
-//            }
-//            // Allow only single dot.
-//            $count = 0;
-//            $v = str_replace('.', '', $v, $count);
-//            if ($count != 1) {
-//                return false;
-//            }
-//            $float = true;
-//        }
-//        // Yes, ctype_... returns false on ''.
-//        if (ctype_digit($v)) {
-//            return $float ? 'float' : 'integer';
-//        }
-//        return false;
     }
 
     /**
@@ -469,7 +436,7 @@ trait TypeRulesTrait
     public function digital($subject) : bool
     {
         if (is_int($subject)) {
-            return true;
+            return $subject < 0 ? false : true;
         }
         if (!is_string($subject)) {
             return false;
@@ -479,18 +446,23 @@ trait TypeRulesTrait
     }
 
     /**
-     * Stringed number.
+     * Stringed number, optionally limiting number digits after dot.
      *
      * @param mixed $subject
+     * @param int $maxDecimals
+     *      -1: no limit.
      *
      * @return bool
      */
-    public function decimal($subject) : bool
+    public function decimal($subject, int $maxDecimals = -1) : bool
     {
+        /**
+         * Same algo as numeric(), but this returns boolean on pass.
+         * @see numeric()
+         */
         if (!is_string($subject)) {
             return false;
         }
-
         $w = strlen($subject);
         if (!$w) {
             return false;
@@ -502,7 +474,14 @@ trait TypeRulesTrait
         if (!$w_num || $w_num < $w - 1) {
             return false;
         }
+        $negative = $w_num == $w - 1;
+
         if (ctype_digit($num)) {
+            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
+            // Integer.
             return true;
         }
 
@@ -513,6 +492,19 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
+            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
+
+            if ($maxDecimals > -1 && strlen(ltrim($num, '0123456789.')) > $maxDecimals) {
+                // num.substr(num.indexOf('.') + 1).length;
+                //$n = strlen( substr($num, strpos($num, '.') + 1) );
+                //$n = strlen( ltrim($num, '012345679.') );
+                return false;
+            }
+
+            // Float.
             return true;
         }
 

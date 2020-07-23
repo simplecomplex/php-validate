@@ -17,6 +17,11 @@ use SimpleComplex\Validate\Type;
  * Equivalent trait:
  * @see \SimpleComplex\Validate\Traits\TypeRulesTrait
  *
+ * Required method parameter(s) is illegal
+ * --------------------------------------
+ * Type-checking rules should generally not require arguments, because
+ * the ruleset generator must be able to use them freely.
+ *
  * Illegal rule method names
  * -------------------------
  * optional, nullable, alternativeEnum, alternativeRuleSet, tableElements, listItems
@@ -26,6 +31,8 @@ use SimpleComplex\Validate\Type;
  */
 interface TypeRulesInterface
 {
+    // API constants.-----------------------------------------------------------
+
     /**
      * Rules that explicitly promise to check the subject's type.
      *
@@ -106,6 +113,23 @@ interface TypeRulesInterface
     const TYPE_RULES_RENAMED = [];
 
 
+    // Rule constants.----------------------------------------------------------
+
+    /**
+     * Flags controlling behaviours of rules.
+     *
+     * @var mixed[]
+     */
+    const TYPE_RULE_FLAGS = [
+        /**
+         * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::numeric()
+         */
+        'DECIMAL_NEGATIVE_ZERO' => false,
+    ];
+
+
+    // Scalar/null.-------------------------------------------------------------
+
     public function null($subject) : bool;
 
     public function scalarNull($subject) : bool;
@@ -124,6 +148,9 @@ interface TypeRulesInterface
 
     public function float($subject) : bool;
 
+
+    // String/stringable.-------------------------------------------------------
+
     public function string($subject) : bool;
 
     public function stringableScalar($subject) : bool;
@@ -133,6 +160,9 @@ interface TypeRulesInterface
     public function stringStringableObject($subject) : bool;
 
     public function stringable($subject);
+
+
+    // Odd types.---------------------------------------------------------------
 
     public function resource($subject) : bool;
 

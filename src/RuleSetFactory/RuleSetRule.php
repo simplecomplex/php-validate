@@ -15,6 +15,14 @@ use SimpleComplex\Validate\Rule;
 /**
  * Helper object used when creating ruleset.
  *
+ * Inherited:
+ * @property string $name
+ * @property bool $isTypeChecking
+ * @property int $type
+ * @property int $paramsRequired Default: 0.
+ * @property int $paramsAllowed Default: 0.
+ * @property string|null $renamedFrom Default: null.
+ *
  * @package SimpleComplex\Validate
  */
 class RuleSetRule extends AbstractRule

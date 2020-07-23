@@ -347,6 +347,72 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->float('' . $o));
     }
 
+    public function testNumerics()
+    {
+        $validate = $this->testInstantiation();
+
+        static::assertFalse($validate->digital(''));
+        static::assertTrue($validate->digital(0));
+        static::assertTrue($validate->digital(1));
+        static::assertTrue($validate->digital('0'));
+        static::assertTrue($validate->digital('1'));
+        static::assertFalse($validate->digital(0.0));
+        static::assertFalse($validate->digital(0.1));
+        static::assertFalse($validate->digital('.0'));
+        static::assertFalse($validate->digital('0.0'));
+        static::assertFalse($validate->digital('.1'));
+        static::assertFalse($validate->digital('0.1'));
+        static::assertFalse($validate->digital('-0'));
+        static::assertFalse($validate->digital(-100));
+        static::assertFalse($validate->digital('-1'));
+
+        static::assertFalse($validate->numeric(''));
+        static::assertSame('integer', $validate->numeric(0));
+        static::assertSame('integer', $validate->numeric(1));
+        static::assertSame('integer', $validate->numeric('0'));
+        static::assertSame('integer', $validate->numeric('1'));
+        static::assertSame('float', $validate->numeric(0.0));
+        static::assertSame('float', $validate->numeric(0.1));
+        static::assertSame('float', $validate->numeric('.0'));
+        static::assertSame('float', $validate->numeric('0.0'));
+        static::assertSame('float', $validate->numeric('.1'));
+        static::assertSame('float', $validate->numeric('0.1'));
+        static::assertSame('float', $validate->numeric('1.'));
+        static::assertSame('float', $validate->numeric('0.'));
+        static::assertFalse($validate->numeric('-0'));
+        static::assertFalse($validate->numeric('-0.0'));
+        static::assertSame('integer', $validate->numeric(-1));
+        static::assertSame('integer', $validate->numeric('-1'));
+        static::assertFalse($validate->numeric('+1'));
+        static::assertFalse($validate->numeric(' +1'));
+        static::assertFalse($validate->numeric('+ 1'));
+
+        static::assertFalse($validate->decimal(''));
+        static::assertFalse($validate->decimal(0));
+        static::assertFalse($validate->decimal(1));
+        static::assertTrue($validate->decimal('0'));
+        static::assertTrue($validate->decimal('1'));
+        static::assertFalse($validate->decimal(0.0));
+        static::assertFalse($validate->decimal(0.1));
+        static::assertTrue($validate->decimal('.0'));
+        static::assertTrue($validate->decimal('0.0'));
+        static::assertTrue($validate->decimal('.1'));
+        static::assertTrue($validate->decimal('0.1'));
+        static::assertTrue($validate->decimal('1.'));
+        static::assertTrue($validate->decimal('0.'));
+        static::assertFalse($validate->decimal('-0'));
+        static::assertFalse($validate->decimal('-0.0'));
+        static::assertFalse($validate->decimal(-1));
+        static::assertTrue($validate->decimal('-1'));
+        static::assertFalse($validate->decimal('+1'));
+        static::assertFalse($validate->decimal(' +1'));
+        static::assertFalse($validate->decimal('+ 1'));
+
+        static::assertFalse($validate->maxDecimals('0.0', 0));
+        static::assertFalse($validate->maxDecimals('0.123', 2));
+        static::assertTrue($validate->maxDecimals('0.123', 3));
+    }
+
     /**
      * @see Validate::string()
      *

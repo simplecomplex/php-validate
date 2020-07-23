@@ -54,6 +54,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
+* digital() shan't pass negative integer.
 * enum/alternativeEnum no longer allows float; must be bool|int|string|null.
   That behaviour can be changed by overriding the enum rule.
 * ValidateAgainstRuleSet must use the rule-providers enum() for enum 

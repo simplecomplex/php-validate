@@ -31,6 +31,8 @@ use SimpleComplex\Validate\Type;
  */
 interface PatternRulesInterface
 {
+    // API constants.-----------------------------------------------------------
+
     /**
      * Rules that don't promise to check the subject's type.
      *
@@ -55,6 +57,8 @@ interface PatternRulesInterface
         'min' => Type::NUMERIC,
         'max' => Type::NUMERIC,
         'range' => Type::NUMERIC,
+
+        'maxDecimals' => Type::DECIMAL,
 
         /**
          * Consider stringable scalar, if stringable object not expected.
@@ -112,6 +116,7 @@ interface PatternRulesInterface
         'min' => 1,
         'max' => 1,
         'range' => 2,
+        'maxDecimals' => 1,
         'regex' => 1,
         'unicodeMinLength' => 1,
         'unicodeMaxLength' => 1,
@@ -160,11 +165,23 @@ interface PatternRulesInterface
         'dateTimeISO8601Zonal' => 'dateTimeISOZonal',
     ];
 
-    /**
-     * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::dateTimeISO()
-     */
-    const DATETIME_ISO_SUBSECONDS_MAX = 8;
 
+    // Rule constants.----------------------------------------------------------
+
+    /**
+     * Flags controlling behaviours of rules.
+     *
+     * @var mixed[]
+     */
+    const PATTERN_RULE_FLAGS = [
+        /**
+         * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::dateTimeISO()
+         */
+        'DATETIME_ISO_SUBSECONDS_MAX' => 8,
+    ];
+
+
+    // Specials.----------------------------------------------------------------
 
     public function enum($subject, array $allowedValues) : bool;
 
@@ -186,6 +203,8 @@ interface PatternRulesInterface
     public function max($subject, $max) : bool;
 
     public function range($subject, $min, $max) : bool;
+
+    public function maxDecimals($subject, int $max) : bool;
 
 
     // String character set indifferent.----------------------------------------

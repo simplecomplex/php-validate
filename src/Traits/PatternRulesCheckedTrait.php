@@ -157,6 +157,17 @@ trait PatternRulesCheckedTrait
         return parent::range($subject, $min, $max);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function maxDecimals($subject, int $max) : bool
+    {
+        if (!$this->decimal($subject)) {
+            return false;
+        }
+        return parent::maxDecimals($subject, $max);
+    }
+
 
     // String character set indifferent.----------------------------------------
 

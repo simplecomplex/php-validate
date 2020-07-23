@@ -12,7 +12,17 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Helper\AbstractRule;
 
 /**
- * Helper object used when creating ruleset.
+ * Object describing a rule.
+ *
+ * @see AbstractRuleProvider::getRule()
+ *
+ * Inherited:
+ * @property string $name
+ * @property bool $isTypeChecking
+ * @property int $type
+ * @property int $paramsRequired Default: 0.
+ * @property int $paramsAllowed Default: 0.
+ * @property string|null $renamedFrom Default: null.
  *
  * @package SimpleComplex\Validate
  */

@@ -203,6 +203,33 @@ trait PatternRulesUncheckedTrait
         return $subject >= $min && $subject <= $max;
     }
 
+    /**
+     * Maximum number of digits after decimal point.
+     *
+     * @see TypeRulesTrait::decimal()
+     *
+     * @param mixed $subject
+     * @param int $max
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg max less than zero.
+     */
+    public function maxDecimals($subject, int $max) : bool
+    {
+        if ($max < 0) {
+            throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than zero.');
+        }
+        $v = '' . $subject;
+        $pos = strpos($v, '.');
+        if ($pos === false) {
+            return true;
+        }
+        //return strlen(ltrim($v, '0123456789.')) <= $max;
+        return strlen(substr($v, $pos + 1)) <= $max;
+    }
+
 
     // String character set indifferent.----------------------------------------
 
@@ -649,7 +676,8 @@ trait PatternRulesUncheckedTrait
     public function name($subject, string $case = '') : bool
     {
         $v = '' . $subject;
-        if ($v === '') {
+        if (!$v) {
+            // Even if '0'.
             return false;
         }
         switch ($case) {
@@ -682,7 +710,8 @@ trait PatternRulesUncheckedTrait
     public function camelName($subject, string $case = '') : bool
     {
         $v = '' . $subject;
-        if ($v === '') {
+        if (!$v) {
+            // Even if '0'.
             return false;
         }
         switch ($case) {
@@ -715,7 +744,8 @@ trait PatternRulesUncheckedTrait
     public function snakeName($subject, string $case = '') : bool
     {
         $v = '' . $subject;
-        if ($v === '') {
+        if (!$v) {
+            // Even if '0'.
             return false;
         }
         switch ($case) {
@@ -748,7 +778,8 @@ trait PatternRulesUncheckedTrait
     public function lispName($subject, string $case = '') : bool
     {
         $v = '' . $subject;
-        if ($v === '') {
+        if (!$v) {
+            // Even if '0'.
             return false;
         }
         switch ($case) {
@@ -807,7 +838,12 @@ trait PatternRulesUncheckedTrait
      */
     public function base64($subject) : bool
     {
-        return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', '' . $subject);
+        $v = '' . $subject;
+        if (!$v) {
+            // Even if '0'.
+            return false;
+        }
+        return !!preg_match('/^[a-zA-Z\d\+\/\=]+$/', $v);
     }
 
     /**
@@ -833,6 +869,9 @@ trait PatternRulesUncheckedTrait
     public function dateISO($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         if (strlen($v) == 10) {
             return !!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $v);
         }
@@ -840,7 +879,7 @@ trait PatternRulesUncheckedTrait
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::RULE_FLAGS['DATETIME_ISO_SUBSECONDS_MAX'] : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -890,11 +929,14 @@ trait PatternRulesUncheckedTrait
     public function timeISO($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::RULE_FLAGS['DATETIME_ISO_SUBSECONDS_MAX'] : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 9 + $ss
@@ -929,11 +971,14 @@ trait PatternRulesUncheckedTrait
     public function dateTimeISO($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::RULE_FLAGS['DATETIME_ISO_SUBSECONDS_MAX'] : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -961,6 +1006,9 @@ trait PatternRulesUncheckedTrait
     public function dateTimeISOLocal($subject) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         return strlen($v) <= 19 && !!preg_match('/^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v);
     }
 
@@ -989,11 +1037,14 @@ trait PatternRulesUncheckedTrait
     public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::RULE_FLAGS['DATETIME_ISO_SUBSECONDS_MAX'] : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 26 + $ss
@@ -1025,11 +1076,14 @@ trait PatternRulesUncheckedTrait
     public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
+        if (!$v) {
+            return false;
+        }
         if (!$subSeconds) {
             $ss = 0;
             $m = '';
         } else {
-            $ss = $subSeconds < 0 ? static::DATETIME_ISO_SUBSECONDS_MAX : $subSeconds;
+            $ss = $subSeconds < 0 ? static::RULE_FLAGS['DATETIME_ISO_SUBSECONDS_MAX'] : $subSeconds;
             $m = '(\.\d{1,' . $ss . '})?';
         }
         return strlen($v) <= 21 + $ss
@@ -1071,7 +1125,10 @@ trait PatternRulesUncheckedTrait
     public function ipAddress($subject) : bool
     {
         $v = '' . $subject;
-        return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_IP);
+        if (!$v) {
+            return false;
+        }
+        return !!filter_var($v, FILTER_VALIDATE_IP);
     }
 
     /**
@@ -1085,7 +1142,10 @@ trait PatternRulesUncheckedTrait
     public function url($subject) : bool
     {
         $v = '' . $subject;
-        return $v === '' ? false : !!filter_var($v, FILTER_VALIDATE_URL);
+        if (!$v) {
+            return false;
+        }
+        return !!filter_var($v, FILTER_VALIDATE_URL);
     }
 
     /**
@@ -1099,10 +1159,11 @@ trait PatternRulesUncheckedTrait
     public function httpUrl($subject) : bool
     {
         $v = '' . $subject;
-        return $v === '' ? false : (
-            strpos($v, 'http') === 0
-            && !!filter_var('' . $v, FILTER_VALIDATE_URL)
-        );
+        if (!$v) {
+            return false;
+        }
+        return strpos($v, 'http') === 0
+            && !!filter_var('' . $v, FILTER_VALIDATE_URL);
     }
 
     /**
@@ -1117,9 +1178,10 @@ trait PatternRulesUncheckedTrait
     {
         // FILTER_VALIDATE_EMAIL doesn't reliably require .tld.
         $v = '' . $subject;
-        return $v === '' ? false : (
-            !!filter_var($v, FILTER_VALIDATE_EMAIL)
-            && !!preg_match('/\.[a-zA-Z\d]+$/', $v)
-        );
+        if (!$v) {
+            return false;
+        }
+        return !!filter_var($v, FILTER_VALIDATE_EMAIL)
+            && !!preg_match('/\.[a-zA-Z\d]+$/', $v);
     }
 }
