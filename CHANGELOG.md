@@ -20,6 +20,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   generator still supports allowNull.
   
 * regex() no longers passes boolean subject, no matter what pattern provided.
+* numeric() no longer passes stringed negative zero.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
