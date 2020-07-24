@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -40,21 +40,23 @@ trait PatternRulesUncheckedTrait
     /**
      * Subject strictly equal to a bucket of an array.
      *
-     * Beware: Does not check whether all allowed values are equatable.
+     * BEWARE: Does not check whether allowed values are type-wise acceptable.
      * @see TypeRulesTrait::equatable()
+     * @see TypeRulesTrait::equatableNull()
+     * @see TypeRulesTrait::scalar()
+     * @see TypeRulesTrait::scalarNull()
      *
      * @param mixed $subject
      * @param mixed[] $allowedValues
-     *      [
-     *          0: some scalar (not float)
-     *          1: null
-     *          3: other scalar (not float)
-     *      ]
      *
      * @return bool
      */
     public function enum($subject, array $allowedValues) : bool
     {
+        /**
+         * Shan't check for empty $allowedValues; ruleset generator does that.
+         * @see RuleSetGenerator::enum()
+         */
         return in_array($subject, $allowedValues, true);
     }
 
@@ -145,12 +147,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg min not integer or float.
+     *      Arg $min not integer or float.
      */
     public function min($subject, $min) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException('Arg min type[' . Helper::getType($min) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg $min type[' . Helper::getType($min) . '] is not integer or float.');
         }
         return $subject >= $min;
     }
@@ -170,12 +172,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg max not integer or float.
+     *      Arg $max not integer or float.
      */
     public function max($subject, $max) : bool
     {
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException('Arg max type[' . Helper::getType($max) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg $max type[' . Helper::getType($max) . '] is not integer or float.');
         }
         return $subject <= $max;
     }
@@ -197,20 +199,20 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg min not integer or float.
-     *      Arg max not integer or float.
-     *      Arg max less than arg min.
+     *      Arg $min not integer or float.
+     *      Arg $max not integer or float.
+     *      Arg $max less than arg $min.
      */
     public function range($subject, $min, $max) : bool
     {
         if (!is_int($min) && !is_float($min)) {
-            throw new InvalidArgumentException('Arg min type[' . Helper::getType($min) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg $min type[' . Helper::getType($min) . '] is not integer or float.');
         }
         if (!is_int($max) && !is_float($max)) {
-            throw new InvalidArgumentException('Arg max type[' . Helper::getType($max) . '] is not integer or float.');
+            throw new InvalidArgumentException('Arg $max type[' . Helper::getType($max) . '] is not integer or float.');
         }
         if ($max < $min) {
-            throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than arg min[' .  $min . '].');
+            throw new InvalidArgumentException('Arg $max[' .  $max . '] cannot be less than arg $min[' .  $min . '].');
         }
         return $subject >= $min && $subject <= $max;
     }
@@ -226,12 +228,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg max less than zero.
+     *      Arg $max less than zero.
      */
     public function maxDecimals($subject, int $max) : bool
     {
         if ($max < 0) {
-            throw new InvalidArgumentException('Arg max[' .  $max . '] cannot be less than zero.');
+            throw new InvalidArgumentException('Arg $max[' .  $max . '] cannot be less than zero.');
         }
         $v = '' . $subject;
         $pos = strpos($v, '.');
@@ -259,12 +261,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg pattern empty, or isn't delimited by forward slash.
+     *      Arg $pattern empty, or isn't delimited by forward slash.
      */
     public function regex($subject, string $pattern) : bool
     {
         if (!$pattern || $pattern[0] !== '/') {
-            throw new InvalidArgumentException('Arg pattern ' . (!$pattern ? 'is empty.' : 'is not slash delimited.'));
+            throw new InvalidArgumentException('Arg $pattern ' . (!$pattern ? 'is empty.' : 'is not slash delimited.'));
         }
         return !!preg_match($pattern, '' . $subject);
     }
@@ -375,12 +377,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg min not non-negative.
+     *      Arg $min not non-negative.
      */
     public function unicodeMinLength($subject, int $min) : bool
     {
         if ($min < 0) {
-            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $min[' . $min . '] is not non-negative.');
         }
         $v = '' . $subject;
         if ($v === '') {
@@ -405,12 +407,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg max not non-negative.
+     *      Arg $max not non-negative.
      */
     public function unicodeMaxLength($subject, int $max) : bool
     {
         if ($max < 0) {
-            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $max[' . $max . '] is not non-negative.');
         }
         $v = '' . $subject;
         if ($v === '') {
@@ -435,12 +437,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg exact not non-negative.
+     *      Arg $exact not non-negative.
      */
     public function unicodeExactLength($subject, int $exact) : bool
     {
         if ($exact < 0) {
-            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $exact[' . $exact . '] is not non-negative.');
         }
         $v = '' . $subject;
         if ($v === '') {
@@ -572,12 +574,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg min not non-negative.
+     *      Arg $min not non-negative.
      */
     public function minLength($subject, int $min) : bool
     {
         if ($min < 0) {
-            throw new InvalidArgumentException('Arg min[' . $min . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $min[' . $min . '] is not non-negative.');
         }
         return strlen('' . $subject) >= $min;
     }
@@ -598,12 +600,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg max not non-negative.
+     *      Arg $max not non-negative.
      */
     public function maxLength($subject, int $max) : bool
     {
         if ($max < 0) {
-            throw new InvalidArgumentException('Arg max[' . $max . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $max[' . $max . '] is not non-negative.');
         }
         return strlen('' . $subject) <= $max;
     }
@@ -624,12 +626,12 @@ trait PatternRulesUncheckedTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg exact not non-negative.
+     *      Arg $exact not non-negative.
      */
     public function exactLength($subject, int $exact) : bool
     {
         if ($exact < 0) {
-            throw new InvalidArgumentException('Arg exact[' . $exact . '] is not non-negative.');
+            throw new InvalidArgumentException('Arg $exact[' . $exact . '] is not non-negative.');
         }
         return strlen('' . $subject) == $exact;
     }

@@ -107,26 +107,33 @@ class Type
      * Integer or stringed integer.
      * @see TypeRulesTrait::digital()
      *
-     * int|string: 8 + 32.
+     * stringable + int: 2048 + 8.
      */
-    const DIGITAL = 40;
+    const DIGITAL = 2056;
 
     /**
      * Integer, float or stringed number.
      * @see TypeRulesTrait::numeric()
      *
-     * stringable + int|float: 2048 + 8 + 16
+     * stringable + int|float: 2048 + 8 + 16.
      */
     const NUMERIC = 2072;
+
+    /**
+     * Boolean, integer or string.
+     * @see TypeRulesTrait::equatable()
+     *
+     * bool|int|string: 4 + 8 + 32.
+     */
+    const EQUATABLE = 44;
 
     /**
      * Null, boolean, integer or string.
      * @see TypeRulesTrait::equatable()
      *
-     * null|bool|int|string.
-     * 2 + 4 + 8 + 32.
+     * null|bool|int|string: 2 + 4 + 8 + 32.
      */
-    const EQUATABLE = 62;
+    const EQUATABLE_NULLABLE = 46;
 
     /**
      * @see TypeRulesTrait::scalar()

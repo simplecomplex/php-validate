@@ -517,8 +517,9 @@ class RuleSetGenerator
                 break;
 
             case 'alternativeEnum':
-                $rule = $this->factory->ruleProvider->getRule('enum');
-                $enum = $this->enum($rule, $argument, 'alternativeEnum');
+                $rule = clone $this->factory->ruleProvider->getRule('enum');
+                $rule->name = 'alternativeEnum';
+                $enum = $this->enum($rule, $argument);
                 if ($enum) {
                     $this->alternativeEnum = $enum;
                 }
@@ -647,10 +648,12 @@ class RuleSetGenerator
      *
      * Removes null value and sets nullable instead.
      *
-     * Bucket values must be scalar|null
+     * Bucket values must be scalar (or null)
+     * @see Type::SCALAR
      * @see Type::SCALAR_NULLABLE
-     * or bool|int|string|null.
+     * or bool|int|string (or null).
      * @see Type::EQUATABLE
+     * @see Type::EQUATABLE_NULLABLE
      * Type definition of the 'enum' pattern rule decides which:
      * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
      *
@@ -658,15 +661,13 @@ class RuleSetGenerator
      *      enum Rule.
      * @param mixed $argument
      *      Errs if not array.
-     * @param string|null $actualRuleName
-     *      If other than 'enum'.
      *
      * @return array
      *      Empty if only contained null bucket.
      *
      * @throws InvalidRuleException
      */
-    protected function enum(Rule $rule, $argument, string $actualRuleName = null) : array
+    protected function enum(Rule $rule, $argument) : array
     {
         if (!$argument || !is_array($argument)) {
             throw new InvalidRuleException(
@@ -685,39 +686,71 @@ class RuleSetGenerator
             $allowed_values = $argument;
         }
 
-        // Check once and for all that allowed values are scalar|null.
+        $pass_null = $pass_float = false;
+        switch ($rule->type) {
+            case Type::EQUATABLE:
+                break;
+            case Type::EQUATABLE_NULLABLE:
+                $pass_null = true;
+                break;
+            case Type::SCALAR:
+                $pass_float = true;
+                break;
+            default:
+                /** @see Type::SCALAR_NULLABLE */
+                $pass_null = $pass_float = true;
+        }
+
+        // Check once and for all that allowed values are valid.
         $i = -1;
         $enum = [];
+        $set_nullable = false;
         foreach ($allowed_values as $value) {
             ++$i;
             if ($value === null) {
-                $this->nullable = true;
-            }
-            elseif ($rule->type == Type::EQUATABLE) {
-                if (is_scalar($value) && !is_float($value)) {
-                    $enum[] = $value;
+                if ($pass_null) {
+                    $this->nullable = true;
+                    $set_nullable = true;
                 }
                 else {
+                    // EQUATABLE|SCALAR.
                     throw new InvalidRuleException(
-                        'Validation \'' . ($actualRuleName ?? 'enum') . '\' allowed values bucket[' . $i
-                        . '] type[' . Helper::getType($value) . '] is not bool|int|string|null'
+                        'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i . '] type[null] is not '
+                        . ($rule->type == Type::EQUATABLE ? 'bool|int|string' : 'bool|int|float|string')
                         . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
                     );
                 }
+            }
+            elseif (is_float($value)) {
+                if ($pass_float) {
+                    $enum[] = $value;
+                }
+                else {
+                    // EQUATABLE|EQUATABLE_NULLABLE.
+                    throw new InvalidRuleException(
+                        'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i . '] type[float] is not '
+                        . ($rule->type == Type::EQUATABLE ? 'bool|int|string' : 'bool|int|string|null')
+                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                    );
+                }
+            }
+            elseif (is_scalar($value)) {
+                $enum[] = $value;
             }
             else {
-                // Type::SCALAR_NULLABLE
-                if (is_scalar($value)) {
-                    $enum[] = $value;
-                }
-                else {
-                    throw new InvalidRuleException(
-                        'Validation \'' . ($actualRuleName ?? 'enum') . '\' allowed values bucket[' . $i
-                        . '] type[' . Helper::getType($value) . '] is not scalar or null'
-                        . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
-                    );
-                }
+                throw new InvalidRuleException(
+                    'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i
+                    . '] type[' . Helper::getType($value) . '] is not scalar'
+                    . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                );
             }
+        }
+
+        if (!$set_nullable && !$enum) {
+            throw new InvalidRuleException(
+                'Validation rule \'' . $rule->name . '\' allowed values array is empty'
+                . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+            );
         }
 
         return $enum;

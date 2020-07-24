@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleTraits;
 
 use SimpleComplex\Validate\Helper\Helper;
+
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
@@ -40,38 +41,36 @@ trait PatternRulesCheckedTrait
     /**
      * Subject strictly equal to a bucket of an array.
      *
-     * Checks whether all allowed values are bool|int|string|null.
+     * Checks whether all allowed values are bool|int|string.
      * @see TypeRulesTrait::equatable()
      *
      * @param mixed $subject
      * @param mixed[] $allowedValues
      *      [
-     *          0: some scalar (not float)
-     *          1: null
-     *          3: other scalar (not float)
+     *          0: some scalar, not float (nor null)
      *      ]
      *
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg allowedValues is empty.
-     *      A bucket of arg allowedValues is not bool|int|string|null.
+     *      Arg $allowedValues is empty.
+     *      A bucket of arg allowedValues is not bool|int|string.
      */
     public function enum($subject, array $allowedValues) : bool
     {
         if (!$allowedValues) {
             throw new InvalidArgumentException('Arg allowedValues is empty.');
         }
-        if ($subject !== null && (is_float($subject) || !is_scalar($subject))) {
+        if ($subject === null || is_float($subject) || !is_scalar($subject)) {
             return false;
         }
         $i = -1;
         foreach ($allowedValues as $allowed) {
             ++$i;
-            if ($allowed !== null && (is_float($allowed) || !is_scalar($allowed))) {
+            if ($allowed === null || is_float($allowed) || !is_scalar($allowed)) {
                 throw new InvalidArgumentException(
                     'Arg allowedValues bucket ' . $i . ' type[' . Helper::getType($allowed)
-                    . '] is not bool|int|string|null.'
+                    . '] is not bool|int|string.'
                 );
             }
             if ($subject === $allowed) {

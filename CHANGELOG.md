@@ -21,6 +21,10 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * regex() no longers passes boolean subject, no matter what pattern provided.
 * numeric() no longer passes stringed negative zero.
+
+* alternativeEnum[null] is no longer a safe way of allowing null,
+  use nullable instead.  
+  But still allowed if enum's type is EQUATABLE_NULLABLE|SCALAR_NULLABLE.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
@@ -32,7 +36,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 * Recursive validation (ValidateAgainstRuleSet) now iterates tableElements
   by subject buckets (instead of tableElements.rulesByElements), and then checks
-  for missing non-optional keys of subject afterwards.
+  for missing non-optional keys of subject afterwards.  
   That alters the sequence of failure records, from (pretty) order given
   by tableElements to arbitrary order given by subject.
   

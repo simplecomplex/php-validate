@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -153,9 +153,23 @@ trait TypeRulesTrait
      *
      * @return bool
      */
-    public function equatable($subject) : bool
+    public function equatableNull($subject) : bool
     {
         return $subject === null || (is_scalar($subject) && !is_float($subject));
+    }
+
+    /**
+     * Boolean, integer, string.
+     *
+     * Float is not equatable.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function equatable($subject) : bool
+    {
+        return $subject !== null && (is_scalar($subject) && !is_float($subject));
     }
 
     /**
@@ -544,12 +558,12 @@ trait TypeRulesTrait
      * @return bool
      *
      * @throws InvalidArgumentException
-     *      Arg className empty.
+     *      Arg $className empty.
      */
     public function class($subject, string $className) : bool
     {
         if (!$className) {
-            throw new InvalidArgumentException('Arg className is empty.');
+            throw new InvalidArgumentException('Arg $className is empty.');
         }
         return $subject && $subject instanceof $className;
     }
@@ -823,9 +837,6 @@ trait TypeRulesTrait
      *
      * @return string|bool
      *      String on pass, false on failure.
-     *
-     * @throws InvalidArgumentException
-     *      Logical error, arg kind not supported.
      */
     protected static function indexedOrKeyedContainer($subject, bool $loopable, bool $keyed)
     {

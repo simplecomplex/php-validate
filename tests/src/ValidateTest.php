@@ -11,9 +11,12 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
+use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
+
 use SimpleComplex\Validate\AbstractValidate;
 use SimpleComplex\Validate\ValidateUnchecked;
 use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\Variants\ValidateEnumVersatile;
 
 /**
  * @code
@@ -130,7 +133,7 @@ class ValidateTest extends TestCase
                 case 'empty':
                 case 'null':
                 case 'scalarNull':
-                case 'equatable':
+                case 'equatableNull':
                     static::assertTrue($validate->{$ruleName}(null), 'Rule method (true): ' . $ruleName);
                     break;
                 default:
@@ -164,11 +167,6 @@ class ValidateTest extends TestCase
         'dateTimeISOZonal' => false,
         'dateTimeISOUTC' => false,
          */
-
-        // enum.
-        static::assertFalse($validate->enum(null, [1]), 'Rule method (false): ' . 'enum');
-        static::assertTrue($validate->enum(null, [1, null]), 'Rule method (true): ' . 'enum');
-
 
         static::assertFalse($validate->regex(null, '/./'), 'Rule method (false): ' . 'regex');
         static::assertFalse($validate->class(null, \stdClass::class), 'Rule method (false): ' . 'class');
@@ -211,16 +209,41 @@ class ValidateTest extends TestCase
         $o = new \stdClass();
         static::assertFalse($validate->enum($o, [$o]));
 
-        static::assertFalse($validate->enum(null, [0]));
+        //static::assertFalse($validate->enum(null, [0]));
         static::assertFalse($validate->enum(false, [0]));
         static::assertFalse($validate->enum(true, [0]));
 
-        static::assertTrue($validate->enum(null, [null, false, true]));
-        static::assertTrue($validate->enum(false, [null, false, true]));
-        static::assertTrue($validate->enum(true, [null, false, true]));
+        //static::assertTrue($validate->enum(null, [null, false, true]));
+        static::assertTrue($validate->enum(false, [false, true]));
+        static::assertTrue($validate->enum(true, [false, true]));
 
         static::assertTrue($validate->enum(0, [0]));
         static::assertFalse($validate->enum('0', [0]));
+
+        /**
+         * Float is not allowed.
+         * @see Type::EQUATABLE
+         * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+         */
+        static::assertFalse($validate->enum(0.1, [0.1]));
+    }
+
+    public function testEnumVersatile()
+    {
+        $validate = new ValidateEnumVersatile();
+        static::assertInstanceOf(ValidateEnumVersatile::class, $validate);
+
+        /**
+         * Float and null allowed.
+         * @see ValidateEnumVersatile::enum()
+         */
+        static::assertTrue($validate->enum(0.1, [0.1]));
+        static::assertFalse($validate->enum(0.1, [0.01]));
+        static::assertTrue($validate->enum(null, [null]));
+        static::assertFalse($validate->enum(null, [0.1]));
+
+        static::assertTrue($validate->enum(false, [false, true]));
+        static::assertTrue($validate->enum(true, [false, true]));
     }
 
     /**

@@ -47,6 +47,10 @@ interface PatternRulesInterface
      * @var int[]
      */
     const MINIMAL_PATTERN_RULES = [
+        /**
+         * Type-checking enum() only supports EQUATABLE (bool|int|string).
+         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait::enum()
+         */
         'enum' => Type::EQUATABLE,
 
         'bit32' => Type::NUMERIC,

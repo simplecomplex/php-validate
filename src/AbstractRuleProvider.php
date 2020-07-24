@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -53,17 +53,11 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     }
 
     /**
-     * Rules that explicitly promise to check the subject's type.
+     * Types of rules that explicitly promise to check the subject's type.
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then RuleSetGenerator makes a guess.
      * @see RuleSetGenerator::ensureTypeChecking()
-     *
-     * Keys are methods names, values may be anything.
-     * Allows a child class to extend parent's list by doing
-     * const SOME_CONSTANT = [
-     *   'someMethod' => null,
-     * ] + ParentClass::SOME_CONSTANT;
      *
      * @see TypeRulesInterface::MINIMAL_TYPE_RULES
      * @see getRuleNames()
@@ -76,8 +70,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     const TYPE_RULES = [];
 
     /**
-     * Methods that don't promise to be type-checking, and what type they
-     * implicitly expect.
+     * Types of rules that don't promise to check the subject's type.
      *
      * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
      * @see getPatternRuleType()

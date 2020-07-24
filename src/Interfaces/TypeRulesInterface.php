@@ -56,6 +56,7 @@ interface TypeRulesInterface
         'null' => Type::NULL,
         'scalarNull' => Type::SCALAR_NULLABLE,
         'scalar' => Type::SCALAR,
+        'equatableNull' => Type::EQUATABLE_NULLABLE,
         'equatable' => Type::EQUATABLE,
         'boolean' => Type::BOOLEAN,
         'bit' => Type::DIGITAL,
@@ -135,6 +136,8 @@ interface TypeRulesInterface
     public function scalarNull($subject) : bool;
 
     public function scalar($subject) : bool;
+
+    public function equatableNull($subject) : bool;
 
     public function equatable($subject) : bool;
 

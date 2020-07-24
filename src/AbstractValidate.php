@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2019 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -36,7 +36,7 @@ abstract class AbstractValidate
 
 
     /**
-     * Rules that explicitly promise to check the subject's type.
+     * Types of rules that explicitly promise to check the subject's type.
      *
      * @see AbstractRuleProvider::getRuleNames()
      * @see AbstractRuleProvider::getRule()
@@ -48,7 +48,7 @@ abstract class AbstractValidate
     const TYPE_RULES = TypeRulesInterface::MINIMAL_TYPE_RULES;
 
     /**
-     * Rules that don't promise to check the subject's type.
+     * Types of rules that don't promise to check the subject's type.
      *
      * @see AbstractRuleProvider::getRuleNames()
      * @see AbstractRuleProvider::getRule()
