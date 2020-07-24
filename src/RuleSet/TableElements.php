@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\RuleSet;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\Helper\Helper;

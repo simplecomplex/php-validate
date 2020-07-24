@@ -15,7 +15,7 @@ use SimpleComplex\Validate\Type;
  * Rules that promise to check subject's type.
  *
  * Equivalent trait:
- * @see \SimpleComplex\Validate\Traits\TypeRulesTrait
+ * @see \SimpleComplex\Validate\RuleTraits\TypeRulesTrait
  *
  * Required method parameter(s) is illegal
  * --------------------------------------
@@ -122,7 +122,7 @@ interface TypeRulesInterface
      */
     const TYPE_RULE_FLAGS = [
         /**
-         * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::numeric()
+         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::numeric()
          */
         'DECIMAL_NEGATIVE_ZERO' => false,
     ];

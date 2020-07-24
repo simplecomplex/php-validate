@@ -18,9 +18,9 @@ use SimpleComplex\Validate\Type;
  * calling an appropriate type-checking rule.
  *
  * Equivalent non type-checking trait:
- * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait
+ * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait
  * Equivalent type-checking trait:
- * @see \SimpleComplex\Validate\Traits\PatternRulesCheckedTrait
+ * @see \SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait
  *
  * Illegal rule method names
  * -------------------------
@@ -175,7 +175,7 @@ interface PatternRulesInterface
      */
     const PATTERN_RULE_FLAGS = [
         /**
-         * @see \SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait::dateTimeISO()
+         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::dateTimeISO()
          */
         'DATETIME_ISO_SUBSECONDS_MAX' => 8,
     ];

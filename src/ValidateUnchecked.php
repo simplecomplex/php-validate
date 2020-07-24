@@ -10,32 +10,32 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 /**
- * High performance validator targeted recursive (ruleset) validation.
+ * High performance validator targeted ruleset validation.
  *
- * Also usable 'manually' when using a type-checking rule before a pattern rule.
+ * Also usable 'manually', but then user _must_ secure that the subject
+ * gets checked by a type-checking rule before a pattern rule.
+ *
+ * BEWARE: Pattern rules of this validator do _not_ check subject's type.
+ *      Without a preceding type-check (failing on unexpected subject type)
+ *      these pattern rules are unreliable, and may produce fatal error
+ *      (attempt to stringify object without __toString() method).
+ *
+ * Type checking rules:
  * @see TypeRulesTrait
+ * Pattern rules:
  * @see PatternRulesUncheckedTrait
- *
- *
- * Some string methods return true on empty
- * ----------------------------------------
- * Combine with the 'nonEmpty' rule if requiring non-empty.
- * Examples:
- * - unicode, unicodePrintable, unicodeMultiLine
- * - ascii, asciiPrintable, asciiMultiLine
- * - plainText
- * @see PatternRulesUncheckedTrait
- *
- *
- * Some methods return string on pass
- * ----------------------------------
- * Composite type checkers like:
- * - numeric, stringable, loopable
- * @see TypeRulesTrait
- *
  *
  * @package SimpleComplex\Validate
  */
 class ValidateUnchecked extends AbstractValidate
 {
+    /**
+     * Extends AbstractValidate to allow the all type-checking Validate
+     * @see Validate
+     * class not to extend this class.
+     *
+     * Contains all rules of these traits:
+     * @see TypeRulesTrait
+     * @see PatternRulesUncheckedTrait
+     */
 }

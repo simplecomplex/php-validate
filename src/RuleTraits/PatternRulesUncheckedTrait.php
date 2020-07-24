@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate\Traits;
+namespace SimpleComplex\Validate\RuleTraits;
 
 use SimpleComplex\Validate\Helper\Helper;
 
@@ -18,6 +18,18 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  *
  * Methods which don't check subject's type before testing the actual rule.
  *
+ *
+ * Some string methods return true on empty
+ * ----------------------------------------
+ * Combine with the 'nonEmpty' rule if requiring non-empty.
+ * Examples:
+ * - unicode, unicodePrintable, unicodeMultiLine
+ * - ascii, asciiPrintable, asciiMultiLine
+ * - plainText
+ *
+ *
+ * Design technicalities
+ * ---------------------
  * Equivalent interface:
  * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface
  *

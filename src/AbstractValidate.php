@@ -12,8 +12,8 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\Traits\PatternRulesUncheckedTrait;
-use SimpleComplex\Validate\Traits\TypeRulesTrait;
+use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
+use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
 
 /**
  * Intermediate class allowing Validate _not_ to extend

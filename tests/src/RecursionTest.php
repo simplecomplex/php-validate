@@ -15,7 +15,7 @@ use SimpleComplex\Validate\AbstractValidate;
 use SimpleComplex\Validate\ValidateUnchecked;
 use SimpleComplex\Validate\Validate;
 
-use SimpleComplex\Validate\ValidationRuleSet;
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
 /**

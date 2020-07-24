@@ -12,34 +12,22 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
+use SimpleComplex\Validate\RuleSet\TableElements;
+use SimpleComplex\Validate\RuleSet\ListItems;
 
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
- * Do not use this method directly - use ValidateUnchecked::challenge().
- *
- * @see AbstractRuleProvider::challenge()
- * @see AbstractRuleProvider::challengeRecording()
- *
- * Purpose
- * -------
- * Provides means of:
- * 1) calling more validation methods on a subject _by configuration_
- * 2) validating buckets (and sub buckets) of objects and arrays
- *
- * Design considerations - proxy class pattern
- * -------------------------------------------
- * The methods and props of this class could in principle be integrated
- * into the Validate class.
- * But it would obscure the primary purpose of the Validate class:
- * to provide simple and directly applicable validation methods.
- * Having the rule methods in a class separate from this also has the added
- * benefit that it's far simpler to determine which (Validate) methods are
- * rule methods.
+ * Validator checking against a ruleset.
+ * Supports recursive validation of object|array containers.
  *
  * @internal
+ * Don't use this class directly, use challenge|challengeRecording() method.
+ * @see AbstractRuleProvider::challenge()
+ * @see AbstractRuleProvider::challengeRecording()
  *
  * @package SimpleComplex\Validate
  */

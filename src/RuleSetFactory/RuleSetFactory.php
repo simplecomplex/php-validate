@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSetFactory;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
-use SimpleComplex\Validate\ValidationRuleSet;
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
 /**
  * Creates validation rulesets recursively,

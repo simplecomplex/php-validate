@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate\Traits;
+namespace SimpleComplex\Validate\RuleTraits;
 
 use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
@@ -15,6 +15,21 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 /**
  * Pattern rules - type-checking implementation.
  *
+ *
+ * Some string methods return true on empty
+ * ----------------------------------------
+ * Combine with the 'nonEmpty' rule if requiring non-empty.
+ * Examples:
+ * - unicode, unicodePrintable, unicodeMultiLine
+ * - ascii, asciiPrintable, asciiMultiLine
+ * - plainText
+ *
+ *
+ * Design technicalities
+ * ---------------------
+ * This trait must be used with - after - it's non-type-checking counterpart
+ * @see PatternRulesUncheckedTrait
+ * which it overrides, injecting type-check before actual rule check.
  * Equivalent interface:
  * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface
  *

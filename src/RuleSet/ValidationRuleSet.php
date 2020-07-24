@@ -7,16 +7,16 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\RuleSet;
 
 /**
  * Validation rule set.
  *
  * @see AbstractRuleProvider::challenge()
  *
- * Meant to be created by a generator, issued by a factory.
- * @see RuleSetFactory\RuleSetGenerator
- * @see RuleSetFactory\RuleSetFactory
+ * Meant to be created by a generator, itself issued by a factory.
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetFactory
  *
  *
  * @property bool|array *

@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpUnused */
+<?php
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
@@ -11,6 +11,7 @@ namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
+/** @noinspection PhpUnused */
 
 /**
  * Type definitions used by ruleset generator to find a type-checking rule

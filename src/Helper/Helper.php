@@ -28,61 +28,61 @@ class Helper
 //        return get_object_vars($object);
 //    }
 
-    /**
-     * For listing public methods within method of object self.
-     *
-     * @param object|string $objectOrClass
-     * @param bool $instanceOnly
-     *      True: without static methods; expensive because uses reflection.
-     *
-     * @return string[]
-     *
-     * @throws \TypeError
-     *      Arg $objectOrClass not object|string.
-     * @throws \InvalidArgumentException
-     *      Class (str) $objectOrClass doesn't exist.
-     */
-    public static function getPublicMethods($objectOrClass, bool $instanceOnly = false) : array
-    {
-        if (is_object($objectOrClass)) {
-            $class = get_class($objectOrClass);
-        }
-        elseif (is_string($objectOrClass)) {
-            $class = $objectOrClass;
-            if (!class_exists($class)) {
-                throw new \InvalidArgumentException(
-                    'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
-                );
-            }
-        }
-        else {
-            throw new \TypeError(
-                'Arg $objectOrClass type[' . static::getType($objectOrClass) . '] is not object|string.'
-            );
-        }
-        $all = get_class_methods($class);
-        if ($instanceOnly) {
-            // Prevent (IDE) complaints about unhandled (highly unlikely)
-            // \ReflectionException.
-            try {
-                // Bitwise can only do AND.
-                $statics = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_STATIC);
-            }
-            catch (\Throwable $xcptn) {
-                // Unlikely because class existence checked previously.
-                throw new \InvalidArgumentException(
-                    'See previous.', 0, /*\ReflectionException*/ $xcptn
-                );
-            }
-            foreach ($statics as $method) {
-                $index = array_search($method->name, $all);
-                if ($index !== false) {
-                    array_splice($all, $index, 1);
-                }
-            }
-        }
-        return $all;
-    }
+//    /**
+//     * For listing public methods within method of object self.
+//     *
+//     * @param object|string $objectOrClass
+//     * @param bool $instanceOnly
+//     *      True: without static methods; expensive because uses reflection.
+//     *
+//     * @return string[]
+//     *
+//     * @throws \TypeError
+//     *      Arg $objectOrClass not object|string.
+//     * @throws \InvalidArgumentException
+//     *      Class (str) $objectOrClass doesn't exist.
+//     */
+//    public static function getPublicMethods($objectOrClass, bool $instanceOnly = false) : array
+//    {
+//        if (is_object($objectOrClass)) {
+//            $class = get_class($objectOrClass);
+//        }
+//        elseif (is_string($objectOrClass)) {
+//            $class = $objectOrClass;
+//            if (!class_exists($class)) {
+//                throw new \InvalidArgumentException(
+//                    'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
+//                );
+//            }
+//        }
+//        else {
+//            throw new \TypeError(
+//                'Arg $objectOrClass type[' . static::getType($objectOrClass) . '] is not object|string.'
+//            );
+//        }
+//        $all = get_class_methods($class);
+//        if ($instanceOnly) {
+//            // Prevent (IDE) complaints about unhandled (highly unlikely)
+//            // \ReflectionException.
+//            try {
+//                // Bitwise can only do AND.
+//                $statics = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_STATIC);
+//            }
+//            catch (\Throwable $xcptn) {
+//                // Unlikely because class existence checked previously.
+//                throw new \InvalidArgumentException(
+//                    'See previous.', 0, /*\ReflectionException*/ $xcptn
+//                );
+//            }
+//            foreach ($statics as $method) {
+//                $index = array_search($method->name, $all);
+//                if ($index !== false) {
+//                    array_splice($all, $index, 1);
+//                }
+//            }
+//        }
+//        return $all;
+//    }
 
     /**
      * Get subject class name or (non-object) type.

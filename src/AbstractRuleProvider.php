@@ -369,7 +369,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * and calls to this method.
      *
      * @param mixed $subject
-     * @param ValidationRuleSet|array|object $ruleSet
+     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
      *
      * @return bool
      *
@@ -401,7 +401,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @endcode
      *
      * @param mixed $subject
-     * @param ValidationRuleSet|array|object $ruleSet
+     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
      * @param string $keyPath
      *      Name of element to validate, or key path to it.
      *

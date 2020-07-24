@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\RuleSet;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\Helper\Helper;
@@ -15,7 +15,7 @@ use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
- * Pseudo rule using a common ruleset on every element of object|array subject.
+ * Pseudo rule using a common ruleset of every element of object|array subject.
  *
  * listItems combined with tableElements is allowed.
  * Relevant for a container derived from XML, which allows hash table

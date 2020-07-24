@@ -12,7 +12,7 @@ namespace SimpleComplex\Validate\Interfaces;
 use SimpleComplex\Validate\Rule;
 
 /**
- * Describes required properties of a class - a 'rule provider' - that can
+ * Describes properties of a validation class - a 'rule provider' - that can
  * provide validation rules for a ValidateAgainstRuleSet instance.
  *
  * Illegal rule names

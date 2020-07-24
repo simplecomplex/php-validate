@@ -7,13 +7,22 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate\Traits;
+namespace SimpleComplex\Validate\RuleTraits;
 
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
  * Rules that promise to check subject's type.
  *
+ *
+ * Some methods return string on pass
+ * ----------------------------------
+ * Composite type checkers like:
+ * - number, stringable, numeric, container, loopable
+ *
+ *
+ * Design technicalities
+ * ---------------------
  * Equivalent interface:
  * @see \SimpleComplex\Validate\Interfaces\TypeRulesInterface
  *

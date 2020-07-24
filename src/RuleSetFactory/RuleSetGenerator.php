@@ -12,9 +12,9 @@ namespace SimpleComplex\Validate\RuleSetFactory;
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\Rule;
 use SimpleComplex\Validate\Helper\Helper;
-use SimpleComplex\Validate\ValidationRuleSet;
-use SimpleComplex\Validate\TableElements;
-use SimpleComplex\Validate\ListItems;
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
+use SimpleComplex\Validate\RuleSet\TableElements;
+use SimpleComplex\Validate\RuleSet\ListItems;
 
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;

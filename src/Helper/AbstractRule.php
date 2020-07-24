@@ -12,7 +12,11 @@ namespace SimpleComplex\Validate\Helper;
 /** @noinspection PhpUnused */
 
 /**
- * Helper object used when creating ruleset.
+ * Object describing a rule.
+ *
+ * Needed because variations of this ding must have differing constructors.
+ * @see Rule
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetRule
  *
  * @package SimpleComplex\Validate
  */

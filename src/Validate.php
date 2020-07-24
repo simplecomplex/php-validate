@@ -9,9 +9,15 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Traits\PatternRulesCheckedTrait;
+use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
+ * Validator targeted 'manual' (non-ruleset) use.
+ *
+ * All rules of this class are type-checking.
+ *
+ * The safe but slow choice.
+ * Slow because subject's type will be checked repeatedly, by every rule used.
  *
  * @package SimpleComplex\Validate
  */
