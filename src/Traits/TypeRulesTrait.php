@@ -59,6 +59,7 @@ trait TypeRulesTrait
                 // those are both Countable (checked before this check).
 
                 // Have to iterate; horrible.
+                /** @noinspection PhpUnusedLocalVariableInspection */
                 foreach ($subject as $ignore) {
                     return false;
                 }

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Helper;
 
+/** @noinspection PhpUnused */
+
 /**
  * Helper object used when creating ruleset.
  *

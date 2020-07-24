@@ -738,7 +738,7 @@ class RuleSetGenerator
         $class_table_elements = static::CLASS_TABLE_ELEMENTS;
         if (is_object($argument)) {
             if ($argument instanceof $class_table_elements) {
-                // IDE: it _is_ TableElements.
+                /** @var TableElements $argument */
                 return $argument;
             }
             else {
@@ -777,7 +777,7 @@ class RuleSetGenerator
         $class_list_items = static::CLASS_LIST_ITEMS;
         if (is_object($argument)) {
             if ($argument instanceof $class_list_items) {
-                // IDE: it _is_ listItems.
+                /** @var ListItems $argument */
                 return $argument;
             }
             else {

@@ -23,7 +23,12 @@ class Validate extends AbstractValidate
     /**
      * All methods are type-checking.
      *
-     * @see ValidateUnchecked::TYPE_RULES
+     * @see AbstractRuleProvider::getRuleNames()
+     * @see AbstractRuleProvider::getRule()
+     * @see AbstractRuleProvider::getTypeRuleType()
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
+     *
+     * IDE: _is_ used.
      */
     const TYPE_RULES =
         ValidateUnchecked::TYPE_RULES
@@ -32,7 +37,12 @@ class Validate extends AbstractValidate
     /**
      * No need for type inference at all.
      *
-     * @see ValidateUnchecked::PATTERN_RULES
+     * @see AbstractRuleProvider::getRuleNames()
+     * @see AbstractRuleProvider::getRule()
+     * @see AbstractRuleProvider::getPatternRuleType()
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
+     *
+     * IDE: _is_ used.
      */
     const PATTERN_RULES = [];
 }

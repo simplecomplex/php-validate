@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
@@ -46,16 +46,14 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     public static function getInstance(...$constructorParams)
     {
         $class = get_called_class();
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
         return static::$instanceByClass[$class] ??
-            // IDE: child class constructor may have parameters.
+            // Child class constructor may have parameters.
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
     /**
      * Rules that explicitly promise to check the subject's type.
-     *
-     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
-     * @see getTypeRuleType()
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
      * of these methods then RuleSetGenerator makes a guess.
@@ -66,6 +64,12 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * const SOME_CONSTANT = [
      *   'someMethod' => null,
      * ] + ParentClass::SOME_CONSTANT;
+     *
+     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see getRuleNames()
+     * @see getRule()
+     * @see getTypeRuleType()
+     * @see patternRuleToTypeRule()
      *
      * @var mixed[]
      */
@@ -141,7 +145,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     protected $rules = [];
 
     /**
-     * Lists of type rule names by type.
+     * Cache list of type rule names by type.
      *
      * @see patternRuleToTypeRule()
      *
@@ -158,15 +162,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @return string[]
      *
-     * @throws \TypeError  Propagated.
-     * @throws \InvalidArgumentException  Propagated.
-     */
-
-    /**
-     * @param bool $typeRulesOnly
-     * @param bool $patternRulesOnly
-     *
-     * @return string[]
+     * @throws \InvalidArgumentException
+     *      Both args falsy.
      */
     public function getRuleNames(bool $typeRulesOnly = false, bool $patternRulesOnly = false) : array
     {
@@ -246,11 +243,13 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a type-checking rule.
      *
-     * @see AbstractRuleProvider::TYPE_RULES
-     * @see Type
-     *
      * For ValidateAgainstRuleSet.
      * @see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @see Type
+     * @uses TYPE_RULES
+     * @uses AbstractValidate::TYPE_RULES
+     * @uses Validate::TYPE_RULES
      *
      * @param string $name
      *
@@ -264,10 +263,17 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a pattern rule.
      *
+     * For ValidateAgainstRuleSet.
+     * @see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @see Type
+     * @uses PATTERN_RULES
+     * @uses AbstractValidate::PATTERN_RULES
+     * @uses Validate::PATTERN_RULES
+     *
      * @param string $name
      *
      * @return int|null
-     *@see ValidateAgainstRuleSet::internalChallenge()
      *
      * @see AbstractRuleProvider::PATTERN_RULES
      * @see Type

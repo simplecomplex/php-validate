@@ -38,9 +38,10 @@ abstract class AbstractValidate
     /**
      * Rules that explicitly promise to check the subject's type.
      *
-     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see AbstractRuleProvider::getRuleNames()
      * @see AbstractRuleProvider::getRule()
      * @see AbstractRuleProvider::getTypeRuleType()
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
      *
      * @var int[]
      */
@@ -49,9 +50,10 @@ abstract class AbstractValidate
     /**
      * Rules that don't promise to check the subject's type.
      *
-     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+     * @see AbstractRuleProvider::getRuleNames()
      * @see AbstractRuleProvider::getRule()
      * @see AbstractRuleProvider::getPatternRuleType()
+     * @see AbstractRuleProvider::patternRuleToTypeRule()
      *
      * @var int[]
      */
@@ -60,7 +62,11 @@ abstract class AbstractValidate
     /**
      * Number of required parameters, by rule name.
      *
+     * @see AbstractRuleProvider::getRule()
+     *
      * @var int[]
+     *
+     * IDE: _is_ used.
      */
     const PARAMS_REQUIRED =
         TypeRulesInterface::TYPE_PARAMS_REQUIRED
@@ -70,7 +76,11 @@ abstract class AbstractValidate
      * Number of allowed parameters - if none required
      * or if allows more than required - by rule name.
      *
+     * @see AbstractRuleProvider::getRule()
+     *
      * @var int[]
+     *
+     * IDE: _is_ used.
      */
     const PARAMS_ALLOWED =
         TypeRulesInterface::TYPE_PARAMS_ALLOWED
@@ -81,10 +91,9 @@ abstract class AbstractValidate
      *
      * @see AbstractRuleProvider::getRule()
      *
-     * @see TypeRulesInterface::TYPE_RULES_RENAMED
-     * @see PatternRulesInterface::PATTERN_RULES_RENAMED
-     *
      * @var string[]
+     *
+     * IDE: _is_ used.
      */
     const RULES_RENAMED =
         TypeRulesInterface::TYPE_RULES_RENAMED
@@ -92,6 +101,9 @@ abstract class AbstractValidate
 
     /**
      * Flags controlling behaviours of rules.
+     *
+     * @see TypeRulesTrait
+     * @see PatternRulesTrait
      *
      * @var mixed[]
      */

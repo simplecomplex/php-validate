@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate

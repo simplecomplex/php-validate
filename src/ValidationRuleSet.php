@@ -94,6 +94,7 @@ namespace SimpleComplex\Validate;
  * of access for other purposes is not a priority.
  *
  * @package SimpleComplex\Validate
+ * @noinspection PhpUndefinedClassInspection
  */
 class ValidationRuleSet
 {
