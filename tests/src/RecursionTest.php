@@ -123,6 +123,14 @@ class RecursionTest extends TestCase
 
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
+
+        $tableElements = $ruleSet->tableElements->rulesByElements['accessories']->tableElements;
+        $source['tableElements']['rulesByElements']['accessories']['tableElements'] = $tableElements;
+        $listItems = $ruleSet->tableElements->rulesByElements['various']->listItems;
+        $source['tableElements']['rulesByElements']['various']['listItems'] = $listItems;
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($source)->log();
+        $ruleSet = (new RuleSetFactory($validate))->make($source);
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
         \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
