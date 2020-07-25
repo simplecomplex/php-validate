@@ -12,6 +12,7 @@ namespace SimpleComplex\Tests\Validate;
 use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\AbstractValidate;
+use SimpleComplex\Validate\Interfaces\ChallengerInterface;
 use SimpleComplex\Validate\ValidateUnchecked;
 use SimpleComplex\Validate\Validate;
 
@@ -100,7 +101,11 @@ class RecursionTest extends TestCase
         // Wrong, not array listItems string|bool.
         $bike->various = [8];
 
-        $valid = $validate->challenge($bike, $ruleSet);
+        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD);
+        if (!$valid) {
+            error_log('pre-converted, no continue:' . "\n" . join("\n", $validate->getLastFailure()));
+        }
+
         $record = $validate->challengeRecording($bike, $ruleSet);
         if (!$record['passed']) {
             error_log('pre-converted:' . "\n" . join("\n", $record['record']));

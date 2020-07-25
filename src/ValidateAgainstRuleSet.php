@@ -219,7 +219,7 @@ class ValidateAgainstRuleSet
      * @throws \Throwable
      *      Propagated.
      */
-    public function challenge($subject, $ruleSet, string $keyPath = 'root') : bool
+    public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {
         if ($ruleSet instanceof ValidationRuleSet) {
             return $this->internalChallenge($subject, $ruleSet, 0, $keyPath);
@@ -238,7 +238,7 @@ class ValidateAgainstRuleSet
             (new RuleSetFactory\RuleSetFactory($this->ruleProvider))
                 ->make($ruleSet, 0, $keyPath),
             0,
-            '@'
+            $keyPath
         );
     }
 
