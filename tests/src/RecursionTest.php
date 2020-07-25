@@ -89,6 +89,7 @@ class RecursionTest extends TestCase
 //        static::assertTrue($valid);
 
         $bike->accessories = [
+            'lights' => 'not numeric',
             false,
             true,
             'paint',

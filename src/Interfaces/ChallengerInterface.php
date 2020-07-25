@@ -30,6 +30,9 @@ interface ChallengerInterface
     /**
      * Bitmask flag: continue on failure.
      *
+     * Ignored onless recording.
+     * @see RECORD
+     *
      * @var int
      */
     public const CONTINUE = 2;

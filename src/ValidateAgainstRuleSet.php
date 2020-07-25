@@ -169,9 +169,10 @@ class ValidateAgainstRuleSet
         if ($options) {
             if (($options & ChallengerInterface::RECORD)) {
                 $this->recordFailure = true;
-            }
-            if (($options & ChallengerInterface::CONTINUE)) {
-                $this->continueOnFailure = true;
+                // Ignore unless recording.
+                if (($options & ChallengerInterface::CONTINUE)) {
+                    $this->continueOnFailure = true;
+                }
             }
         }
     }
@@ -466,10 +467,14 @@ class ValidateAgainstRuleSet
                     // Subject object|array must only contain keys defined
                     // by rulesByElements.
                     if ($this->recordFailure) {
-                        $passed = false;
                         $record[] = $this->recordCurrent(
                             'tableElements excludes key[' . $key . ']'
                         );
+                        if (!$this->continueOnFailure) {
+                            $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                            return false;
+                        }
+                        $passed = false;
                     }
                     else {
                         return false;
@@ -480,8 +485,12 @@ class ValidateAgainstRuleSet
                     // apart from the keys defined by rulesByElements.
                     if (!in_array($sKey, $tableElements->whitelist, true)) {
                         if ($this->recordFailure) {
-                            $passed = false;
                             $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
+                            if (!$this->continueOnFailure) {
+                                $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                                return false;
+                            }
+                            $passed = false;
                         }
                         else {
                             return false;
@@ -492,8 +501,12 @@ class ValidateAgainstRuleSet
                     // Subject array|object must _not_ contain these keys,
                     // apart from the keys defined by rulesByElements.
                     if ($this->recordFailure) {
-                        $passed = false;
                         $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
+                        if (!$this->continueOnFailure) {
+                            $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                            return false;
+                        }
+                        $passed = false;
                     }
                     else {
                         return false;
@@ -508,8 +521,11 @@ class ValidateAgainstRuleSet
                 $value, $tableElements->rulesByElements[$sKey], $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
-                    $passed = false;
                     // Don't record failure of child here.
+                    if (!$this->continueOnFailure) {
+                        return false;
+                    }
+                    $passed = false;
                 }
                 else {
                     return false;
@@ -526,8 +542,12 @@ class ValidateAgainstRuleSet
             $sKey = '' . $key;
             if (empty($tableElements->rulesByElements[$sKey]->optional)) {
                 if ($this->recordFailure) {
-                    $passed = false;
                     $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');
+                    if (!$this->continueOnFailure) {
+                        $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                        return false;
+                    }
+                    $passed = false;
                 }
                 else {
                     return false;
@@ -568,10 +588,14 @@ class ValidateAgainstRuleSet
             ++$length;
             if ($maxOccur && $length > $maxOccur) {
                 if ($this->recordFailure) {
-                    $passed = false;
                     $record[] = $this->recordCurrent(
                         'listItems max length ' . $maxOccur . ' exceeded at key[' . $key . ']'
                     );
+                    if (!$this->continueOnFailure) {
+                        $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                        return false;
+                    }
+                    $passed = false;
                 }
                 else {
                     return false;
@@ -584,8 +608,11 @@ class ValidateAgainstRuleSet
                 $value, $listItems->itemRules, $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
-                    $passed = false;
                     // Don't record failure of child here.
+                    if (!$this->continueOnFailure) {
+                        return false;
+                    }
+                    $passed = false;
                 }
                 else {
                     return false;
@@ -595,10 +622,14 @@ class ValidateAgainstRuleSet
 
         if ($listItems->minOccur && $length < $listItems->minOccur) {
             if ($this->recordFailure) {
-                $passed = false;
                 $record[] = $this->recordCurrent(
                     'listItems min length ' . $listItems->minOccur . ' not satisfied'
                 );
+                if (!$this->continueOnFailure) {
+                    $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                    return false;
+                }
+                $passed = false;
             }
             else {
                 return false;
