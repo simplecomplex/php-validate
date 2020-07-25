@@ -29,12 +29,12 @@ class ListItems
     /**
      * @var string
      */
-    const CLASS_RULE_SET = ValidationRuleSet::class;
+    protected const CLASS_RULE_SET = ValidationRuleSet::class;
 
     /**
      * @var mixed[]
      */
-    const MODIFIERS = [
+    protected const MODIFIERS = [
         'minOccur' => null,
         'maxOccur' => null,
     ];

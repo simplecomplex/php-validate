@@ -29,7 +29,7 @@ class ValidateUncheckedEnumVersatile extends ValidateUnchecked
      * Overrides by prepending overriding bucket(s);
      * PHP array union(+) ignores duplicate in righthand array.
      */
-    const PATTERN_RULES = [
+    protected const PATTERN_RULES = [
         /**
          * enum() supports bool|int|float|string|null,
          * but accommodates to this type setting.

@@ -36,35 +36,17 @@ class RuleSetGenerator
      *
      * @var int
      */
-    const RECURSION_LIMIT = 10;
-
-    /**
-     * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
-     */
-
-    /**
-     * @var string
-     */
-    const CLASS_RULE_SET = ValidationRuleSet::class;
-
-    /**
-     * @var string
-     */
-    const CLASS_TABLE_ELEMENTS = TableElements::class;
-
-    /**
-     * @var string
-     */
-    const CLASS_LIST_ITEMS = ListItems::class;
+    public const RECURSION_LIMIT = 10;
 
     /**
      * Pseudo rules that cannot be passed by value.
      *
      * @see ruleByValue()
+     * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
      *
      * @var mixed[]
      */
-    const ILLEGAL_BY_VALUE = [
+    public const ILLEGAL_BY_VALUE = [
         'alternativeEnum' => null,
         'alternativeRuleSet' => null,
         'tableElements' => null,
@@ -76,7 +58,7 @@ class RuleSetGenerator
      *
      * @var mixed[]
      */
-    const ALTERNATIVE_RULESET_ILLEGALS = [
+    public const ALTERNATIVE_RULESET_ILLEGALS = [
         'alternativeRuleSet' => null,
         'tableElements' => null,
         'listItems' => null,
@@ -90,7 +72,22 @@ class RuleSetGenerator
      *
      * @var bool
      */
-    const ALTERNATIVE_ENUM_SET_NULLABLE_ONLY = true;
+    public const ALTERNATIVE_ENUM_SET_NULLABLE_ONLY = true;
+
+    /**
+     * @var string
+     */
+    protected const CLASS_RULE_SET = ValidationRuleSet::class;
+
+    /**
+     * @var string
+     */
+    protected const CLASS_TABLE_ELEMENTS = TableElements::class;
+
+    /**
+     * @var string
+     */
+    protected const CLASS_LIST_ITEMS = ListItems::class;
 
     /**
      * @var RuleSetFactory

@@ -12,8 +12,8 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
+use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
  * Intermediate class allowing Validate _not_ to extend
@@ -25,7 +25,7 @@ use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
  * @package SimpleComplex\Validate
  */
 abstract class AbstractValidate
-    extends AbstractRuleProvider
+    extends AbstractChallenger
     implements TypeRulesInterface, PatternRulesInterface
 {
     // Type-checking rules.
@@ -45,7 +45,7 @@ abstract class AbstractValidate
      *
      * @var int[]
      */
-    const TYPE_RULES = TypeRulesInterface::MINIMAL_TYPE_RULES;
+    protected const TYPE_RULES = TypeRulesInterface::MINIMAL_TYPE_RULES;
 
     /**
      * Types of rules that don't promise to check the subject's type.
@@ -57,7 +57,7 @@ abstract class AbstractValidate
      *
      * @var int[]
      */
-    const PATTERN_RULES = PatternRulesInterface::MINIMAL_PATTERN_RULES;
+    protected const PATTERN_RULES = PatternRulesInterface::MINIMAL_PATTERN_RULES;
 
     /**
      * Number of required parameters, by rule name.
@@ -66,9 +66,9 @@ abstract class AbstractValidate
      *
      * @var int[]
      *
-     * IDE: _is_ used.
+     * IDE: _is_ used, by AbstractRuleProvider::getRule().
      */
-    const PARAMS_REQUIRED =
+    protected const PARAMS_REQUIRED =
         TypeRulesInterface::TYPE_PARAMS_REQUIRED
         + PatternRulesInterface::PATTERN_PARAMS_REQUIRED;
 
@@ -80,9 +80,9 @@ abstract class AbstractValidate
      *
      * @var int[]
      *
-     * IDE: _is_ used.
+     * IDE: _is_ used, by AbstractRuleProvider::getRule().
      */
-    const PARAMS_ALLOWED =
+    protected const PARAMS_ALLOWED =
         TypeRulesInterface::TYPE_PARAMS_ALLOWED
         + PatternRulesInterface::PATTERN_PARAMS_ALLOWED;
 
@@ -93,9 +93,9 @@ abstract class AbstractValidate
      *
      * @var string[]
      *
-     * IDE: _is_ used.
+     * IDE: _is_ used, by AbstractRuleProvider::getRule().
      */
-    const RULES_RENAMED =
+    protected const RULES_RENAMED =
         TypeRulesInterface::TYPE_RULES_RENAMED
         + PatternRulesInterface::PATTERN_RULES_RENAMED;
 
@@ -107,7 +107,7 @@ abstract class AbstractValidate
      *
      * @var mixed[]
      */
-    const RULE_FLAGS =
+    protected const RULE_FLAGS =
         TypeRulesInterface::TYPE_RULE_FLAGS
         + PatternRulesInterface::PATTERN_RULE_FLAGS;
 }

@@ -44,9 +44,16 @@ interface PatternRulesInterface
      * @see AbstractRuleProvider::PATTERN_RULES
      * @see RuleSetGenerator::ensureTypeChecking()
      *
+     * Implementing class may do:
+     * const PATTERN_RULES = PatternRulesInterface::MINIMAL_PATTERN_RULES;
+     * Or use use PHP array union(+), like:
+     * const PATTERN_RULES = [
+     *   'someRule' => Type::SOME_TYPE,
+     * ] + PatternRulesInterface::MINIMAL_PATTERN_RULES;
+     *
      * @var int[]
      */
-    const MINIMAL_PATTERN_RULES = [
+    public const MINIMAL_PATTERN_RULES = [
         /**
          * Type-checking enum() only supports EQUATABLE (bool|int|string).
          * @see \SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait::enum()
@@ -115,7 +122,7 @@ interface PatternRulesInterface
      *
      * @var int[]
      */
-    const PATTERN_PARAMS_REQUIRED = [
+    public const PATTERN_PARAMS_REQUIRED = [
         'enum' => 1,
         'min' => 1,
         'max' => 1,
@@ -136,7 +143,7 @@ interface PatternRulesInterface
      *
      * @var int[]
      */
-    const PATTERN_PARAMS_ALLOWED = [
+    public const PATTERN_PARAMS_ALLOWED = [
         'unicodeMultiLine' => 1,
         'hex' => 1,
         'asciiMultiLine' => 1,
@@ -160,7 +167,7 @@ interface PatternRulesInterface
      *
      * @var string[]
      */
-    const PATTERN_RULES_RENAMED = [
+    public const PATTERN_RULES_RENAMED = [
         'dateISO8601' => 'dateISO',
         'dateISO8601Local' => 'dateISOLocal',
         'timeISO8601' => 'timeISO',
@@ -177,7 +184,7 @@ interface PatternRulesInterface
      *
      * @var mixed[]
      */
-    const PATTERN_RULE_FLAGS = [
+    public const PATTERN_RULE_FLAGS = [
         /**
          * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::dateTimeISO()
          */

@@ -28,49 +28,49 @@ class Type
     /**
      * @see ValidationRuleSet::$optional
      */
-    const UNDEFINED = 1;
+    public const UNDEFINED = 1;
 
     /**
      * @see TypeRulesTrait::null()
      * @see ValidationRuleSet::$nullable
      */
-    const NULL = 2;
+    public const NULL = 2;
 
     /**
      * @see TypeRulesTrait::boolean()
      */
-    const BOOLEAN = 4;
+    public const BOOLEAN = 4;
 
     /**
      * @see TypeRulesTrait::integer()
      */
-    const INTEGER = 8;
+    public const INTEGER = 8;
 
     /**
      * @see TypeRulesTrait::float()
      */
-    const FLOAT = 16;
+    public const FLOAT = 16;
 
     /**
      * @see TypeRulesTrait::string()
      */
-    const STRING = 32;
+    public const STRING = 32;
 
     /**
      * @see TypeRulesTrait::array()
      */
-    const ARRAY = 64;
+    public const ARRAY = 64;
 
     /**
      * @see TypeRulesTrait::object()
      * @see TypeRulesTrait::class()
      */
-    const OBJECT = 128;
+    public const OBJECT = 128;
 
     /**
      * @see TypeRulesTrait::resource()
      */
-    const RESOURCE = 65536;
+    public const RESOURCE = 65536;
 
 
     // Specials.----------------------------------------------------------------
@@ -79,19 +79,19 @@ class Type
      * Stringed number.
      * @see TypeRulesTrait::decimal()
      */
-    const DECIMAL = 1024;
+    public const DECIMAL = 1024;
 
     /**
      * String, number or stringable object.
      * @see TypeRulesTrait::stringable()
      */
-    const STRINGABLE = 2048;
+    public const STRINGABLE = 2048;
 
     /**
      * Array or \Traversable object.
      * @see TypeRulesTrait::iterable()
      */
-    const ITERABLE = 4096;
+    public const ITERABLE = 4096;
 
 
     // Composites.--------------------------------------------------------------
@@ -101,7 +101,7 @@ class Type
      *
      * int|float: 8 + 16.
      */
-    const NUMBER = 24;
+    public const NUMBER = 24;
 
     /**
      * Integer or stringed integer.
@@ -109,7 +109,7 @@ class Type
      *
      * stringable + int: 2048 + 8.
      */
-    const DIGITAL = 2056;
+    public const DIGITAL = 2056;
 
     /**
      * Integer, float or stringed number.
@@ -117,7 +117,7 @@ class Type
      *
      * stringable + int|float: 2048 + 8 + 16.
      */
-    const NUMERIC = 2072;
+    public const NUMERIC = 2072;
 
     /**
      * Boolean, integer or string.
@@ -125,7 +125,7 @@ class Type
      *
      * bool|int|string: 4 + 8 + 32.
      */
-    const EQUATABLE = 44;
+    public const EQUATABLE = 44;
 
     /**
      * Null, boolean, integer or string.
@@ -133,14 +133,14 @@ class Type
      *
      * null|bool|int|string: 2 + 4 + 8 + 32.
      */
-    const EQUATABLE_NULLABLE = 46;
+    public const EQUATABLE_NULLABLE = 46;
 
     /**
      * @see TypeRulesTrait::scalar()
      *
      * bool|int|float|string: 4 + 8 + 16 + 32.
      */
-    const SCALAR = 60;
+    public const SCALAR = 60;
 
     /**
      * Scalar or null.
@@ -148,7 +148,7 @@ class Type
      *
      * null|bool|int|float|string: 2 + 4 + 8 + 16 + 32.
      */
-    const SCALAR_NULLABLE = 62;
+    public const SCALAR_NULLABLE = 62;
 
     /**
      * Stringable scalar.
@@ -156,7 +156,7 @@ class Type
      *
      * stringable + int|float|string: 2048 + 8 + 16 + 32.
      */
-    const STRINGABLE_SCALAR = 2104;
+    public const STRINGABLE_SCALAR = 2104;
 
     /**
      * Stringable object.
@@ -164,28 +164,28 @@ class Type
      *
      * stringable + object: 2048 + 128.
      */
-    const STRINGABLE_OBJECT = 2176;
+    public const STRINGABLE_OBJECT = 2176;
 
     /**
      * String or stringable object.
      *
      * string + stringable + object: 32 + 2048 + 128.
      */
-    const STRING_STRINGABLE_OBJECT = 2208;
+    public const STRING_STRINGABLE_OBJECT = 2208;
 
     /**
      * @see TypeRulesTrait::container()
      *
      * array|object: 64 + 128.
      */
-    const CONTAINER = 192;
+    public const CONTAINER = 192;
 
     /**
      * @see TypeRulesTrait::loopable()
      *
      * iterable|object: 4096 + 128.
      */
-    const LOOPABLE = 4224;
+    public const LOOPABLE = 4224;
 
 
     /**

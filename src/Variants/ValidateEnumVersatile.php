@@ -33,7 +33,7 @@ class ValidateEnumVersatile extends Validate
      * Overrides by prepending overriding bucket(s);
      * PHP array union(+) ignores duplicate in righthand array.
      */
-    const TYPE_RULES = [
+    protected const TYPE_RULES = [
         /**
          * enum() supports bool|int|float|string|null,
          * but accommodates to this type setting.

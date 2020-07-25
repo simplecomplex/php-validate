@@ -36,12 +36,12 @@ class TableElements
     /**
      * @var string
      */
-    const CLASS_RULE_SET = ValidationRuleSet::class;
+    protected const CLASS_RULE_SET = ValidationRuleSet::class;
 
     /**
      * @var mixed[]
      */
-    const MODIFIERS = [
+    protected const MODIFIERS = [
         'exclusive' => null,
         'whitelist' => null,
         'blacklist' => null,

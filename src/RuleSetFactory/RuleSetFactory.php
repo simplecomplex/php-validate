@@ -23,7 +23,7 @@ class RuleSetFactory
     /**
      * @var string
      */
-    const CLASS_GENERATOR = RuleSetGenerator::class;
+    protected const CLASS_GENERATOR = RuleSetGenerator::class;
 
     /**
      * @var RuleProviderInterface

@@ -36,7 +36,7 @@ class Validate extends AbstractValidate
      *
      * IDE: _is_ used.
      */
-    const TYPE_RULES =
+    protected const TYPE_RULES =
         ValidateUnchecked::TYPE_RULES
         + ValidateUnchecked::PATTERN_RULES;
 
@@ -50,5 +50,5 @@ class Validate extends AbstractValidate
      *
      * IDE: _is_ used.
      */
-    const PATTERN_RULES = [];
+    protected const PATTERN_RULES = [];
 }

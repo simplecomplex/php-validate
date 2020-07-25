@@ -12,8 +12,8 @@ namespace SimpleComplex\Validate\Interfaces;
 use SimpleComplex\Validate\Rule;
 
 /**
- * Describes properties of a validation class - a 'rule provider' - that can
- * provide validation rules for a ValidateAgainstRuleSet instance.
+ * A validation class - a 'rule provider' - that can provide
+ * validation rule methods for a ValidateAgainstRuleSet instance.
  *
  * Illegal rule names
  * ------------------
@@ -30,7 +30,31 @@ use SimpleComplex\Validate\Rule;
  */
 interface RuleProviderInterface
 {
-    // Recursive validation facilitators.---------------------------------------
+    /**
+     * Public non-rule instance methods.
+     *
+     * Implementing class may do:
+     * const NON_RULE_METHODS = RuleProviderInterface::PROVIDER_NON_RULE_METHODS;
+     * Or use use PHP array union(+), like:
+     * const NON_RULE_METHODS = [
+     *   'someRule' => null,
+     * ] + RuleProviderInterface::PROVIDER_NON_RULE_METHODS;
+     *
+     * @var mixed[]
+     */
+    public const PROVIDER_NON_RULE_METHODS = [
+        'getRuleNames' => null,
+        'getRule' => null,
+        'getTypeRuleType' => null,
+        'getPatternRuleType' => null,
+        'patternRuleToTypeRule' => null,
+//        '__call' => null,
+//        'challenge' => null,
+//        'challengeRecording' => null,
+    ];
+
+
+    // Rule information getters.------------------------------------------------
 
     /**
      * Lists validation rule methods.

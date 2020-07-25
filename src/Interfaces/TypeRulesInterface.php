@@ -34,7 +34,7 @@ interface TypeRulesInterface
     // API constants.-----------------------------------------------------------
 
     /**
-     * Rules that explicitly promise to check the subject's type.
+     * Types of rules that explicitly promise to check the subject's type.
      *
      * @see RuleProviderInterface::getRule()
      * @see RuleProviderInterface::getTypeRuleType()
@@ -44,15 +44,16 @@ interface TypeRulesInterface
      * @see AbstractRuleProvider::PATTERN_RULES
      * @see RuleSetGenerator::ensureTypeChecking()
      *
-     * Keys are methods names, values may be anything.
-     * Allows a child class to extend parent's list by doing
-     * const SOME_CONSTANT = [
-     *   'someMethod' => null,
-     * ] + ParentClass::SOME_CONSTANT;
+     * Implementing class may do:
+     * const TYPE_RULES = TypeRulesInterface::MINIMAL_TYPE_RULES;
+     * Or use use PHP array union(+), like:
+     * const TYPE_RULES = [
+     *   'someRule' => Type::SOME_TYPE,
+     * ] + TypeRulesInterface::MINIMAL_TYPE_RULES;
      *
      * @var int[]
      */
-    const MINIMAL_TYPE_RULES = [
+    public const MINIMAL_TYPE_RULES = [
         'null' => Type::NULL,
         'scalarNull' => Type::SCALAR_NULLABLE,
         'scalar' => Type::SCALAR,
@@ -91,7 +92,7 @@ interface TypeRulesInterface
      *
      * @var int[]
      */
-    const TYPE_PARAMS_REQUIRED = [
+    public const TYPE_PARAMS_REQUIRED = [
         'class' => 1,
     ];
 
@@ -101,7 +102,7 @@ interface TypeRulesInterface
      *
      * @var int[]
      */
-    const TYPE_PARAMS_ALLOWED = [
+    public const TYPE_PARAMS_ALLOWED = [
     ];
 
     /**
@@ -111,7 +112,7 @@ interface TypeRulesInterface
      *
      * @var string[]
      */
-    const TYPE_RULES_RENAMED = [];
+    public const TYPE_RULES_RENAMED = [];
 
 
     // Rule constants.----------------------------------------------------------
@@ -121,7 +122,7 @@ interface TypeRulesInterface
      *
      * @var mixed[]
      */
-    const TYPE_RULE_FLAGS = [
+    public const TYPE_RULE_FLAGS = [
         /**
          * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::numeric()
          */

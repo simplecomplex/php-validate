@@ -1,0 +1,75 @@
+<?php
+/**
+ * SimpleComplex PHP Validate
+ * @link      https://github.com/simplecomplex/php-validate
+ * @copyright Copyright (c) 2020 Jacob Friis Mathiasen
+ * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
+ */
+declare(strict_types=1);
+
+namespace SimpleComplex\Validate\Interfaces;
+
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
+
+/**
+ * Validator checking against a ruleset.
+ *
+ * Supports recursive validation of object|array containers.
+ *
+ * @package SimpleComplex\Validate
+ */
+interface ChallengerInterface
+{
+    /**
+     * Bitmask flag: produce and record failure message(s).
+     *
+     * @var int
+     */
+    public const RECORD = 1;
+
+    /**
+     * Bitmask flag: continue on failure.
+     *
+     * @var int
+     */
+    public const CONTINUE = 2;
+
+    /**
+     * Public non-rule instance methods.
+     *
+     * Implementing class may do:
+     * const NON_RULE_METHODS = ChallengerInterface::CHALLENGER_NON_RULE_METHODS;
+     * Or use use PHP array union(+), like:
+     * const NON_RULE_METHODS = [
+     *   'someRule' => null,
+     * ] + ChallengerInterface::CHALLENGER_NON_RULE_METHODS;
+     *
+     * @var mixed[]
+     */
+    public const CHALLENGER_NON_RULE_METHODS = [
+        'challenge' => null,
+        'challengeRecording' => null,
+    ];
+
+    /**
+     * Validate against a ruleset.
+     *
+     * @param mixed $subject
+     * @param ValidationRuleSet|object|array $ruleSet
+     * @param int $options
+     *      Bitmask, see ChallengerInterface bitmask flag constants.
+     *
+     * @return bool
+     *
+     * @throws \Throwable
+     *      Propagated.
+     */
+    public function challenge($subject, $ruleSet, int $options = 0) : bool;
+
+    /**
+     * Get failure(s) recorded by last recording challenge.
+     *
+     * @return string[]
+     */
+    public function getLastFailure() : array;
+}

@@ -24,6 +24,107 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
 abstract class AbstractRuleProvider implements RuleProviderInterface
 {
     /**
+     * Public non-rule instance methods.
+     *
+     * @var mixed[]
+     */
+    public const NON_RULE_METHODS =
+        RuleProviderInterface::PROVIDER_NON_RULE_METHODS
+        + [
+            '__call' => null,
+        ];
+
+    /**
+     * Types of rules that explicitly promise to check the subject's type.
+     *
+     * If the source of a validation rule set (e.g. JSON) doesn't contain any
+     * of these methods then RuleSetGenerator makes a guess.
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * @see getRuleNames()
+     * @see getRule()
+     * @see getTypeRuleType()
+     * @see patternRuleToTypeRule()
+     *
+     * @var mixed[]
+     */
+    protected const TYPE_RULES = [];
+
+    /**
+     * Types of rules that don't promise to check the subject's type.
+     *
+     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
+     * @see getPatternRuleType()
+     *
+     * Used by RuleSetGenerator to secure a type checking rule when none such
+     * mentioned in the source of a validation rule set (e.g. JSON).
+     * @see RuleSetGenerator::ensureTypeChecking()
+     *
+     * @var int[]
+     */
+    protected const PATTERN_RULES = [];
+
+    /**
+     * Number of required parameters, by rule name.
+     *
+     * @var int[]
+     */
+    protected const PARAMS_REQUIRED = [];
+
+    /**
+     * Number of allowed parameters - if none required
+     * or if allows more than required - by rule method name.
+     *
+     * @var int[]
+     */
+    protected const PARAMS_ALLOWED = [];
+
+    /**
+     * New rule name by old rule name.
+     *
+     * @see getRule()
+     *
+     * @var string[]
+     */
+    protected const RULES_RENAMED = [];
+
+    /**
+     * Flags controlling behaviours of rules.
+     *
+     * @var mixed[]
+     */
+    protected const RULE_FLAGS = [];
+
+    /**
+     * Instance vars are not allowed to have state
+     * -------------------------------------------
+     * except general instance or rule information.
+//     * Because that could affect the challenge() method, making calls leak state
+//     * to eachother.
+//     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
+//     * requested and returned instance are effectively identical.
+     */
+
+    /**
+     * Cache of Rule objects.
+     *
+     * @see getRule()
+     *
+     * @var Rule[]
+     */
+    protected $rules = [];
+
+    /**
+     * Cache list of type rule names by type.
+     *
+     * @see patternRuleToTypeRule()
+     *
+     * @var string[][]
+     */
+    protected $typeRulesByType;
+
+    /**
      * Extending class must not override this variable.
      *
      * @var Validate[]
@@ -51,101 +152,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             // Child class constructor may have parameters.
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
-
-    /**
-     * Types of rules that explicitly promise to check the subject's type.
-     *
-     * If the source of a validation rule set (e.g. JSON) doesn't contain any
-     * of these methods then RuleSetGenerator makes a guess.
-     * @see RuleSetGenerator::ensureTypeChecking()
-     *
-     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
-     * @see getRuleNames()
-     * @see getRule()
-     * @see getTypeRuleType()
-     * @see patternRuleToTypeRule()
-     *
-     * @var mixed[]
-     */
-    const TYPE_RULES = [];
-
-    /**
-     * Types of rules that don't promise to check the subject's type.
-     *
-     * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
-     * @see getPatternRuleType()
-     *
-     * Used by RuleSetGenerator to secure a type checking rule when none such
-     * mentioned in the source of a validation rule set (e.g. JSON).
-     * @see RuleSetGenerator::ensureTypeChecking()
-     *
-     * @var int[]
-     */
-    const PATTERN_RULES = [];
-
-    /**
-     * Number of required parameters, by rule name.
-     *
-     * @var int[]
-     */
-    const PARAMS_REQUIRED = [];
-
-    /**
-     * Number of allowed parameters - if none required
-     * or if allows more than required - by rule method name.
-     *
-     * @var int[]
-     */
-    const PARAMS_ALLOWED = [];
-
-    /**
-     * New rule name by old rule name.
-     *
-     * @see getRule()
-     *
-     * @var string[]
-     */
-    const RULES_RENAMED = [];
-
-    /**
-     * Flags controlling behaviours of rules.
-     *
-     * @var mixed[]
-     */
-    const RULE_FLAGS = [];
-
-
-    /**
-     * Instance vars are not allowed to have state
-     * -------------------------------------------
-     * except general instance or rule info.
-     * Because that could affect the challenge() method, making calls leak state
-     * to eachother.
-     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
-     * requested and returned instance are effectively identical.
-     *
-     * @see challenge()
-     * @see ValidateAgainstRuleSet::getInstance()
-     */
-
-    /**
-     * Cache of Rule objects.
-     *
-     * @see getRule()
-     *
-     * @var Rule[]
-     */
-    protected $rules = [];
-
-    /**
-     * Cache list of type rule names by type.
-     *
-     * @see patternRuleToTypeRule()
-     *
-     * @var string[][]
-     */
-    protected $typeRulesByType;
-
 
     /**
      * Lists names of validation rule methods.
@@ -181,6 +187,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * Handles that the rule may be renamed.
      * Thus caller better from now on use Rule::$name instead the possibly
      * old initial name.
+     *
+     * @see RuleSetGenerator
      *
      * @param string $name
      *
@@ -236,7 +244,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a type-checking rule.
      *
-     * For ValidateAgainstRuleSet.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @see Type
@@ -256,7 +263,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a pattern rule.
      *
-     * For ValidateAgainstRuleSet.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @see Type
@@ -351,73 +357,73 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     }
 
 
-    // Validate by list of rules.---------------------------------------------------------------------------------------
-
-    /**
-     * Validate by a list of rules.
-     *
-     * Stops on first failure.
-     *
-     * Reuses the same ValidateAgainstRuleSet across Validate instances
-     * and calls to this method.
-     *
-     * @param mixed $subject
-     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
-     *
-     * @return bool
-     *
-     * @throws \Throwable
-     *      Propagated.
-     */
-    public function challenge($subject, $ruleSet) : bool
-    {
-        // Re-uses instance on ValidateAgainstRuleSet rules.
-        // Since we pass this object to the ValidateAgainstRuleSet instance,
-        // we shan't refer the ValidateAgainstRuleSet instance directly.
-        return ValidateAgainstRuleSet::getInstance(
-            $this
-        )->challenge($subject, $ruleSet);
-    }
-
-    /**
-     * Validate by a list of rules, recording validation failures.
-     *
-     * Doesn't stop on failure, continues until the end of the ruleset.
-     *
-     * Creates a new ValidateAgainstRuleSet instance on every call.
-     *
-     * @code
-     * $good_bike = Validate::make()->challengeRecording($bike, $rules);
-     * if (empty($good_bike['passed'])) {
-     *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
-     * }
-     * @endcode
-     *
-     * @param mixed $subject
-     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
-     * @param string $keyPath
-     *      Name of element to validate, or key path to it.
-     *
-     * @return array {
-     *      @var bool passed
-     *      @var array record
-     * }
-     *
-     * @throws \Throwable
-     *      Propagated.
-     */
-    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root') : array
-    {
-        $validate_by_rules = new ValidateAgainstRuleSet($this, [
-            'recordFailure' => true,
-        ]);
-
-        $passed = $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
-        return [
-            'passed' => $passed,
-            'record' => $passed ? [] : $validate_by_rules->getRecord(),
-        ];
-    }
+//    // Validate by list of rules.---------------------------------------------------------------------------------------
+//
+//    /**
+//     * Validate by a list of rules.
+//     *
+//     * Stops on first failure.
+//     *
+//     * Reuses the same ValidateAgainstRuleSet across Validate instances
+//     * and calls to this method.
+//     *
+//     * @param mixed $subject
+//     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
+//     *
+//     * @return bool
+//     *
+//     * @throws \Throwable
+//     *      Propagated.
+//     */
+//    public function challenge($subject, $ruleSet) : bool
+//    {
+//        // Re-uses instance on ValidateAgainstRuleSet rules.
+//        // Since we pass this object to the ValidateAgainstRuleSet instance,
+//        // we shan't refer the ValidateAgainstRuleSet instance directly.
+//        return ValidateAgainstRuleSet::getInstance(
+//            $this
+//        )->challenge($subject, $ruleSet);
+//    }
+//
+//    /**
+//     * Validate by a list of rules, recording validation failures.
+//     *
+//     * Doesn't stop on failure, continues until the end of the ruleset.
+//     *
+//     * Creates a new ValidateAgainstRuleSet instance on every call.
+//     *
+//     * @code
+//     * $good_bike = Validate::make()->challengeRecording($bike, $rules);
+//     * if (empty($good_bike['passed'])) {
+//     *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
+//     * }
+//     * @endcode
+//     *
+//     * @param mixed $subject
+//     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
+//     * @param string $keyPath
+//     *      Name of element to validate, or key path to it.
+//     *
+//     * @return array {
+//     *      @var bool passed
+//     *      @var array record
+//     * }
+//     *
+//     * @throws \Throwable
+//     *      Propagated.
+//     */
+//    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root') : array
+//    {
+//        $validate_by_rules = new ValidateAgainstRuleSet($this, [
+//            'recordFailure' => true,
+//        ]);
+//
+//        $passed = $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
+//        return [
+//            'passed' => $passed,
+//            'record' => $passed ? [] : $validate_by_rules->getRecord(),
+//        ];
+//    }
 
 
     // Rule methods speficified by RuleProviderInterface
