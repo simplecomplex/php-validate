@@ -83,6 +83,16 @@ class RuleSetGenerator
     ];
 
     /**
+     * Whether alternativeEnum[null] is accepted as a means of setting nullable,
+     * disregarding whether 'enum' allows null.
+     *
+     * @see enum()
+     *
+     * @var bool
+     */
+    const ALTERNATIVE_ENUM_SET_NULLABLE_ONLY = true;
+
+    /**
      * @var RuleSetFactory
      */
     protected $factory;
@@ -704,13 +714,19 @@ class RuleSetGenerator
         // Check once and for all that allowed values are valid.
         $i = -1;
         $enum = [];
-        $set_nullable = false;
         foreach ($allowed_values as $value) {
             ++$i;
             if ($value === null) {
-                if ($pass_null) {
+                $size = count($allowed_values);
+                if ($pass_null
+                    // alternativeEnum[null] is still supported as a means
+                    // of allowing null.
+                    || ($size == 1 && static::ALTERNATIVE_ENUM_SET_NULLABLE_ONLY && $rule->name == 'alternativeEnum')
+                ) {
                     $this->nullable = true;
-                    $set_nullable = true;
+                    if ($size == 1) {
+                        return [];
+                    }
                 }
                 else {
                     // EQUATABLE|SCALAR.
@@ -746,7 +762,7 @@ class RuleSetGenerator
             }
         }
 
-        if (!$set_nullable && !$enum) {
+        if (!$enum) {
             throw new InvalidRuleException(
                 'Validation rule \'' . $rule->name . '\' allowed values array is empty'
                 . ', at (' . $this->depth . ') ' . $this->keyPath . '.'

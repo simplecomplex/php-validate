@@ -100,12 +100,12 @@ class RecursionTest extends TestCase
         // Wrong, not array listItems string|bool.
         $bike->various = [8];
 
-//        $valid = $validate->challenge($bike, $ruleSet);
-//        $record = $validate->challengeRecording($bike, $ruleSet);
-//        if (!$record['passed']) {
-//            error_log('pre-converted:' . "\n" . join("\n", $record['record']));
-//        }
-//        static::assertTrue($valid, 'pre-converted');
+        $valid = $validate->challenge($bike, $ruleSet);
+        $record = $validate->challengeRecording($bike, $ruleSet);
+        if (!$record['passed']) {
+            error_log('pre-converted:' . "\n" . join("\n", $record['record']));
+        }
+        static::assertTrue($valid, 'pre-converted');
 
         $valid = $validate->challenge($bike, $source);
 //        $record = $validate->challengeRecording($bike, $source);
@@ -131,7 +131,7 @@ class RecursionTest extends TestCase
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($source)->log();
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             null,

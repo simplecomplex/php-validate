@@ -21,10 +21,6 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * regex() no longers passes boolean subject, no matter what pattern provided.
 * numeric() no longer passes stringed negative zero.
-
-* alternativeEnum[null] is no longer a safe way of allowing null,
-  use nullable instead.  
-  But still allowed if enum's type is EQUATABLE_NULLABLE|SCALAR_NULLABLE.
   
 * alternativeRuleSet is not allowed to contain alternativeRuleSet,
   tableElements, listItems.
