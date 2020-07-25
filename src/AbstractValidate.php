@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Validate\Interfaces\ChallengerInterface;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
@@ -25,9 +26,12 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
  * @package SimpleComplex\Validate
  */
 abstract class AbstractValidate
-    extends AbstractChallenger
-    implements TypeRulesInterface, PatternRulesInterface
+    extends AbstractRuleProvider
+    implements ChallengerInterface, TypeRulesInterface, PatternRulesInterface
 {
+    // Become a ChallengerInterface.
+    use ChallengerTrait;
+
     // Type-checking rules.
     use TypeRulesTrait;
 
@@ -110,4 +114,19 @@ abstract class AbstractValidate
     protected const RULE_FLAGS =
         TypeRulesInterface::TYPE_RULE_FLAGS
         + PatternRulesInterface::PATTERN_RULE_FLAGS;
+
+    /**
+     * Public non-rule instance methods.
+     *
+     * @see RuleProviderIntegrity @todo
+     *
+     * @var mixed[]
+     */
+    protected const NON_RULE_METHODS =
+        AbstractRuleProvider::NON_RULE_METHODS
+        + ChallengerInterface::CHALLENGER_NON_RULE_METHODS
+        + [
+            // Deprecated.
+            'challengeRecording' => null,
+        ];
 }

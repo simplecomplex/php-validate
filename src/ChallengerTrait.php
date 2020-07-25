@@ -18,25 +18,14 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  *
  * Supports recursive validation of object|array containers.
  *
+ * The class must implement RuleProviderInterface,
+ * so that $this is a RuleProviderInterface.
+ * @see \SimpleComplex\Validate\Interfaces\RuleProviderInterface
+ *
  * @package SimpleComplex\Validate
  */
-abstract class AbstractChallenger extends AbstractRuleProvider implements ChallengerInterface
+trait ChallengerTrait
 {
-    /**
-     * Public non-rule instance methods.
-     *
-     * @see RuleProviderIntegrity @todo
-     *
-     * @var mixed[]
-     */
-    public const NON_RULE_METHODS =
-        AbstractRuleProvider::NON_RULE_METHODS
-        + ChallengerInterface::CHALLENGER_NON_RULE_METHODS
-        + [
-            // Deprecated.
-            'challengeRecording' => null,
-        ];
-
     /**
      * @var ValidateAgainstRuleSet|null
      */
@@ -62,7 +51,11 @@ abstract class AbstractChallenger extends AbstractRuleProvider implements Challe
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool
     {
-        $this->lastValidateAgainstRuleSet = $o = new ValidateAgainstRuleSet($this, $options);
+        $this->lastValidateAgainstRuleSet = $o = new ValidateAgainstRuleSet(
+            // IDE: $this _is_ RuleProviderInterface.
+            $this,
+            $options
+        );
 
         return $o->challenge($subject, $ruleSet);
     }
@@ -116,6 +109,7 @@ abstract class AbstractChallenger extends AbstractRuleProvider implements Challe
     public function challengeRecording($subject, $ruleSet, string $keyPath = '@') : array
     {
         $this->lastValidateAgainstRuleSet = $o = new ValidateAgainstRuleSet(
+            // IDE: $this _is_ RuleProviderInterface.
             $this,
             ChallengerInterface::RECORD | ChallengerInterface::CONTINUE
         );

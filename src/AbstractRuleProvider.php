@@ -24,17 +24,6 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
 abstract class AbstractRuleProvider implements RuleProviderInterface
 {
     /**
-     * Public non-rule instance methods.
-     *
-     * @var mixed[]
-     */
-    public const NON_RULE_METHODS =
-        RuleProviderInterface::PROVIDER_NON_RULE_METHODS
-        + [
-            '__call' => null,
-        ];
-
-    /**
      * Types of rules that explicitly promise to check the subject's type.
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
@@ -95,6 +84,17 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @var mixed[]
      */
     protected const RULE_FLAGS = [];
+
+    /**
+     * Public non-rule instance methods.
+     *
+     * @var mixed[]
+     */
+    protected const NON_RULE_METHODS =
+        RuleProviderInterface::PROVIDER_NON_RULE_METHODS
+        + [
+            '__call' => null,
+        ];
 
     /**
      * Instance vars are not allowed to have state

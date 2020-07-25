@@ -33,11 +33,6 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  */
 class ValidateAgainstRuleSet
 {
-    public const RECORD = 1;
-
-
-    public const CONTINUE_ON_FAILURE = 2;
-
     /**
      * Recursion emergency brake.
      *

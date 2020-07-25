@@ -48,7 +48,7 @@ interface ChallengerInterface
      */
     public const CHALLENGER_NON_RULE_METHODS = [
         'challenge' => null,
-        'challengeRecording' => null,
+        'getLastFailure' => null,
     ];
 
     /**
