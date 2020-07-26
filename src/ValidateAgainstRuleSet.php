@@ -17,6 +17,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSet\TableElements;
 use SimpleComplex\Validate\RuleSet\ListItems;
 
+use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -113,46 +114,46 @@ class ValidateAgainstRuleSet
     protected $record = [];
 
 
-//    /**
-//     * Reference to first object instantiated via the getInstance() method,
-//     * using a specific rule provider,
-//     * no matter which parent/child class the method was/is called on.
-//     *
-//     * @var ValidateAgainstRuleSet[]
-//     */
-//    protected static $instanceByValidateClass = [];
-//
-//    /**
-//     * First object instantiated via this method, using that rule provider,
-//     * disregarding which ValidateAgainstRuleSet class called on.
-//     *
-//     * Does not allow constructor $options argument because that would affect
-//     * instance state, voiding the warranty that the requested and referred
-//     * returned instances are effectively identical.
-//     *
-//     * @see AbstractRuleProvider::challenge()
-//     *
-//     * @param RuleProviderInterface $ruleProvider
-//     *
-//     * @return ValidateAgainstRuleSet
-//     *      static, really, but IDE might not resolve that.
-//     *
-//     * @throws BadMethodCallException
-//     *      If passed more than one argument.
-//     */
-//    public static function getInstance(RuleProviderInterface $ruleProvider)
-//    {
-//        if (func_num_args() > 1) {
-//            throw new BadMethodCallException(
-//                'Method allows only one argument (a rule provider), passing options would void warranty'
-//                . ' that requested and returned instance are effectvely identical, saw secondary argument type['
-//                . Helper::getType(func_get_arg(1)) . '].'
-//            );
-//        }
-//        $provider_class = get_class($ruleProvider);
-//        return static::$instanceByValidateClass[$provider_class] ??
-//            (static::$instanceByValidateClass[$provider_class] = new static($ruleProvider));
-//    }
+    /**
+     * Reference to first object instantiated via the getInstance() method,
+     * using a specific rule provider,
+     * no matter which parent/child class the method was/is called on.
+     *
+     * @var ValidateAgainstRuleSet[]
+     */
+    protected static $stateLessInstanceByRuleProviderClass = [];
+
+    /**
+     * First object instantiated via this method, using that rule provider,
+     * disregarding which ValidateAgainstRuleSet class called on.
+     *
+     * Does not allow constructor $options argument because that would affect
+     * instance state, voiding the warranty that the requested and referred
+     * returned instances are effectively identical.
+     *
+     * @see AbstractRuleProvider::challenge()
+     *
+     * @param RuleProviderInterface $ruleProvider
+     *
+     * @return ValidateAgainstRuleSet
+     *      static, really, but IDE might not resolve that.
+     *
+     * @throws BadMethodCallException
+     *      If passed more than one argument.
+     */
+    public static function getInstance(RuleProviderInterface $ruleProvider)
+    {
+        if (func_num_args() > 1) {
+            throw new BadMethodCallException(
+                'Method allows only one argument (a rule provider), passing options would void warranty'
+                . ' that requested and returned instance are effectvely identical, saw secondary argument type['
+                . Helper::getType(func_get_arg(1)) . '].'
+            );
+        }
+        $provider_class = get_class($ruleProvider);
+        return static::$stateLessInstanceByRuleProviderClass[$provider_class] ??
+            (static::$stateLessInstanceByRuleProviderClass[$provider_class] = new static($ruleProvider));
+    }
 
     /**
      * Use Validate::challenge() instead of this.
@@ -217,8 +218,6 @@ class ValidateAgainstRuleSet
      *
      * @throws \TypeError
      *      Arg rules not array|object.
-     * @throws \Throwable
-     *      Propagated.
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {

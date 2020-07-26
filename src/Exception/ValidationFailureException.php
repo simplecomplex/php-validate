@@ -8,8 +8,6 @@
 
 namespace SimpleComplex\Validate\Exception;
 
-use SimpleComplex\Validate\Interfaces\ValidationExceptionInterface;
-
 /**
  * Generic validation failure exception - free to use within other packages.
  *
@@ -18,7 +16,7 @@ use SimpleComplex\Validate\Interfaces\ValidationExceptionInterface;
  *
  * @package SimpleComplex\Validate
  */
-class ValidationFailureException extends \RuntimeException implements ValidationExceptionInterface
+class ValidationFailureException extends \RuntimeException implements ValidationException
 {
     /**
      * @var string

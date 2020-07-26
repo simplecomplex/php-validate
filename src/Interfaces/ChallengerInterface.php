@@ -18,7 +18,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  *
  * @package SimpleComplex\Validate
  */
-interface ChallengerInterface
+interface ChallengerInterface extends RuleProviderInterface
 {
     /**
      * Bitmask flag: produce and record failure message(s).

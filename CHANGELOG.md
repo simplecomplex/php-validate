@@ -8,6 +8,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 ### Added
 * Require PHP mbstring extension.
+* Common ValidationException; catchable \Throwable interface implemented
+  by all in-package exceptions.
 
 ### Changed
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset

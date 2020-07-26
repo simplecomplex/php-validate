@@ -18,18 +18,28 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  *
  * Supports recursive validation of object|array containers.
  *
- * The class must implement RuleProviderInterface,
- * so that $this is a RuleProviderInterface.
- * @see \SimpleComplex\Validate\Interfaces\RuleProviderInterface
+ *
+ * Design technicalities
+ * ---------------------
+ * BEWARE: This trait is not suitable for a rule provider which may have state
+ * (instance vars) that can affect validation.
+ * Because this trait's challenge() method uses a secondary class's
+ * getInstance() method, effectively locking the rule provider and the secondary
+ * object together.
+ * @see ChallengerTrait::challenge()
+ * @see ValidateAgainstRuleSet::getInstance()
+ *
+ *
+ * @mixin AbstractValidate
  *
  * @package SimpleComplex\Validate
  */
 trait ChallengerTrait
 {
     /**
-     * @var ValidateAgainstRuleSet|null
+     * @var string[]|null
      */
-    protected $lastValidateAgainstRuleSet;
+    protected $lastChallengeFailure;
 
     /**
      * Validate against a ruleset.
@@ -46,35 +56,50 @@ trait ChallengerTrait
      *
      * @return bool
      *
-     * @throws \Throwable
-     *      Propagated.
+     * @throws \TypeError  Propagated; arg $ruleSet not object|array.
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     *      Propagated; bad validation ruleset.
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool
     {
-        $this->lastValidateAgainstRuleSet = $o = new ValidateAgainstRuleSet(
-            // IDE: $this _is_ RuleProviderInterface.
-            $this,
-            $options
-        );
+        $this->lastChallengeFailure = null;
 
-        return $o->challenge($subject, $ruleSet);
+        if (!$options) {
+            // Reuse existing if any, to save footprint when validating
+            // by rulesets consecutivly.
+            // Fairly safe because without options (= without recording)
+            // the ValidateAgainstRuleSet instance won't have state.
+            // But ruins thread safety, because links this rule provider
+            // to that ValidateAgainstRuleSet.
+            $o = ValidateAgainstRuleSet::getInstance(
+                // IDE: $this _is_ RuleProviderInterface.
+                $this
+            );
+        }
+        else {
+            // Always create new.
+            $o = new ValidateAgainstRuleSet(
+                // IDE: $this _is_ RuleProviderInterface.
+                $this,
+                $options
+            );
+        }
+        $passed = $o->challenge($subject, $ruleSet);
+        if (!$passed) {
+            $this->lastChallengeFailure = $o->getRecord();
+        }
+
+        return $passed;
     }
 
     /**
      * Get failure(s) recorded by last recording challenge.
      *
-     * Clears the record; unlinks last ValidateAgainstRuleSet, if any.
-     *
      * @return string[]
      */
     public function getLastFailure() : array
     {
-        if ($this->lastValidateAgainstRuleSet) {
-            $a = $this->lastValidateAgainstRuleSet->getRecord();
-            $this->lastValidateAgainstRuleSet = null;
-            return $a;
-        }
-        return [];
+        return $this->lastChallengeFailure ?? [];
     }
 
     /**
@@ -86,38 +111,24 @@ trait ChallengerTrait
      * @see challenge()
      * @see getLastFailure()
      *
-     * @code
-     * $good_bike = Validate::make()->challengeRecording($bike, $rules);
-     * if (empty($good_bike['passed'])) {
-     *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
-     * }
-     * @endcode
-     *
      * @param mixed $subject
      * @param RuleSet\ValidationRuleSet|array|object $ruleSet
-     * @param string $keyPath
-     *      Name of element to validate, or key path to it.
      *
      * @return array {
      *      @var bool passed
      *      @var array record
      * }
      *
-     * @throws \Throwable
-     *      Propagated.
+     * @throws \TypeError  Propagated; arg $ruleSet not object|array.
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     *      Propagated; bad validation ruleset.
      */
-    public function challengeRecording($subject, $ruleSet, string $keyPath = '@') : array
+    public function challengeRecording($subject, $ruleSet) : array
     {
-        $this->lastValidateAgainstRuleSet = $o = new ValidateAgainstRuleSet(
-            // IDE: $this _is_ RuleProviderInterface.
-            $this,
-            ChallengerInterface::RECORD | ChallengerInterface::CONTINUE
-        );
-
-        $passed = $o->challenge($subject, $ruleSet, $keyPath);
+        $passed = $this->challenge($subject, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
         return [
             'passed' => $passed,
-            'record' => $passed ? [] : $o->getRecord(),
+            'record' => $passed ? [] : ($this->lastChallengeFailure ?? []),
         ];
     }
 }

@@ -13,8 +13,17 @@ use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
 /**
- * Creates validation rulesets recursively,
- * holding information about the rule provider.
+ * Creates validation rulesets recursively.
+ *
+ * See the generator and ruleset classes for details.
+ * @see RuleSetGenerator
+ * @see ValidationRuleSet
+ *
+ * Design technicalities
+ * ---------------------
+ * Holds the rule provider for ruleset generator(s).
+ * Perhaps unnecessary, used to hold information about the rule provider, which
+ * the rule provider now produces/holds by itself.
  *
  * @package SimpleComplex\Validate
  */

@@ -97,16 +97,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     protected const RULE_FLAGS = [];
 
     /**
-     * Instance vars are not allowed to have state
-     * -------------------------------------------
-     * except general instance or rule information.
-     * Because that could affect the challenge() method, making calls leak state
-     * to eachother.
-     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
-     * requested and returned instance are effectively identical.
-     */
-
-    /**
      * Cache of Rule objects.
      *
      * @see getRule()

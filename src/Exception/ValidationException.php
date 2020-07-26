@@ -6,8 +6,13 @@
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 
-namespace SimpleComplex\Validate\Interfaces;
+namespace SimpleComplex\Validate\Exception;
 
-interface ValidationExceptionInterface
+/**
+ * Extends \Throwable to be catchable.
+ *
+ * @package SimpleComplex\Validate\Exception
+ */
+interface ValidationException extends \Throwable
 {
 }

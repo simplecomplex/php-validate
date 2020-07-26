@@ -8,8 +8,6 @@
 
 namespace SimpleComplex\Validate\Exception;
 
-use SimpleComplex\Validate\Interfaces\ValidationExceptionInterface;
-
 /**
  * To differentiate exceptions thrown in-package from exceptions thrown
  * out-package.
@@ -18,6 +16,6 @@ use SimpleComplex\Validate\Interfaces\ValidationExceptionInterface;
  *
  * @package SimpleComplex\Validate
  */
-class OutOfRangeException extends \OutOfRangeException implements ValidationExceptionInterface
+class OutOfRangeException extends \OutOfRangeException implements ValidationException
 {
 }

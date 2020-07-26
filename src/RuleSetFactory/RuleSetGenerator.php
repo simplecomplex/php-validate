@@ -20,9 +20,18 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
- * Creates a single validation ruleset,
- * possibly a child and/or parent of other rulesets.
+ * Creates an orderly validation ruleset based on an input ruleset sketch.
  *
+ * The input rules could be a more or less rough list, written in JSON or PHP.
+ *
+ * Recursive - the current ruleset returned could be a child or parent of other
+ * rulesets.
+ * @see RuleSetGenerator::tableElements()
+ * @see TableElements::defineRulesByElements()
+ * @see RuleSetGenerator::listItems()
+ * @see ListItems::defineItemRules()
+ *
+ * @internal  Meant to used by a ruleset factory.
  * @see RuleSetFactory::make()
  *
  * @package SimpleComplex\Validate
