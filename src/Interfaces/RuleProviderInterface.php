@@ -43,6 +43,7 @@ interface RuleProviderInterface
      * @var mixed[]
      */
     public const PROVIDER_NON_RULE_METHODS = [
+        'getAPICompliance' => null,
         'getNonRuleNames' => null,
         'getRuleNames' => null,
         'getRule' => null,
@@ -55,9 +56,17 @@ interface RuleProviderInterface
     // Rule information getters.------------------------------------------------
 
     /**
+     * Checks that all information about the rule provider's rule methods
+     * is correct; type, number of parameter etc.
+     *
+     * @return string[]
+     */
+    public function getAPICompliance() : array;
+
+    /**
      * List of public instance methods that are't rules.
      *
-     * @see RuleProviderIntegrity
+     * @see getAPICompliance()
      * @see PROVIDER_NON_RULE_METHODS
      * @see AbstractRuleProvider::NON_RULE_METHODS
      *

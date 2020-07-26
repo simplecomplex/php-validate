@@ -143,6 +143,19 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
+
+    /**
+     * Checks that all information about the rule provider's rule methods
+     * is correct; type, number of parameter etc.
+     *
+     * @return string[]
+     */
+    public function getAPICompliance() : array
+    {
+        // @todo
+        return [];
+    }
+
     /**
      * List of public instance methods that are't rules.
      *
