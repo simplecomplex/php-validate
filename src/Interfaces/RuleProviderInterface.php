@@ -43,18 +43,29 @@ interface RuleProviderInterface
      * @var mixed[]
      */
     public const PROVIDER_NON_RULE_METHODS = [
+        'getNonRuleNames' => null,
         'getRuleNames' => null,
         'getRule' => null,
         'getTypeRuleType' => null,
         'getPatternRuleType' => null,
         'patternRuleToTypeRule' => null,
-//        '__call' => null,
-//        'challenge' => null,
-//        'challengeRecording' => null,
     ];
 
 
     // Rule information getters.------------------------------------------------
+
+    /**
+     * List of public instance methods that are't rules.
+     *
+     * @see RuleProviderIntegrity
+     * @see PROVIDER_NON_RULE_METHODS
+     * @see AbstractRuleProvider::NON_RULE_METHODS
+     *
+     * @return string[]
+     *
+     * @see AbstractRuleProvider::getNonRuleNames()
+     */
+    public function getNonRuleNames() : array;
 
     /**
      * Lists validation rule methods.

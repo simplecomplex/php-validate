@@ -24,6 +24,17 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
 abstract class AbstractRuleProvider implements RuleProviderInterface
 {
     /**
+     * Public non-rule instance methods.
+     *
+     * @var mixed[]
+     */
+    protected const NON_RULE_METHODS =
+        RuleProviderInterface::PROVIDER_NON_RULE_METHODS
+        + [
+            '__call' => null,
+        ];
+
+    /**
      * Types of rules that explicitly promise to check the subject's type.
      *
      * If the source of a validation rule set (e.g. JSON) doesn't contain any
@@ -86,24 +97,13 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     protected const RULE_FLAGS = [];
 
     /**
-     * Public non-rule instance methods.
-     *
-     * @var mixed[]
-     */
-    protected const NON_RULE_METHODS =
-        RuleProviderInterface::PROVIDER_NON_RULE_METHODS
-        + [
-            '__call' => null,
-        ];
-
-    /**
      * Instance vars are not allowed to have state
      * -------------------------------------------
      * except general instance or rule information.
-//     * Because that could affect the challenge() method, making calls leak state
-//     * to eachother.
-//     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
-//     * requested and returned instance are effectively identical.
+     * Because that could affect the challenge() method, making calls leak state
+     * to eachother.
+     * Would void ValidateAgainstRuleSet::getInstance()'s warranty that
+     * requested and returned instance are effectively identical.
      */
 
     /**
@@ -151,6 +151,21 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         return static::$instanceByClass[$class] ??
             // Child class constructor may have parameters.
             (static::$instanceByClass[$class] = new static(...$constructorParams));
+    }
+
+    /**
+     * List of public instance methods that are't rules.
+     *
+     * @see RuleProviderIntegrity
+     * @see NON_RULE_METHODS
+     *
+     * @return string[]
+     *
+     * @see AbstractRuleProvider::getNonRuleNames()
+     */
+    public function getNonRuleNames() : array
+    {
+        return array_keys(static::NON_RULE_METHODS);
     }
 
     /**

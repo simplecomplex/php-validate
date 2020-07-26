@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -38,6 +38,21 @@ abstract class AbstractValidate
     // Pattern rules.
     use PatternRulesUncheckedTrait;
 
+
+    /**
+     * Public non-rule instance methods.
+     *
+     * @see RuleProviderIntegrity
+     *
+     * @var mixed[]
+     */
+    protected const NON_RULE_METHODS =
+        AbstractRuleProvider::NON_RULE_METHODS
+        + ChallengerInterface::CHALLENGER_NON_RULE_METHODS
+        + [
+            // Deprecated.
+            'challengeRecording' => null,
+        ];
 
     /**
      * Types of rules that explicitly promise to check the subject's type.
@@ -114,19 +129,4 @@ abstract class AbstractValidate
     protected const RULE_FLAGS =
         TypeRulesInterface::TYPE_RULE_FLAGS
         + PatternRulesInterface::PATTERN_RULE_FLAGS;
-
-    /**
-     * Public non-rule instance methods.
-     *
-     * @see RuleProviderIntegrity @todo
-     *
-     * @var mixed[]
-     */
-    protected const NON_RULE_METHODS =
-        AbstractRuleProvider::NON_RULE_METHODS
-        + ChallengerInterface::CHALLENGER_NON_RULE_METHODS
-        + [
-            // Deprecated.
-            'challengeRecording' => null,
-        ];
 }
