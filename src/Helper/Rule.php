@@ -7,9 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
-
-use SimpleComplex\Validate\Helper\AbstractRule;
+namespace SimpleComplex\Validate\Helper;
 
 /**
  * Object describing a rule.

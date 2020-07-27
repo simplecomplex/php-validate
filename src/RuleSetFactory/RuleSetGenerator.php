@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSetFactory;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\Rule;
+use SimpleComplex\Validate\Helper\Rule;
 use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSet\TableElements;

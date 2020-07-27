@@ -12,6 +12,7 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
 
+use SimpleComplex\Validate\Helper\Rule;
 use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\Exception\BadMethodCallException;

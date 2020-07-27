@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Interfaces;
 
-use SimpleComplex\Validate\Rule;
+use SimpleComplex\Validate\Helper\Rule;
 
 /**
  * A validation class - a 'rule provider' - that can provide

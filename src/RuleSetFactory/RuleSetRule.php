@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSetFactory;
 
 use SimpleComplex\Validate\Helper\AbstractRule;
-use SimpleComplex\Validate\Rule;
+use SimpleComplex\Validate\Helper\Rule;
 
 /**
  * Helper object used when creating ruleset.
