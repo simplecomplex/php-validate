@@ -54,6 +54,8 @@ interface TypeRulesInterface
      * @var int[]
      */
     public const MINIMAL_TYPE_RULES = [
+        'empty' => Type::ANY,
+        'nonEmpty' => Type::ANY,
         'null' => Type::NULL,
         'scalarNull' => Type::SCALAR_NULLABLE,
         'scalar' => Type::SCALAR,

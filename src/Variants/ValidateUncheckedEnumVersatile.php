@@ -18,6 +18,8 @@ use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
  *
  * @see ValidateUnchecked
  *
+ * Checked counterpart:
+ * @see ValidateEnumVersatile
  *
  * @package SimpleComplex\Validate
  */

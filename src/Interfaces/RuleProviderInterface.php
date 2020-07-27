@@ -43,38 +43,16 @@ interface RuleProviderInterface
      * @var mixed[]
      */
     public const PROVIDER_NON_RULE_METHODS = [
-        'getAPICompliance' => null,
-        'getNonRuleNames' => null,
         'getRuleNames' => null,
         'getRule' => null,
         'getTypeRuleType' => null,
         'getPatternRuleType' => null,
         'patternRuleToTypeRule' => null,
+        'getIntegrity' => null,
     ];
 
 
     // Rule information getters.------------------------------------------------
-
-    /**
-     * Checks that all information about the rule provider's rule methods
-     * is correct; type, number of parameter etc.
-     *
-     * @return string[]
-     */
-    public function getAPICompliance() : array;
-
-    /**
-     * List of public instance methods that are't rules.
-     *
-     * @see getAPICompliance()
-     * @see PROVIDER_NON_RULE_METHODS
-     * @see AbstractRuleProvider::NON_RULE_METHODS
-     *
-     * @return string[]
-     *
-     * @see AbstractRuleProvider::getNonRuleNames()
-     */
-    public function getNonRuleNames() : array;
 
     /**
      * Lists validation rule methods.
@@ -145,6 +123,14 @@ interface RuleProviderInterface
      * @see AbstractRuleProvider::patternRuleToTypeRule()
      */
     public function patternRuleToTypeRule(int $patternType = null, string $patternRuleName = null) : ?string;
+
+    /**
+     * Checks that all information about the rule provider's rule methods
+     * is correct; type, number of parameters etc.
+     *
+     * @return string[]
+     */
+    public function getIntegrity() : array;
 
 
     // Validation rule methods.-------------------------------------------------

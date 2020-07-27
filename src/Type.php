@@ -17,6 +17,8 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * Type definitions used by ruleset generator to find a type-checking rule
  * matching a pattern rule.
  *
+ * All integer constants must be unique.
+ *
  * @see RuleSetGenerator::ensureTypeChecking()
  *
  * @package SimpleComplex\Validate
@@ -74,6 +76,13 @@ class Type
 
 
     // Specials.----------------------------------------------------------------
+
+    /**
+     * Any type.
+     * @see TypeRulesTrait::empty()
+     * @see TypeRulesTrait::nonEmpty()
+     */
+    public const ANY = 2147483648;
 
     /**
      * Stringed number.

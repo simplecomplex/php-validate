@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
+use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
+
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
@@ -21,7 +23,7 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class Validate extends AbstractValidate
+class Validate extends AbstractValidate implements CheckedRuleProviderInterface
 {
     // Pattern rules that are type-checking.
     use PatternRulesCheckedTrait;

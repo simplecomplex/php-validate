@@ -40,14 +40,16 @@ class AbstractRule
     public $type;
 
     /**
-     * Number of method parameters required.
+     * Number of method parameters required, excluding the (first) subject
+     * parameter.
      *
      * @var int
      */
     public $paramsRequired = 0;
 
     /**
-     * Number of method parameters allowed.
+     * Number of method parameters allowed, excluding the (first) subject
+     * parameter.
      *
      * @var int
      */

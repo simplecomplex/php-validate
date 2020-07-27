@@ -470,15 +470,13 @@ trait TypeRulesTrait
     }
 
     /**
-     * Stringed number, optionally limiting number digits after dot.
+     * Stringed number.
      *
      * @param mixed $subject
-     * @param int $maxDecimals
-     *      -1: no limit.
      *
      * @return bool
      */
-    public function decimal($subject, int $maxDecimals = -1) : bool
+    public function decimal($subject) : bool
     {
         /**
          * Same algo as numeric(), but this returns boolean on pass.
@@ -520,14 +518,6 @@ trait TypeRulesTrait
                 // Minus zero is unhealthy.
                 return false;
             }
-
-            if ($maxDecimals > -1 && strlen(ltrim($num, '0123456789.')) > $maxDecimals) {
-                // num.substr(num.indexOf('.') + 1).length;
-                //$n = strlen( substr($num, strpos($num, '.') + 1) );
-                //$n = strlen( ltrim($num, '012345679.') );
-                return false;
-            }
-
             // Float.
             return true;
         }

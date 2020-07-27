@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
+use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
 
@@ -23,6 +24,16 @@ use SimpleComplex\Validate\Exception\BadMethodCallException;
  */
 abstract class AbstractRuleProvider implements RuleProviderInterface
 {
+    /**
+     * The Type class use for registering rules.
+     *
+     * @see \SimpleComplex\Validate\Interfaces\TypeRulesInterface
+     * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface
+     *
+     * @var string
+     */
+    public const TYPE_CLASS = Type::class;
+
     /**
      * Public non-rule instance methods.
      *
@@ -68,6 +79,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Number of required parameters, by rule name.
      *
+     * The number excludes the (first) subject parameter.
+     *
      * @var int[]
      */
     protected const PARAMS_REQUIRED = [];
@@ -75,6 +88,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Number of allowed parameters - if none required
      * or if allows more than required - by rule method name.
+     *
+     * The number excludes the (first) subject parameter.
      *
      * @var int[]
      */
@@ -143,34 +158,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             (static::$instanceByClass[$class] = new static(...$constructorParams));
     }
 
-
-    /**
-     * Checks that all information about the rule provider's rule methods
-     * is correct; type, number of parameter etc.
-     *
-     * @return string[]
-     */
-    public function getAPICompliance() : array
-    {
-        // @todo
-        return [];
-    }
-
-    /**
-     * List of public instance methods that are't rules.
-     *
-     * @see RuleProviderIntegrity
-     * @see NON_RULE_METHODS
-     *
-     * @return string[]
-     *
-     * @see AbstractRuleProvider::getNonRuleNames()
-     */
-    public function getNonRuleNames() : array
-    {
-        return array_keys(static::NON_RULE_METHODS);
-    }
-
     /**
      * Lists names of validation rule methods.
      *
@@ -193,10 +180,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         if ($patternRulesOnly) {
             return array_keys(static::PATTERN_RULES);
         }
-        return array_merge(
-            array_keys(static::TYPE_RULES),
-            array_keys(static::PATTERN_RULES)
-        );
+        return array_keys(static::TYPE_RULES + static::PATTERN_RULES);
     }
 
     /**
@@ -374,74 +358,122 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         throw new BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
 
+    /**
+     * Checks that all information about the rule provider's rule methods
+     * is correct; type, number of parameters etc.
+     *
+     * First checks that all integer class constants of the Type class used
+     * are unique.
+     * @see TYPE_CLASS
+     *
+     * @return string[]
+     *
+     * @throws \ReflectionException
+     */
+    public function getIntegrity() : array
+    {
+        $msgs = [];
 
-//    // Validate by list of rules.---------------------------------------------------------------------------------------
-//
-//    /**
-//     * Validate by a list of rules.
-//     *
-//     * Stops on first failure.
-//     *
-//     * Reuses the same ValidateAgainstRuleSet across Validate instances
-//     * and calls to this method.
-//     *
-//     * @param mixed $subject
-//     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
-//     *
-//     * @return bool
-//     *
-//     * @throws \Throwable
-//     *      Propagated.
-//     */
-//    public function challenge($subject, $ruleSet) : bool
-//    {
-//        // Re-uses instance on ValidateAgainstRuleSet rules.
-//        // Since we pass this object to the ValidateAgainstRuleSet instance,
-//        // we shan't refer the ValidateAgainstRuleSet instance directly.
-//        return ValidateAgainstRuleSet::getInstance(
-//            $this
-//        )->challenge($subject, $ruleSet);
-//    }
-//
-//    /**
-//     * Validate by a list of rules, recording validation failures.
-//     *
-//     * Doesn't stop on failure, continues until the end of the ruleset.
-//     *
-//     * Creates a new ValidateAgainstRuleSet instance on every call.
-//     *
-//     * @code
-//     * $good_bike = Validate::make()->challengeRecording($bike, $rules);
-//     * if (empty($good_bike['passed'])) {
-//     *   echo "Failed:\n" . join("\n", $good_bike['record']) . "\n";
-//     * }
-//     * @endcode
-//     *
-//     * @param mixed $subject
-//     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
-//     * @param string $keyPath
-//     *      Name of element to validate, or key path to it.
-//     *
-//     * @return array {
-//     *      @var bool passed
-//     *      @var array record
-//     * }
-//     *
-//     * @throws \Throwable
-//     *      Propagated.
-//     */
-//    public function challengeRecording($subject, $ruleSet, string $keyPath = 'root') : array
-//    {
-//        $validate_by_rules = new ValidateAgainstRuleSet($this, [
-//            'recordFailure' => true,
-//        ]);
-//
-//        $passed = $validate_by_rules->challenge($subject, $ruleSet, $keyPath);
-//        return [
-//            'passed' => $passed,
-//            'record' => $passed ? [] : $validate_by_rules->getRecord(),
-//        ];
-//    }
+        // Do all integer constants of the Type class have unique values?
+        $types = (new \ReflectionClass(static::TYPE_CLASS))->getConstants();
+        $type_by_value = [];
+        $passed = true;
+        foreach ($types as $typeName => $typeValue) {
+            if (is_int($typeValue)) {
+                if (array_key_exists($typeValue, $type_by_value)) {
+                    $msgs[] = 'value[' . $typeValue . '] constants['
+                        . $type_by_value[$typeValue] . ', ' . $typeName . ']';
+                    $passed = false;
+                }
+                else {
+                    $type_by_value[$typeValue] = $typeName;
+                }
+            }
+        }
+        if (!$passed) {
+            // Get out, can't check type of rules when dupes.
+            return [
+                'The Type class[' . static::TYPE_CLASS
+                . '] applied have non-unique integer constants: ' . join(', ', $msgs) . '.'
+            ];
+        }
+
+        $provider_class = get_class($this);
+        $registered_rule_names = $this->getRuleNames();
+        $non_rule_methods = array_keys(static::NON_RULE_METHODS);
+        $public_methods = Helper::getPublicMethods($provider_class, true);
+        $actual_rule_names = array_values(array_diff($public_methods, $non_rule_methods));
+        $pattern_rules = [];
+
+        $c_rflctn = (new \ReflectionClass($this));
+        $w = count($actual_rule_names);
+        for ($i = 0; $i < $w; ++$i) {
+            $name = $actual_rule_names[$i];
+
+            // In getRuleNames()?
+            $i_registered = array_search($name, $registered_rule_names, true);
+            if ($i_registered === false) {
+                $msgs[] = 'Public instance method[' . $name . '] is not registered as a rule'
+                    . ', not in list from ::getRuleNames().';
+            }
+            else {
+                array_splice($registered_rule_names, $i_registered, 1);
+            }
+
+            // In getRule()?
+            $o_rule = $this->getRule($name);
+            if (!$o_rule) {
+                $msgs[] = 'Public instance method[' . $name . '] is not registered as a rule'
+                    . ', not retrievable from ::getRule().';
+                continue;
+            }
+
+            // Type in Type class constants?
+            if (!array_key_exists($o_rule->type, $type_by_value)) {
+                $msgs[] = 'Rule[' . $name . '] type[' . $o_rule->type . ']'
+                    . ' is not a class constant type of Type class[' . static::TYPE_CLASS . '].';
+            }
+            if (!$o_rule->isTypeChecking) {
+                $pattern_rules[] = $name;
+            }
+
+            // Parameters.
+            $m_rflctn = $c_rflctn->getMethod($name);
+            // -1 because registered number of parameters excludes
+            // the (first) subject parameter.
+            if ($o_rule->paramsRequired != $m_rflctn->getNumberOfRequiredParameters() - 1) {
+                $msgs[] = 'Rule[' . $name . '] registered required parameters[' . $o_rule->paramsRequired . ']'
+                    . ' doesn\'t match (subject param excluded) actual['
+                    . ($m_rflctn->getNumberOfRequiredParameters() - 1) . '].';
+            }
+            if ($o_rule->paramsAllowed != $m_rflctn->getNumberOfParameters() - 1) {
+                $msgs[] = 'Rule[' . $name . '] registered allowed parameters[' . $o_rule->paramsAllowed . ']'
+                    . ' doesn\'t match (subject param excluded) actual['
+                    . ($m_rflctn->getNumberOfParameters() - 1) . '].';
+            }
+        }
+
+        // Non type-checking rules despite promising that all are type-checking?
+        if ($pattern_rules && $provider_class instanceof CheckedRuleProviderInterface) {
+            $msgs[] = 'Implements CheckedRuleProviderInterface but has some non type-checking (pattern) rules['
+                . join(', ', $pattern_rules) . '].';
+        }
+
+        // Declares rules that aren't actual methods?
+        if ($registered_rule_names) {
+            $msgs[] = 'Some rules declared by ::getRuleNames() do not exist as public instance methods, rules['
+                . join(', ', $registered_rule_names) . '].';
+        }
+
+        // Has declared non-rule methods that don't exist?
+        foreach ($non_rule_methods as $name) {
+            if (array_search($name, $public_methods, true) === false) {
+                $msgs[] = 'Non-rule method[' . $name . '] doesn\'t exist.';
+            }
+        }
+
+        return $msgs;
+    }
 
 
     // Rule methods speficified by RuleProviderInterface

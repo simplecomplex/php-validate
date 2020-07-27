@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Variants;
 
+use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
+
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\Validate;
 use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
@@ -18,10 +20,12 @@ use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
  *
  * @see Validate
  *
+ * Unchecked counterpart:
+ * @see ValidateUncheckedEnumVersatile
  *
  * @package SimpleComplex\Validate
  */
-class ValidateEnumVersatile extends Validate
+class ValidateEnumVersatile extends Validate implements CheckedRuleProviderInterface
 {
     use EnumVersatileTrait;
 
