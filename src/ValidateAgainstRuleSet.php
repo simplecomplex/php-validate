@@ -401,15 +401,11 @@ class ValidateAgainstRuleSet
             return true;
         }
 
-        // tableElements|listItems require loopable container.
-        if (!$has_loopable && !$this->ruleProvider->loopable($subject)) {
-            if ($this->recordFailure) {
-                $this->recordCumulative(
-                    $subject, $depth, $keyPath, ($tableElements ? 'tableElements' : 'listItems') . '.loopable'
-                );
-            }
-            return false;
-        }
+        /**
+         * RuleSetGenerator has ensured to provide loopable type-checker.
+         * @see Type::LOOPABLE
+         * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
+         */
 
         // If tableElements pass then listItems will be ignored.
         if ($tableElements) {

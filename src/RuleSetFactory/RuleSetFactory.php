@@ -22,8 +22,9 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  * Design technicalities
  * ---------------------
  * Holds the rule provider for ruleset generator(s).
- * Perhaps unnecessary, used to hold information about the rule provider, which
- * the rule provider now produces/holds by itself.
+ * Spawns generators for ruleset TableElements|ListItems.
+ * @see \SimpleComplex\Validate\RuleSet\TableElements::defineRulesByElements()
+ * @see \SimpleComplex\Validate\RuleSet\ListItems::defineItemRules()
  *
  * @package SimpleComplex\Validate
  */

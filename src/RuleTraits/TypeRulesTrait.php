@@ -443,10 +443,7 @@ trait TypeRulesTrait
     }
 
     /**
-     * Non-negative integer or stringed integer.
-     *
-     * If negative integer should pass, use numeric()
-     * and then check it's return value.
+     * Integer or stringed integer.
      *
      * @see integer()
      *
@@ -460,13 +457,21 @@ trait TypeRulesTrait
     public function digital($subject) : bool
     {
         if (is_int($subject)) {
-            return $subject < 0 ? false : true;
+            return true;
         }
         if (!is_string($subject)) {
             return false;
         }
-        // Yes, ctype_... returns fals on ''.
-        return ctype_digit('' . $subject);
+        $w = strlen($subject);
+        if (!$w) {
+            return false;
+        }
+        $int = ltrim($subject, '-');
+        $w_int = strlen($int);
+        if (!$w_int || $w_int < $w - 1) {
+            return false;
+        }
+        return ctype_digit('' . $int);
     }
 
     /**

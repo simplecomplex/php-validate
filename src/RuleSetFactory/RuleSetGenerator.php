@@ -20,19 +20,26 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
- * Creates an orderly validation ruleset based on an input ruleset sketch.
+ * Creates a single orderly validation ruleset based on an input ruleset sketch.
  *
  * The input rules could be a more or less rough list, written in JSON or PHP.
  *
  * Recursive - the current ruleset returned could be a child or parent of other
  * rulesets.
- * @see RuleSetGenerator::tableElements()
- * @see TableElements::defineRulesByElements()
- * @see RuleSetGenerator::listItems()
- * @see ListItems::defineItemRules()
  *
  * @internal  Meant to used by a ruleset factory.
  * @see RuleSetFactory::make()
+ *
+ * Design technicalities
+ * ---------------------
+ * Can only create a single ruleset, and holds state of that ruleset (until
+ * fully created).
+ * If the ruleset contains tableElements or listItems, those will be generated
+ * by other generators (created by TableElements|ListItems).
+ * @see tableElements()
+ * @see TableElements::defineRulesByElements()
+ * @see listItems()
+ * @see ListItems::defineItemRules()
  *
  * @package SimpleComplex\Validate
  */
@@ -533,6 +540,8 @@ class RuleSetGenerator
                 break;
 
             case 'alternativeEnum':
+                // Clone to overwrite name property without affecting the rule
+                // provider's Rule (getRule() probably caches Rule objects).
                 $rule = clone $this->factory->ruleProvider->getRule('enum');
                 $rule->name = 'alternativeEnum';
                 $enum = $this->enum($rule, $argument);

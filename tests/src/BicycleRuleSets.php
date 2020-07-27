@@ -114,7 +114,7 @@ class BicycleRuleSets
                         ]
                     ],
                     'accessories' => [
-                        'array',
+                        //'array',
                         'tableElements' => [
                             'rulesByElements' => [
                                 // Numeric index
