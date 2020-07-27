@@ -25,11 +25,6 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * regex() no longers passes boolean subject, no matter what pattern provided.
 * numeric() no longer passes stringed negative zero.
-  
-* alternativeRuleSet is not allowed to contain alternativeRuleSet,
-  tableElements, listItems.
-* tableElements, listItems are no longer ignored if self has alternativeRuleSet
-  and that alternativeRuleSet passes.
 
 * tableElements, listItems combined is legal, but if tableElements pass then
   listItems won't be used/checked.

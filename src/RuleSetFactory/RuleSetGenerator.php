@@ -76,8 +76,6 @@ class RuleSetGenerator
      */
     public const ALTERNATIVE_RULESET_ILLEGALS = [
         'alternativeRuleSet' => null,
-        'tableElements' => null,
-        'listItems' => null,
     ];
 
     /**
@@ -364,8 +362,18 @@ class RuleSetGenerator
             return;
         }
 
-        // tableElements|listItems require loopable container.
+        // tableElements|listItems must check non-empty,
+        // and require loopable container.
         if ($this->tableElements || $this->listItems) {
+            if ($this->empty) {
+                throw new InvalidRuleException(
+                    'Validation ruleset ' . (!$this->tableElements ? 'tableElements' : 'listItems')
+                    . ' is not compatible with the empty() rule'
+                    . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
+                );
+            }
+            $this->nonEmpty = true;
+
             $method = $this->factory->ruleProvider->patternRuleToTypeRule(Type::LOOPABLE);
             if (!$method) {
                 throw new \LogicException(

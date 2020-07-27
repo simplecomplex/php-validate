@@ -386,14 +386,13 @@ class ValidateAgainstRuleSet
             }
             // Nested alternative fallback ruleset?
             if ($alternativeRuleSet) {
-                $passed = $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
+                return $this->internalChallenge($subject, $alternativeRuleSet, $depth, $keyPath);
             }
-            if (!$passed) {
-                if ($this->recordFailure) {
-                    $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
-                }
-                return false;
+            // No or failed alternativeEnum, and no alternativeRuleSet.
+            if ($this->recordFailure) {
+                $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
             }
+            return false;
         }
 
         // Didn't fail.
@@ -402,7 +401,8 @@ class ValidateAgainstRuleSet
         }
 
         /**
-         * RuleSetGenerator has ensured to provide loopable type-checker.
+         * RuleSetGenerator has ensured to provide nonEmpty() check
+         * and loopable type-checker.
          * @see Type::LOOPABLE
          * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
          */

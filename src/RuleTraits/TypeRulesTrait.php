@@ -96,6 +96,7 @@ trait TypeRulesTrait
      */
     public function nonEmpty($subject) : bool
     {
+        // Have to check for enigmatic \ArrayAccess to prevent false positive.
         if (
             $subject instanceof \ArrayAccess
             && !($subject instanceof \Countable) && !($subject instanceof \Traversable)

@@ -142,7 +142,7 @@ class RecursionTest extends TestCase
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($source)->log();
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             null,
