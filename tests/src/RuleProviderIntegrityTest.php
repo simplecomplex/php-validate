@@ -13,8 +13,6 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
-use SimpleComplex\Validate\Exception\ValidationException;
-
 use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\Variants\EnumVersatileUncheckedValidator;
@@ -48,8 +46,6 @@ class RuleProviderIntegrityTest extends TestCase
      * @see \SimpleComplex\Validate\AbstractRuleProvider::getIntegrity()
      *
      * @throws \ReflectionException
-     * @throws \InvalidArgumentException  Propagated.
-     * @throws ValidationException  Propagated.
      */
     public function testAllRuleProviders()
     {

@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSetFactory;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\Helper\Rule;
+use SimpleComplex\Validate\Helper\AbstractRule;
 use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSet\TableElements;
@@ -673,7 +673,7 @@ class RuleSetGenerator
      * Type definition of the 'enum' pattern rule decides which:
      * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
      *
-     * @param Rule $rule
+     * @param AbstractRule $rule
      *      enum Rule.
      * @param mixed $argument
      *      Errs if not array.
@@ -683,7 +683,7 @@ class RuleSetGenerator
      *
      * @throws InvalidRuleException
      */
-    protected function enum(Rule $rule, $argument) : array
+    protected function enum(AbstractRule $rule, $argument) : array
     {
         if (!$argument || !is_array($argument)) {
             throw new InvalidRuleException(

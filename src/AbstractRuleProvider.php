@@ -12,6 +12,7 @@ namespace SimpleComplex\Validate;
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
 
+use SimpleComplex\Validate\Helper\AbstractRule;
 use SimpleComplex\Validate\Helper\Rule;
 use SimpleComplex\Validate\Helper\Helper;
 
@@ -117,7 +118,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @see getRule()
      *
-     * @var Rule[]
+     * @var AbstractRule[]
      */
     protected $rules = [];
 
@@ -195,10 +196,10 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @param string $name
      *
-     * @return Rule|null
+     * @return AbstractRule|null
      *      Null: nonexisting rule.
      */
-    public function getRule(string $name) : ?Rule
+    public function getRule(string $name) : ?AbstractRule
     {
         $rule = $this->rules[$name] ?? null;
         if ($rule) {

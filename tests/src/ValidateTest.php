@@ -180,7 +180,9 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->unicodeExactLength(null, 0), 'Rule method (false): ' . 'unicodeExactLength');
     }
 
-
+    /**
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     */
     public function testAllowNull()
     {
         $validate = $this->testInstantiation();

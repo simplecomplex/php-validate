@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSetFactory;
 
 use SimpleComplex\Validate\Helper\AbstractRule;
-use SimpleComplex\Validate\Helper\Rule;
 
 /**
  * Helper object used when creating ruleset.
@@ -43,11 +42,11 @@ class RuleSetRule extends AbstractRule
     public $passedByValueAtIndex;
 
     /**
-     * @param Rule $rule
+     * @param AbstractRule $rule
      * @param mixed $argument
      * @param int $passedByValueAtIndex
      */
-    public function __construct(Rule $rule, $argument, int $passedByValueAtIndex = null)
+    public function __construct(AbstractRule $rule, $argument, int $passedByValueAtIndex = null)
     {
         foreach ($rule as $key => $value) {
             $this->{$key} = $value;

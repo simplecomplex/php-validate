@@ -48,7 +48,9 @@ class RecursionTest extends TestCase
         return $validate;
     }
 
-
+    /**
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     */
     public function testRuleSetBicycleOriginal()
     {
         $validate = $this->testInstantiation();
@@ -121,6 +123,9 @@ class RecursionTest extends TestCase
         static::assertFalse($valid, 'runtime converted');
     }
 
+    /**
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     */
     public function testRuleSetNumericIndexString()
     {
         $validate = $this->testInstantiation();

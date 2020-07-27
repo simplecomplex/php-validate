@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Interfaces;
 
-use SimpleComplex\Validate\Helper\Rule;
+use SimpleComplex\Validate\Helper\AbstractRule;
 
 /**
  * A validation class - a 'rule provider' - that can provide
@@ -68,12 +68,12 @@ interface RuleProviderInterface
      *
      * @param string $name
      *
-     * @return Rule|null
+     * @return AbstractRule|null
      *      Null: nonexistent rule.
      *
      * @see AbstractRuleProvider::getRule()
      */
-    public function getRule(string $name) : ?Rule;
+    public function getRule(string $name) : ?AbstractRule;
 
     /**
      * Get type affiliation of a type-checking rule.
