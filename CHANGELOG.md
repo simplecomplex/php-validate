@@ -12,6 +12,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   by all in-package exceptions.
 
 ### Changed
+* Validator class renamed; from Validate. New deprecated class Validate, which
+  extends Validator.
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
   
