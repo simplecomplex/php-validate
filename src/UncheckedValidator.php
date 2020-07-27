@@ -27,11 +27,11 @@ namespace SimpleComplex\Validate;
  *
  * @package SimpleComplex\Validate
  */
-class ValidateUnchecked extends AbstractValidate
+class UncheckedValidator extends AbstractValidator
 {
     /**
-     * Extends AbstractValidate to allow the all type-checking Validate
-     * @see Validate
+     * Extends AbstractValidate to allow the all type-checking Validator
+     * @see Validator
      * class not to extend this class.
      *
      * Contains all rules of these traits:

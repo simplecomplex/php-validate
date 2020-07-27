@@ -11,10 +11,10 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
-use SimpleComplex\Validate\AbstractValidate;
+use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\Interfaces\ChallengerInterface;
-use SimpleComplex\Validate\ValidateUnchecked;
-use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\Validator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -30,21 +30,21 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class RecursionTest extends TestCase
 {
     /**
-     * @return AbstractValidate
+     * @return AbstractValidator
      */
     public function testInstantiation()
     {
-        $validate = ValidateUnchecked::getInstance();
-        static::assertInstanceOf(ValidateUnchecked::class, $validate);
-        $validate = Validate::getInstance();
-        static::assertInstanceOf(Validate::class, $validate);
-        static::assertNotInstanceOf(ValidateUnchecked::class, $validate);
-        $validate = ValidateUnchecked::getInstance();
-        static::assertInstanceOf(ValidateUnchecked::class, $validate);
-        static::assertNotInstanceOf(Validate::class, $validate);
+        $validate = UncheckedValidator::getInstance();
+        static::assertInstanceOf(UncheckedValidator::class, $validate);
+        $validate = Validator::getInstance();
+        static::assertInstanceOf(Validator::class, $validate);
+        static::assertNotInstanceOf(UncheckedValidator::class, $validate);
+        $validate = UncheckedValidator::getInstance();
+        static::assertInstanceOf(UncheckedValidator::class, $validate);
+        static::assertNotInstanceOf(Validator::class, $validate);
 
-//        $validate = new ValidateUnchecked();
-//        static::assertInstanceOf(ValidateUnchecked::class, $validate);
+//        $validate = new UncheckedValidator();
+//        static::assertInstanceOf(UncheckedValidator::class, $validate);
         return $validate;
     }
 

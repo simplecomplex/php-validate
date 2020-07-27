@@ -10,20 +10,20 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\ValidateUnchecked;
+use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
 
 /**
  * Unchecked validator with enum() supporting float and null.
  *
- * @see ValidateUnchecked
+ * @see UncheckedValidator
  *
  * Checked counterpart:
- * @see ValidateEnumVersatile
+ * @see EnumVersatileValidator
  *
  * @package SimpleComplex\Validate
  */
-class ValidateUncheckedEnumVersatile extends ValidateUnchecked
+class EnumVersatileUncheckedValidator extends UncheckedValidator
 {
     use EnumVersatileTrait;
 
@@ -39,5 +39,5 @@ class ValidateUncheckedEnumVersatile extends ValidateUnchecked
          */
         'enum' => Type::SCALAR_NULLABLE,
     ]
-    + ValidateUnchecked::PATTERN_RULES;
+    + UncheckedValidator::PATTERN_RULES;
 }

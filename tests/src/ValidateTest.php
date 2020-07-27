@@ -13,10 +13,10 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\AbstractValidate;
-use SimpleComplex\Validate\ValidateUnchecked;
-use SimpleComplex\Validate\Validate;
-use SimpleComplex\Validate\Variants\ValidateEnumVersatile;
+use SimpleComplex\Validate\AbstractValidator;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\Validator;
+use SimpleComplex\Validate\Variants\EnumVersatileValidator;
 
 /**
  * @code
@@ -29,17 +29,17 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ValidateTest extends TestCase
 {
     /**
-     * @return AbstractValidate
+     * @return AbstractValidator
      */
     public function testInstantiation()
     {
-        $validate = new Validate();
-        static::assertInstanceOf(AbstractValidate::class, $validate);
+        $validate = new Validator();
+        static::assertInstanceOf(AbstractValidator::class, $validate);
         return $validate;
     }
 
     /**
-     * @see Validate::empty()
+     * @see Validator::empty()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -79,7 +79,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::nonEmpty()
+     * @see Validator::nonEmpty()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -197,7 +197,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::enum()
+     * @see Validator::enum()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -230,12 +230,12 @@ class ValidateTest extends TestCase
 
     public function testEnumVersatile()
     {
-        $validate = new ValidateEnumVersatile();
-        static::assertInstanceOf(ValidateEnumVersatile::class, $validate);
+        $validate = new EnumVersatileValidator();
+        static::assertInstanceOf(EnumVersatileValidator::class, $validate);
 
         /**
          * Float and null allowed.
-         * @see ValidateEnumVersatile::enum()
+         * @see EnumVersatileValidator::enum()
          */
         static::assertTrue($validate->enum(0.1, [0.1]));
         static::assertFalse($validate->enum(0.1, [0.01]));
@@ -247,7 +247,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::regex()
+     * @see Validator::regex()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -266,7 +266,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::boolean()
+     * @see Validator::boolean()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -284,7 +284,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::number()
+     * @see Validator::number()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -313,7 +313,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::integer()
+     * @see Validator::integer()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -342,7 +342,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::float()
+     * @see Validator::float()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -437,7 +437,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::string()
+     * @see Validator::string()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -466,7 +466,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateISO()
+     * @see Validator::dateISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -603,7 +603,7 @@ class ValidateTest extends TestCase
     ];
 
     /**
-     * @see Validate::dateISO()
+     * @see Validator::dateISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -628,7 +628,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateISOLocal()
+     * @see Validator::dateISOLocal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -651,7 +651,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeISO()
+     * @see Validator::dateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -690,7 +690,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeISOLocal()
+     * @see Validator::dateTimeISOLocal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -715,7 +715,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeISOZonal()
+     * @see Validator::dateTimeISOZonal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -754,7 +754,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validate::dateTimeISOUTC()
+     * @see Validator::dateTimeISOUTC()
      *
      * @see ValidateTest::testInstantiation()
      */

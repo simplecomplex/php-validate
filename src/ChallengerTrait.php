@@ -30,7 +30,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  * @see ValidateAgainstRuleSet::getInstance()
  *
  *
- * @mixin AbstractValidate
+ * @mixin AbstractValidator
  *
  * @package SimpleComplex\Validate
  */

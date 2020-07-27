@@ -91,9 +91,6 @@ class ValidateAgainstRuleSet
     ];
 
     /**
-     * The (most of the) methods of the Validate instance will be the rules
-     * available.
-     *
      * @var RuleProviderInterface
      */
     protected $ruleProvider;
@@ -156,9 +153,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use Validate::challenge() instead of this.
-     *
-     * @see AbstractRuleProvider::challenge()
+     * Use UncheckedValidator::challenge() instead of this.
      *
      * @param RuleProviderInterface $ruleProvider
      * @param int $options
@@ -188,13 +183,13 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use ValidateUnchecked::challenge() instead of this.
+     * Use UncheckedValidator::challenge() instead of this.
      *
-     * @see AbstractRuleProvider::challenge()
-     * @see AbstractRuleProvider::challengeRecording()
+     * @see UncheckedValidator::challenge()
+     * @see UncheckedValidator::challengeRecording()
      *
      * @code
-     * // Validate a value which should be an integer zero thru two.
+     * // Validator a value which should be an integer zero thru two.
      * $validate->challenge($some_input, [
      *     'integer',
      *     'range' => [
@@ -343,7 +338,7 @@ class ValidateAgainstRuleSet
             // Do ordinary rules.-----------------------------------------------
             foreach ($rule_methods as $method => $args) {
                 // We expect more boolean trues than arrays;
-                // few Validate methods take secondary args.
+                // few Validator methods take secondary args.
                 if ($args === true) {
                     if (!$this->ruleProvider->{$method}($subject)) {
                         $passed = false;

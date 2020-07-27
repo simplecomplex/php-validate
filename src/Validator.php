@@ -23,7 +23,7 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class Validate extends AbstractValidate implements CheckedRuleProviderInterface
+class Validator extends AbstractValidator implements CheckedRuleProviderInterface
 {
     // Pattern rules that are type-checking.
     use PatternRulesCheckedTrait;
@@ -39,8 +39,8 @@ class Validate extends AbstractValidate implements CheckedRuleProviderInterface
      * IDE: _is_ used.
      */
     protected const TYPE_RULES =
-        ValidateUnchecked::TYPE_RULES
-        + ValidateUnchecked::PATTERN_RULES;
+        UncheckedValidator::TYPE_RULES
+        + UncheckedValidator::PATTERN_RULES;
 
     /**
      * No need for type inference at all.

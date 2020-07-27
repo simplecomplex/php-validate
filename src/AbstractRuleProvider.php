@@ -132,7 +132,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Extending class must not override this variable.
      *
-     * @var Validate[]
+     * @var AbstractRuleProvider[]
      * @final
      */
     protected static $instanceByClass;
@@ -145,7 +145,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @see challenge()
      *
      * @param mixed ...$constructorParams
-     *      Validate child class constructor may have parameters.
+     *      Validator child class constructor may have parameters.
      *
      * @return AbstractRuleProvider|static
      */
@@ -250,8 +250,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @see Type
      * @uses TYPE_RULES
-     * @uses AbstractValidate::TYPE_RULES
-     * @uses Validate::TYPE_RULES
+     * @uses AbstractValidator::TYPE_RULES
+     * @uses UncheckedValidator::TYPE_RULES
      *
      * @param string $name
      *
@@ -269,8 +269,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @see Type
      * @uses PATTERN_RULES
-     * @uses AbstractValidate::PATTERN_RULES
-     * @uses Validate::PATTERN_RULES
+     * @uses AbstractValidator::PATTERN_RULES
+     * @uses UncheckedValidator::PATTERN_RULES
      *
      * @param string $name
      *
@@ -343,7 +343,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * By design, ValidateAgainstRuleSet::challenge() should not be able to call
      * a non-existent method of this class.
-     * But external call to Validate::noSuchRule() is somewhat expectable.
+     * But external call to Validator::noSuchRule() is somewhat expectable.
      *
      * @see ValidateAgainstRuleSet::challenge()
      *

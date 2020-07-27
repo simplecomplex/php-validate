@@ -17,15 +17,15 @@ use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * Intermediate class allowing Validate _not_ to extend
- * ValidateUnchecked.
+ * Intermediate class allowing Validator _not_ to extend
+ * UncheckedValidator.
  *
- * @see Validate
- * @see ValidateUnchecked
+ * @see Validator
+ * @see UncheckedValidator
  *
  * @package SimpleComplex\Validate
  */
-abstract class AbstractValidate
+abstract class AbstractValidator
     extends AbstractRuleProvider
     implements ChallengerInterface, TypeRulesInterface, PatternRulesInterface
 {

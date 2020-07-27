@@ -12,27 +12,27 @@ namespace SimpleComplex\Validate\Variants;
 use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\Validate;
+use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
 
 /**
  * Checked validator with enum() supporting float and null.
  *
- * @see Validate
+ * @see Validator
  *
  * Unchecked counterpart:
- * @see ValidateUncheckedEnumVersatile
+ * @see EnumVersatileUncheckedValidator
  *
  * @package SimpleComplex\Validate
  */
-class ValidateEnumVersatile extends Validate implements CheckedRuleProviderInterface
+class EnumVersatileValidator extends Validator implements CheckedRuleProviderInterface
 {
     use EnumVersatileTrait;
 
     /**
      * In an all type-checking validator all rules are type-rules.
-     * @see Validate::TYPE_RULES
-     * @see Validate::PATTERN_RULES
+     * @see Validator::TYPE_RULES
+     * @see Validator::PATTERN_RULES
      *
      * Overrides by prepending overriding bucket(s);
      * PHP array union(+) ignores duplicate in righthand array.
@@ -45,5 +45,5 @@ class ValidateEnumVersatile extends Validate implements CheckedRuleProviderInter
          */
         'enum' => Type::SCALAR_NULLABLE,
     ]
-    + Validate::TYPE_RULES;
+    + Validator::TYPE_RULES;
 }
