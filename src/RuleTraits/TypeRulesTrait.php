@@ -12,12 +12,8 @@ namespace SimpleComplex\Validate\RuleTraits;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
- * Rules that promise to check subject's type.
+ * Rules that promise to check the subject's type.
  *
- * Some methods return string on pass
- * ----------------------------------
- * Composite type checkers like:
- * - number, stringable, numeric, container, loopable
  *
  * Design technicalities
  * ---------------------
@@ -204,18 +200,11 @@ trait TypeRulesTrait
      * @param mixed $subject
      *      int|float to pass validation.
      *
-     * @return string|bool
-     *      String (integer|float) on pass, boolean false on failure.
+     * @return bool
      */
-    public function number($subject)
+    public function number($subject) : bool
     {
-        if (is_int($subject)) {
-            return 'integer';
-        }
-        if (is_float($subject)) {
-            return 'float';
-        }
-        return false;
+        return is_int($subject) || is_float($subject);
     }
 
     /**
@@ -260,17 +249,12 @@ trait TypeRulesTrait
      *      Stringable object tests false; method promises type safety.
      *      int|float|string to pass validation.
      *
-     * @return string|bool
-     *      String (integer|float) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function numeric($subject)
+    public function numeric($subject) : bool
     {
-        if (is_int($subject)) {
-            return 'integer';
-        }
-        if (is_float($subject)) {
-            return 'float';
+        if (is_int($subject) || is_float($subject)) {
+            return true;
         }
 
         /**
@@ -298,7 +282,7 @@ trait TypeRulesTrait
                 // Minus zero is unhealthy.
                 return false;
             }
-            return 'integer';
+            return true;
         }
 
         // Remove dot.
@@ -312,7 +296,7 @@ trait TypeRulesTrait
                 // Minus zero is unhealthy.
                 return false;
             }
-            return 'float';
+            return true;
         }
 
         return false;
@@ -440,8 +424,9 @@ trait TypeRulesTrait
      */
     public function stringableScalar($subject) : bool
     {
-        return $subject !== null
-            && (is_string($subject) || is_int($subject) || is_float($subject));
+        return is_string($subject)
+            || is_int($subject)
+            || is_float($subject);
     }
 
     /**
@@ -477,7 +462,8 @@ trait TypeRulesTrait
      */
     public function stringStringableObject($subject) : bool
     {
-        return is_string($subject) || (is_object($subject) && method_exists($subject, '__toString'));
+        return is_string($subject)
+            || (is_object($subject) && method_exists($subject, '__toString'));
     }
 
     /**
@@ -490,27 +476,14 @@ trait TypeRulesTrait
      *
      * @param mixed $subject
      *
-     * @return string|bool
-     *      String (string|integer|float|object) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function stringable($subject)
+    public function stringable($subject) : bool
     {
-        if ($subject !== null) {
-            if (is_string($subject)) {
-                return 'string';
-            }
-            if (is_int($subject)) {
-                return 'integer';
-            }
-            if (is_float($subject)) {
-                return 'float';
-            }
-            if (is_object($subject) && method_exists($subject, '__toString')) {
-                return 'object';
-            }
-        }
-        return false;
+        return is_string($subject)
+            || is_int($subject)
+            || is_float($subject)
+            || (is_object($subject) && method_exists($subject, '__toString'));
     }
 
 
@@ -543,7 +516,27 @@ trait TypeRulesTrait
         if (!$className) {
             throw new InvalidArgumentException('Arg $className is empty.');
         }
-        return $subject && $subject instanceof $className;
+        return $subject instanceof $className;
+    }
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function stdClass($subject) : bool
+    {
+        return $subject instanceof \stdClass;
+    }
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function anonymousClass($subject) : bool
+    {
+        return is_object($subject) && substr(get_class($subject), 0, 15) === 'class@anonymous';
     }
 
     /**
@@ -561,192 +554,104 @@ trait TypeRulesTrait
     }
 
     /**
-     * Array or object.
-     *
-     * Superset of all other object and array type(ish) checkers; here:
-     * - iterable, loopable, indexedIterable, keyedIterable, indexedLoopable,
-     *   keyedLoopable, class, array, indexedArray, keyedArray
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
+     * Object or array.
      *
      * @see loopable()
      *
      * @param mixed $subject
-     *      object|array to pass validation.
      *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function container($subject)
+    public function container($subject) : bool
     {
-        //return is_array($subject) ? 'array' : (
-        //    $subject && is_object($subject) ? (
-        //        $subject instanceof \Traversable ? (
-        //            $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-        //        ) : 'object'
-        //    ) : false
-        //);
-
-        if (is_array($subject)) {
-            return 'array';
-        }
-        if ($subject && is_object($subject)) {
-            if ($subject instanceof \Traversable) {
-                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
-            }
-            return 'object';
-        }
-        return false;
+        return is_array($subject)
+            || is_object($subject);
     }
 
     /**
-     * Array or Traversable object.
+     * Array or \Traversable object.
      *
-     * Not very useful because stdClass _is_ iterable.
-     *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
+     * Not very useful because \stdClass _is_ iterable.
      *
      * @see loopable()
      * @see indexedIterable()
      * @see keyedIterable()
      *
      * @param mixed $subject
-     *      object|array to pass validation.
      *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function iterable($subject)
+    public function iterable($subject) : bool
     {
-        //return is_array($subject) ? 'array' : (
-        //    $subject && $subject instanceof \Traversable ? (
-        //        $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-        //    ) : false
-        //);
-
-        if (is_array($subject)) {
-            return 'array';
-        }
-        if ($subject && $subject instanceof \Traversable) {
-            return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
-        }
-        return false;
+        return is_iterable($subject);
     }
 
     /**
-     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
+     * Array, \stdClass or \Traversable object.
      *
-     * Cannot promise that an object is iterable, but at least rules out
-     * non-Traversable ArrayAccess.
-     *
-     * 'arrayAccess' is here a Traversable ArrayAccess object.
-     *
-     * Counter to iterable loopable allows non-Traversable object,
-     * except if (also) ArrayAccess.
-     *
-     * Non-Traversable ArrayAccess is (hopefully) the only relevant container
-     * class/interface that isn't iterable.
-     *
-     * @see container()
      * @see iterable()
      * @see indexedLoopable()
      * @see keyedLoopable()
      *
      * @param mixed $subject
-     *      object|array to pass validation.
      *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function loopable($subject)
+    public function loopable($subject) : bool
     {
-        // Only difference vs container() is that non-Traversable ArrayAccess
-        // doesn't pass here.
-
-        //return is_array($subject) ? 'array' : (
-        //    $subject && is_object($subject) ? (
-        //        $subject instanceof \Traversable ? (
-        //            $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable'
-        //        ) : (
-        //            $subject instanceof \ArrayAccess ? false : 'object'
-        //        )
-        //    ) : false
-        //);
-
-        if (is_array($subject)) {
-            return 'array';
-        }
-        if ($subject && is_object($subject)) {
-            if ($subject instanceof \Traversable) {
-                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
-            }
-            return $subject instanceof \ArrayAccess ? false : 'object';
-        }
-        return false;
+        return is_array($subject)
+            || $subject instanceof \stdClass
+            || $subject instanceof \Traversable;
     }
 
     /**
      * Array or \Countable object.
      *
      * @param mixed $subject
-     *      object|array to pass validation.
      *
-     * @return string|bool
-     *      String (array|countable) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function countable($subject)
+    public function countable($subject) : bool
     {
-        if (is_array($subject)) {
-            return 'array';
-        }
-        if ($subject && $subject instanceof \Countable) {
-            return 'countable';
-        }
-        return false;
+        return is_array($subject)
+            || $subject instanceof \Countable;
     }
 
     /**
-     * Like loopable, except also accepts \Countable non-\Traversable.
+     * Array, \stdClass, \Countable or \Traversable.
+     *
+     * \stdClass cannot be count()'ed directly, but via
+     * count(get_object_vars($obj)).
+     *
+     * (\Traversable) \ArrayObject|\ArrayIterator can be counted
+     * via getArrayCopy().
+     * Other \Traversable can only be counted via iteration.
      *
      * @see loopable()
      * @see countable()
+     * @see minSize()
+     * @see maxSize()
+     * @see exactSize()
      *
      * @param mixed $subject
-     *      object|array to pass validation.
      *
-     * @return string|bool
-     *      String (array|countable|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      */
-    public function sizeable($subject)
+    public function sizeable($subject) : bool
     {
-        if (is_array($subject)) {
-            return 'array';
-        }
-        if ($subject && is_object($subject)) {
-            if ($subject instanceof \Countable) {
-                return 'countable';
-            }
-            if ($subject instanceof \Traversable) {
-                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
-            }
-            return $subject instanceof \ArrayAccess ? false : 'object';
-        }
-        return false;
+        return is_array($subject)
+            || $subject instanceof \stdClass
+            || $subject instanceof \Countable
+            || $subject instanceof \Traversable;
     }
 
 
     // Pattern-like container rules that have to check type to work.------------
 
     /**
-     * Minimum size of object|array.
+     * Minimum size of array or \stdClass|\Countable|\Traversable object.
      *
      * @param mixed $subject
-     *      Object|array to pass.
      * @param int $min
      *
      * @return bool
@@ -759,10 +664,16 @@ trait TypeRulesTrait
         if ($min < 0) {
             throw new InvalidArgumentException('Arg $min[' . $min . '] is not non-negative.');
         }
+
         if (is_array($subject) || $subject instanceof \Countable) {
             return count($subject) >= $min;
         }
+        if ($subject instanceof \stdClass) {
+            return count(get_object_vars($subject)) >= $min;
+        }
         if ($subject instanceof \Traversable) {
+            // No need to check/use ArrayObject|ArrayIterator, because
+            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
@@ -770,17 +681,14 @@ trait TypeRulesTrait
             }
             return $w >= $min;
         }
-        if (is_object($subject)) {
-            return count(get_object_vars($subject)) >= $min;
-        }
+
         return false;
     }
 
     /**
-     * Maximum size of object|array.
+     * Maximum size of array or \stdClass|\Countable|\Traversable object.
      *
      * @param mixed $subject
-     *      Object|array to pass.
      * @param int $max
      *
      * @return bool
@@ -793,10 +701,16 @@ trait TypeRulesTrait
         if ($max < 0) {
             throw new InvalidArgumentException('Arg $max[' . $max . '] is not non-negative.');
         }
+
         if (is_array($subject) || $subject instanceof \Countable) {
             return count($subject) <= $max;
         }
+        if ($subject instanceof \stdClass) {
+            return count(get_object_vars($subject)) <= $max;
+        }
         if ($subject instanceof \Traversable) {
+            // No need to check/use ArrayObject|ArrayIterator, because
+            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
@@ -804,17 +718,14 @@ trait TypeRulesTrait
             }
             return $w <= $max;
         }
-        if (is_object($subject)) {
-            return count(get_object_vars($subject)) <= $max;
-        }
+
         return false;
     }
 
     /**
-     * Exact size of object|array.
+     * Exact size of array or \stdClass|\Countable|\Traversable object.
      *
      * @param mixed $subject
-     *      Object|array to pass.
      * @param int $exact
      *
      * @return bool
@@ -827,10 +738,16 @@ trait TypeRulesTrait
         if ($exact < 0) {
             throw new InvalidArgumentException('Arg $exact[' . $exact . '] is not non-negative.');
         }
+
         if (is_array($subject) || $subject instanceof \Countable) {
             return count($subject) == $exact;
         }
+        if ($subject instanceof \stdClass) {
+            return count(get_object_vars($subject)) == $exact;
+        }
         if ($subject instanceof \Traversable) {
+            // No need to check/use ArrayObject|ArrayIterator, because
+            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
@@ -838,91 +755,81 @@ trait TypeRulesTrait
             }
             return $w == $exact;
         }
-        if (is_object($subject)) {
-            return count(get_object_vars($subject)) == $exact;
-        }
+
         return false;
     }
 
     /**
-     * Empty or indexed iterable.
+     * Empty or indexed array|\Traversable.
      *
      * @see iterable()
-     *
-     * @param mixed $subject
-     *      object|array to pass validation.
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     */
-    public function indexedIterable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, false, false);
-    }
-
-    /**
-     * Empty or keyed iterable.
-     *
-     * @see iterable()
-     *
-     * @param mixed $subject
-     *      object|array to pass validation.
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable) on pass,
-     *      boolean false on validation failure.
-     */
-    public function keyedIterable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, false, true);
-    }
-
-    /**
-     * Empty or indexed loopable.
-     *
-     * @see loopable()
-     *
-     * @param mixed $subject
-     *      object|array to pass validation.
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function indexedLoopable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, true, false);
-    }
-
-    /**
-     * Empty or keyed loopable.
-     *
-     * @see loopable()
-     *
-     * @param mixed $subject
-     *      object|array to pass validation.
-     *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function keyedLoopable($subject)
-    {
-        return static::indexedOrKeyedContainer($subject, true, true);
-    }
-
-    /**
-     * Empty array or numerically indexed array.
-     *
-     * Does not check if the array's index is complete and correctly sequenced.
-     *
-     * @see TypeRulesTrait::array()
      *
      * @param mixed $subject
      *
      * @return bool
-     *      True: empty array, or all keys are integers.
+     */
+    public function indexedIterable($subject) : bool
+    {
+        return static::indexedOrKeyedIterable($subject);
+    }
+
+
+    /**
+     * Empty or keyed array|\Traversable.
+     *
+     * @see iterable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function keyedIterable($subject) : bool
+    {
+        return static::indexedOrKeyedIterable($subject, true);
+    }
+
+    /**
+     * Empty or indexed array|\stdClass|\Traversable.
+     *
+     * @see loopable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function indexedLoopable($subject) : bool
+    {
+        if ($subject instanceof \stdClass) {
+            $keys = array_keys(get_object_vars($subject));
+            return !$keys || ctype_digit(join('', $keys));
+        }
+        return static::indexedOrKeyedIterable($subject);
+    }
+
+    /**
+     * Empty or keyed array|\stdClass|\Traversable.
+     *
+     * @see loopable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function keyedLoopable($subject) : bool
+    {
+        if ($subject instanceof \stdClass) {
+            $keys = array_keys(get_object_vars($subject));
+            return !$keys || !ctype_digit(join('', $keys));
+        }
+        return static::indexedOrKeyedIterable($subject, true);
+    }
+
+    /**
+     * Empty or numerically indexed array.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
      */
     public function indexedArray($subject) : bool
     {
@@ -936,14 +843,12 @@ trait TypeRulesTrait
     }
 
     /**
-     * Empty array or keyed array.
-     *
-     * @see TypeRulesTrait::array()
+     * Empty or keyed array.
      *
      * @param mixed $subject
      *
      * @return bool
-     *      True: empty array, or at least one key is not integer.
+     *      True: at least one key contains non-digit character.
      */
     public function keyedArray($subject) : bool
     {
@@ -955,6 +860,7 @@ trait TypeRulesTrait
         }
         return !ctype_digit(join('', array_keys($subject)));
     }
+
 
     // Odd types.---------------------------------------------------------------
 
@@ -973,63 +879,44 @@ trait TypeRulesTrait
 
     /**
      * @see indexedIterable()
-     * @see indexedLoopable()
      * @see keyedIterable()
+     * @see indexedLoopable()
      * @see keyedLoopable()
      *
      * @param mixed $subject
-     * @param bool $loopable
      * @param bool $keyed
      *
-     * @return string|bool
-     *      String on pass, false on failure.
+     * @return bool
      */
-    protected static function indexedOrKeyedContainer($subject, bool $loopable, bool $keyed)
+    protected static function indexedOrKeyedIterable($subject, bool $keyed = false) : bool
     {
         if (is_array($subject)) {
             if (!$subject) {
-                return 'array';
+                // Empty is always true.
+                return true;
             }
-            return ctype_digit(join('', array_keys($subject))) ?
-                (!$keyed ? 'array' : false) : ($keyed ? 'array' : false);
+            return ctype_digit(join('', array_keys($subject))) ? (!$keyed) : $keyed;
         }
-        if ($subject && is_object($subject)) {
-            if ($subject instanceof \Traversable) {
-                if ($subject instanceof \Countable && !count($subject)) {
-                    return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
-                }
-                if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
-                    $keys = array_keys($subject->getArrayCopy());
-                    if (!$keys) {
-                        return 'arrayAccess';
-                    }
-                    return ctype_digit(join('', $keys)) ?
-                        (!$keyed ? 'arrayAccess' : false) : ($keyed ? 'arrayAccess' : false);
-                }
-                else {
-                    $keys = [];
-                    // Have to iterate; horrible.
-                    foreach ($subject as $k => $ignore) {
-                        $keys[] = $k;
-                    }
-                    if (!$keys) {
-                        return 'traversable';
-                    }
-                    return ctype_digit(join('', $keys)) ?
-                        (!$keyed ? 'traversable' : false) : ($keyed ? 'traversable' : false);
+        if ($subject instanceof \Traversable) {
+            if ($subject instanceof \Countable && !count($subject)) {
+                // Empty is always true.
+                return true;
+            }
+            if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
+                $keys = array_keys($subject->getArrayCopy());
+            }
+            else {
+                $keys = [];
+                // Have to iterate; horrible.
+                foreach ($subject as $k => $ignore) {
+                    $keys[] = $k;
                 }
             }
-            elseif ($loopable) {
-                if (!($subject instanceof \ArrayAccess) && $subject instanceof \Countable && !count($subject)) {
-                    return 'object';
-                }
-                $keys = array_keys(get_object_vars($subject));
-                if (!$keys) {
-                    return 'object';
-                }
-                return ctype_digit(join('', $keys)) ?
-                    (!$keyed ? 'object' : false) : ($keyed ? 'object' : false);
+            if (!$keys) {
+                // Empty is always true.
+                return true;
             }
+            return ctype_digit(join('', $keys)) ? (!$keyed) : $keyed;
         }
         return false;
     }

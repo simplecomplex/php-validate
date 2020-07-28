@@ -12,13 +12,14 @@ namespace SimpleComplex\Validate\Interfaces;
 use SimpleComplex\Validate\Type;
 
 /**
- * Rules that promise to check subject's type.
+ * Rules that promise to check the subject's type.
  *
  * Equivalent trait:
  * @see \SimpleComplex\Validate\RuleTraits\TypeRulesTrait
  *
- * Required method parameter(s) is illegal
- * --------------------------------------
+ *
+ * Required method parameter(s) is to be avoided
+ * ---------------------------------------------
  * Type-checking rules should generally not require arguments, because
  * the ruleset generator must be able to use them freely.
  *
@@ -81,6 +82,8 @@ interface TypeRulesInterface
         // Container.
         'object' => Type::OBJECT,
         'class' => Type::OBJECT,
+        'stdClass' => Type::OBJECT,
+        'anonymousClass' => Type::OBJECT,
         'array' => Type::ARRAY,
         'container' => Type::CONTAINER,
         'iterable' => Type::ITERABLE,
@@ -170,7 +173,7 @@ interface TypeRulesInterface
 
     public function bit($subject) : bool;
 
-    public function number($subject);
+    public function number($subject) : bool;
 
     public function integer($subject) : bool;
 
@@ -179,7 +182,7 @@ interface TypeRulesInterface
 
     // Number or stringed number.----------------------------------------------
 
-    public function numeric($subject);
+    public function numeric($subject) : bool;
 
     public function digital($subject) : bool;
 
@@ -196,7 +199,7 @@ interface TypeRulesInterface
 
     public function stringStringableObject($subject) : bool;
 
-    public function stringable($subject);
+    public function stringable($subject) : bool;
 
 
     // Container.---------------------------------------------------------------
@@ -205,17 +208,21 @@ interface TypeRulesInterface
 
     public function class($subject, string $className) : bool;
 
+    public function stdClass($subject) : bool;
+
+    public function anonymousClass($subject) : bool;
+
     public function array($subject) : bool;
 
-    public function container($subject);
+    public function container($subject) : bool;
 
-    public function iterable($subject);
+    public function iterable($subject) : bool;
 
-    public function loopable($subject);
+    public function loopable($subject) : bool;
 
-    public function countable($subject);
+    public function countable($subject) : bool;
 
-    public function sizeable($subject);
+    public function sizeable($subject) : bool;
 
 
     // Pattern-like container rules that have to check type to work.------------
@@ -226,13 +233,13 @@ interface TypeRulesInterface
 
     public function exactSize($subject, int $min) : bool;
 
-    public function indexedIterable($subject);
+    public function indexedIterable($subject) : bool;
 
-    public function keyedIterable($subject);
+    public function keyedIterable($subject) : bool;
 
-    public function indexedLoopable($subject);
+    public function indexedLoopable($subject) : bool;
 
-    public function keyedLoopable($subject);
+    public function keyedLoopable($subject) : bool;
 
     public function indexedArray($subject) : bool;
 

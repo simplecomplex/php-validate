@@ -14,6 +14,15 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 ### Changed
 * Validator class renamed; from Validate. New deprecated class Validate, which
   extends Validator.
+  
+* All rule methods now return boolean. Thus these methods no longer return
+  string on pass:  
+  number, numeric, container, iterable, loopable, indexedIterable, keyedIterable, indexedLoopable, keyedLoopable.
+  
+* The 'loopable' pseudo-class now passes array|\stdClass|\Traversable;
+  used to ignore \stdClass but pass any un-identifiable object that wasn't
+  (non-\Traversable) \ArrayAccess.
+  
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
   

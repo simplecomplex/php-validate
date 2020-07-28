@@ -17,7 +17,7 @@ Test a variable against one of the validator's 70+ rule methods
 **> [Type rules](src/RuleTraits/TypeRulesTrait.php) check if the variable**:
 - is of a type or class, or a pseudo type like 'digital' (stringed integer)
 - is directly (===) comparable, or stringable
-- seem traversable, or numerically indexed or keyed
+- is 'loopable' (array|stdClass|Traversable), or numerically indexed or keyed
 
 Type rules are guaranteed to accept any kind of variable gracefully; never to err.
 

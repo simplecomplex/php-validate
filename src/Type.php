@@ -19,6 +19,9 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  *
  * All integer constants must be unique.
  *
+ * BEWARE: The exact values may vary across versions of this library.
+ * Use the constants, not their literal values.
+ *
  * @see RuleSetGenerator::ensureTypeChecking()
  *
  * @package SimpleComplex\Validate
@@ -205,9 +208,9 @@ class Type
     /**
      * @see TypeRulesTrait::sizeable()
      *
-     * countable|object = 8192 + 128.
+     * countable|iterable|object = 8192 + 4096 + 128.
      */
-    public const SIZEABLE = 8320;
+    public const SIZEABLE = 12416;
 
 
     /**
