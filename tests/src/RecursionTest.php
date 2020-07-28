@@ -106,14 +106,14 @@ class RecursionTest extends TestCase
 
         $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD);
         if (!$valid) {
-            error_log('pre-converted, no continue:' . "\n" . join("\n", $validate->getLastFailure()));
+            error_log(__LINE__ . ': pre-converted, no continue:' . "\n" . join("\n", $validate->getLastFailure()));
         }
 
-        $record = $validate->challengeRecording($bike, $ruleSet);
-        if (!$record['passed']) {
-            error_log('pre-converted:' . "\n" . join("\n", $record['record']));
+        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
+        if (!$valid) {
+            error_log(__LINE__ . ': pre-converted:' . "\n" . join("\n", $validate->getLastFailure()));
         }
-        static::assertTrue($valid, 'pre-converted');
+        static::assertTrue($valid, __LINE__ . ': pre-converted');
 
         $valid = $validate->challenge($bike, $source);
 //        $record = $validate->challengeRecording($bike, $source);
@@ -181,12 +181,12 @@ class RecursionTest extends TestCase
         ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
-        $valid = $validate->challenge($bike, $ruleSet);
-        $record = $validate->challengeRecording($bike, $ruleSet);
-        if (!$record['passed']) {
-            error_log('pre-converted:' . "\n" . join("\n", $record['record']));
+        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
+        if (!$valid) {
+            //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+            error_log(__LINE__ . ': pre-converted:' . "\n" . join("\n", $validate->getLastFailure()));
         }
-        static::assertTrue($valid, 'pre-converted');
+        static::assertTrue($valid, 'le pre-converted');
     }
 
 

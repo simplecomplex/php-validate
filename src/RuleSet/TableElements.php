@@ -118,14 +118,18 @@ class TableElements
     }
 
     /**
-     * @return mixed[]
+     * @return mixed[] {
+     *      @var bool $exclusive
+     *      @var string[] $whitelist
+     *      @var string[] $blacklist
+     * }
      */
     public function getModifiers()
     {
         return [
-            $this->exclusive,
-            $this->whitelist,
-            $this->blacklist,
+            'exclusive' => $this->exclusive,
+            'whitelist' => $this->whitelist,
+            'blacklist' => $this->blacklist,
         ];
     }
 

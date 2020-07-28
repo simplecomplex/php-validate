@@ -102,6 +102,12 @@ class Type
      */
     public const ITERABLE = 4096;
 
+    /**
+     * Array or \Countable object.
+     * @see TypeRulesTrait::countable()
+     */
+    public const COUNTABLE = 8192;
+
 
     // Composites.--------------------------------------------------------------
 
@@ -195,6 +201,13 @@ class Type
      * iterable|object: 4096 + 128.
      */
     public const LOOPABLE = 4224;
+
+    /**
+     * @see TypeRulesTrait::sizeable()
+     *
+     * countable|object = 8192 + 128.
+     */
+    public const SIZEABLE = 8320;
 
 
     /**

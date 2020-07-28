@@ -291,6 +291,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type rule fitting as type-checker before a pattern rule.
      *
+     * Ensures that the rule method doesn't require parameters.
+     *
      * For ruleset generator.
      * @see RuleSetGenerator::ensureTypeChecking()
      *
@@ -325,7 +327,11 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
                 $typeRulesByType = [];
                 foreach (static::TYPE_RULES as $typeRuleName => $typeRuleType) {
                     if (!isset($typeRulesByType[$typeRuleType])) {
-                        $typeRulesByType[$typeRuleType] = [$typeRuleName];
+                        // Check that the rule doesn't require parameters.
+                        if (!$this->getRule($typeRuleName)->paramsRequired) {
+                            $typeRulesByType[$typeRuleType] = [$typeRuleName];
+                        }
+                        // Otherwise wait until non-parameter rule turns up.
                     }
                     else {
                         $typeRulesByType[$typeRuleType][] = $typeRuleName;

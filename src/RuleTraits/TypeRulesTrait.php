@@ -63,7 +63,6 @@ trait TypeRulesTrait
                 // those are both Countable (checked before this check).
 
                 // Have to iterate; horrible.
-                /** @noinspection PhpUnusedLocalVariableInspection */
                 foreach ($subject as $ignore) {
                     return false;
                 }
@@ -690,6 +689,162 @@ trait TypeRulesTrait
     }
 
     /**
+     * Array or \Countable object.
+     *
+     * @param mixed $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|countable) on pass,
+     *      boolean false on validation failure.
+     */
+    public function countable($subject)
+    {
+        if (is_array($subject)) {
+            return 'array';
+        }
+        if ($subject && $subject instanceof \Countable) {
+            return 'countable';
+        }
+        return false;
+    }
+
+    /**
+     * Like loopable, except also accepts \Countable non-\Traversable.
+     *
+     * @see loopable()
+     * @see countable()
+     *
+     * @param mixed $subject
+     *      object|array to pass validation.
+     *
+     * @return string|bool
+     *      String (array|countable|arrayAccess|traversable|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function sizeable($subject)
+    {
+        if (is_array($subject)) {
+            return 'array';
+        }
+        if ($subject && is_object($subject)) {
+            if ($subject instanceof \Countable) {
+                return 'countable';
+            }
+            if ($subject instanceof \Traversable) {
+                return $subject instanceof \ArrayAccess ? 'arrayAccess' : 'traversable';
+            }
+            return $subject instanceof \ArrayAccess ? false : 'object';
+        }
+        return false;
+    }
+
+
+    // Pattern-like container rules that have to check type to work.------------
+
+    /**
+     * Minimum size of object|array.
+     *
+     * @param mixed $subject
+     *      Object|array to pass.
+     * @param int $min
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg $min not non-negative.
+     */
+    public function minSize($subject, int $min) : bool
+    {
+        if ($min < 0) {
+            throw new InvalidArgumentException('Arg $min[' . $min . '] is not non-negative.');
+        }
+        if (is_array($subject) || $subject instanceof \Countable) {
+            return count($subject) >= $min;
+        }
+        if ($subject instanceof \Traversable) {
+            $w = 0;
+            // Have to iterate; horrible.
+            foreach ($subject as $ignore) {
+                ++$w;
+            }
+            return $w >= $min;
+        }
+        if (is_object($subject)) {
+            return count(get_object_vars($subject)) >= $min;
+        }
+        return false;
+    }
+
+    /**
+     * Maximum size of object|array.
+     *
+     * @param mixed $subject
+     *      Object|array to pass.
+     * @param int $max
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg $max not non-negative.
+     */
+    public function maxSize($subject, int $max) : bool
+    {
+        if ($max < 0) {
+            throw new InvalidArgumentException('Arg $max[' . $max . '] is not non-negative.');
+        }
+        if (is_array($subject) || $subject instanceof \Countable) {
+            return count($subject) <= $max;
+        }
+        if ($subject instanceof \Traversable) {
+            $w = 0;
+            // Have to iterate; horrible.
+            foreach ($subject as $ignore) {
+                ++$w;
+            }
+            return $w <= $max;
+        }
+        if (is_object($subject)) {
+            return count(get_object_vars($subject)) <= $max;
+        }
+        return false;
+    }
+
+    /**
+     * Exact size of object|array.
+     *
+     * @param mixed $subject
+     *      Object|array to pass.
+     * @param int $exact
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     *      Arg $exact not non-negative.
+     */
+    public function exactSize($subject, int $exact) : bool
+    {
+        if ($exact < 0) {
+            throw new InvalidArgumentException('Arg $exact[' . $exact . '] is not non-negative.');
+        }
+        if (is_array($subject) || $subject instanceof \Countable) {
+            return count($subject) == $exact;
+        }
+        if ($subject instanceof \Traversable) {
+            $w = 0;
+            // Have to iterate; horrible.
+            foreach ($subject as $ignore) {
+                ++$w;
+            }
+            return $w == $exact;
+        }
+        if (is_object($subject)) {
+            return count(get_object_vars($subject)) == $exact;
+        }
+        return false;
+    }
+
+    /**
      * Empty or indexed iterable.
      *
      * @see iterable()
@@ -852,8 +1007,8 @@ trait TypeRulesTrait
                         (!$keyed ? 'arrayAccess' : false) : ($keyed ? 'arrayAccess' : false);
                 }
                 else {
-                    // Have to iterate; horrible.
                     $keys = [];
+                    // Have to iterate; horrible.
                     foreach ($subject as $k => $ignore) {
                         $keys[] = $k;
                     }

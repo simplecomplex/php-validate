@@ -461,7 +461,7 @@ class ValidateAgainstRuleSet
                             'tableElements excludes key[' . $key . ']'
                         );
                         if (!$this->continueOnFailure) {
-                            $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                            $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                             return false;
                         }
                         $passed = false;
@@ -477,7 +477,7 @@ class ValidateAgainstRuleSet
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
                             if (!$this->continueOnFailure) {
-                                $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                                $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                                 return false;
                             }
                             $passed = false;
@@ -493,7 +493,7 @@ class ValidateAgainstRuleSet
                     if ($this->recordFailure) {
                         $record[] = $this->recordCurrent('tableElements blacklists key[' . $key . ']');
                         if (!$this->continueOnFailure) {
-                            $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                            $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                             return false;
                         }
                         $passed = false;
@@ -534,7 +534,7 @@ class ValidateAgainstRuleSet
                 if ($this->recordFailure) {
                     $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');
                     if (!$this->continueOnFailure) {
-                        $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                        $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                         return false;
                     }
                     $passed = false;
@@ -546,7 +546,7 @@ class ValidateAgainstRuleSet
         }
 
         if (!$passed && $this->recordFailure && $record) {
-            $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
+            $this->recordContainerCumulative($subject, $depth, $keyPath, join('|', $record));
         }
 
         return $passed;
@@ -582,7 +582,7 @@ class ValidateAgainstRuleSet
                         'listItems max length ' . $maxOccur . ' exceeded at key[' . $key . ']'
                     );
                     if (!$this->continueOnFailure) {
-                        $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                        $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                         return false;
                     }
                     $passed = false;
@@ -616,7 +616,7 @@ class ValidateAgainstRuleSet
                     'listItems min length ' . $listItems->minOccur . ' not satisfied'
                 );
                 if (!$this->continueOnFailure) {
-                    $this->recordCumulative($subject, $depth, $keyPath, reset($record));
+                    $this->recordContainerCumulative($subject, $depth, $keyPath, reset($record));
                     return false;
                 }
                 $passed = false;
@@ -627,7 +627,7 @@ class ValidateAgainstRuleSet
         }
 
         if (!$passed && $this->recordFailure && $record) {
-            $this->recordCumulative($subject, $depth, $keyPath, join('|', $record));
+            $this->recordContainerCumulative($subject, $depth, $keyPath, join('|', $record));
         }
 
         return $passed;
@@ -668,18 +668,18 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Saves failure message of a ruleset.
-     *
-     * Includes subject's value if scalar; truncated and sanitized if string.
+     * Stringify subject for cumulative record.
      *
      * @param mixed $subject
-     * @param int $depth
-     * @param string $keyPath
-     * @param string $message
+     *
+     * @return string[] {
+     *      @var string $type
+     *      @var string $value
+     * }
      */
-    protected function recordCumulative($subject, int $depth, string $keyPath, string $message) : void
+    protected function stringifySubject($subject) : array
     {
-        $value = null;
+        $value = '';
         $type = '(' . Helper::getType($subject);
         if ($subject !== null) {
             if (is_scalar($subject)) {
@@ -708,8 +708,46 @@ class ValidateAgainstRuleSet
             }
         }
         $type .= ')';
+        return [
+            'type' => $type,
+            'value' => $value,
+        ];
+    }
+
+    /**
+     * Saves failure message of a ruleset.
+     *
+     * Includes subject's value if scalar; truncated and sanitized if string.
+     *
+     * @param mixed $subject
+     * @param int $depth
+     * @param string $keyPath
+     * @param string $message
+     */
+    protected function recordCumulative($subject, int $depth, string $keyPath, string $message) : void
+    {
+        $stringed = $this->stringifySubject($subject);
+        $value = $stringed['value'];
         $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . $message
-            . ' - saw ' . $type . ($value === null ? '' : (' ' . $value)) . '.';
+            . ' - saw ' . $stringed['type'] . ($value === '' ? '' : (' ' . $value)) . '.';
+    }
+
+    /**
+     * Saves failure message of a ruleset, for tableElements|listItems.
+     *
+     * Includes subject's value if scalar; truncated and sanitized if string.
+     *
+     * @param mixed $subject
+     * @param int $depth
+     * @param string $keyPath
+     * @param string $message
+     */
+    protected function recordContainerCumulative($subject, int $depth, string $keyPath, string $message) : void
+    {
+        $stringed = $this->stringifySubject($subject);
+        $value = $stringed['value'];
+        $this->record[] = '(' . $depth . ') ' . $keyPath . ': ' . $message
+            . ' - in container ' . $stringed['type'] . ($value === '' ? '' : (' ' . $value)) . '.';
     }
 
     /**

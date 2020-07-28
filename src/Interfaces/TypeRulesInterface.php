@@ -85,6 +85,12 @@ interface TypeRulesInterface
         'container' => Type::CONTAINER,
         'iterable' => Type::ITERABLE,
         'loopable' => Type::LOOPABLE,
+        'countable' => Type::COUNTABLE,
+        'sizeable' => Type::SIZEABLE,
+        // Pattern-like container rules that have to check type to work.
+        'minSize' => Type::SIZEABLE,
+        'maxSize' => Type::SIZEABLE,
+        'exactSize' => Type::SIZEABLE,
         'indexedIterable' => Type::ITERABLE,
         'keyedIterable' => Type::ITERABLE,
         'indexedLoopable' => Type::LOOPABLE,
@@ -102,6 +108,9 @@ interface TypeRulesInterface
      */
     public const TYPE_PARAMS_REQUIRED = [
         'class' => 1,
+        'minSize' => 1,
+        'maxSize' => 1,
+        'exactSize' => 1,
     ];
 
     /**
@@ -203,6 +212,19 @@ interface TypeRulesInterface
     public function iterable($subject);
 
     public function loopable($subject);
+
+    public function countable($subject);
+
+    public function sizeable($subject);
+
+
+    // Pattern-like container rules that have to check type to work.------------
+
+    public function minSize($subject, int $min) : bool;
+
+    public function maxSize($subject, int $min) : bool;
+
+    public function exactSize($subject, int $min) : bool;
 
     public function indexedIterable($subject);
 
