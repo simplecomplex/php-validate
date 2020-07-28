@@ -262,13 +262,14 @@ class ValidateAgainstRuleSet
             );
         }
 
+        $rules = $ruleSet->exportRules();
         // Filter pseudo-rules from ordinary rules.-----------------------------
         $rule_methods = [];
-        $nullable = $has_loopable = false;
+        $nullable = false;
         $alternativeEnum =
             $alternativeRuleSet =
             $tableElements = $listItems = null;
-        foreach ($ruleSet as $ruleName => $argument) {
+        foreach ($rules as $ruleName => $argument) {
             switch ($ruleName) {
                 case 'optional':
                     /**
@@ -312,11 +313,6 @@ class ValidateAgainstRuleSet
                         throw new InvalidRuleException(
                             'Unknown validation rule[' . $ruleName . '], at (' . $depth . ') ' . $keyPath . '.'
                         );
-                    }
-                    // tableElements|listItems require loopable check;
-                    // if none found ad hoc check will be used.
-                    if ($type == Type::LOOPABLE) {
-                        $has_loopable = true;
                     }
                     $rule_methods[$ruleName] = $argument;
             }
@@ -442,7 +438,11 @@ class ValidateAgainstRuleSet
     protected function tableElements($subject, TableElements $tableElements, int $depth, string $keyPath) : bool
     {
         // PHP numeric index is not consistently integer.
-        $table_keys = $tableElements->keys;
+        $target_keys = $tableElements->getKeys();
+        $modifiers = $tableElements->getModifiers();
+        $exclusive = $modifiers['exclusive'] ?? null;
+        $whitelist = $modifiers['whitelist'] ?? null;
+        $blacklist = $modifiers['blacklist'] ?? null;
 
         $passed = true;
         $record = [];
@@ -452,8 +452,8 @@ class ValidateAgainstRuleSet
         foreach ($subject as $key => $value) {
             // PHP numeric index is not consistently integer.
             $sKey = '' . $key;
-            if (!in_array($sKey, $table_keys, true)) {
-                if ($tableElements->exclusive) {
+            if (!in_array($sKey, $target_keys, true)) {
+                if ($exclusive) {
                     // Subject object|array must only contain keys defined
                     // by rulesByElements.
                     if ($this->recordFailure) {
@@ -470,10 +470,10 @@ class ValidateAgainstRuleSet
                         return false;
                     }
                 }
-                elseif ($tableElements->whitelist) {
+                elseif ($whitelist) {
                     // Subject object|array must _only_ contain these keys,
                     // apart from the keys defined by rulesByElements.
-                    if (!in_array($sKey, $tableElements->whitelist, true)) {
+                    if (!in_array($sKey, $whitelist, true)) {
                         if ($this->recordFailure) {
                             $record[] = $this->recordCurrent('tableElements doesn\'t whitelist key[' . $key . ']');
                             if (!$this->continueOnFailure) {
@@ -487,7 +487,7 @@ class ValidateAgainstRuleSet
                         }
                     }
                 }
-                elseif ($tableElements->blacklist && in_array($sKey, $tableElements->blacklist, true)) {
+                elseif ($blacklist && in_array($sKey, $blacklist, true)) {
                     // Subject array|object must _not_ contain these keys,
                     // apart from the keys defined by rulesByElements.
                     if ($this->recordFailure) {
@@ -508,7 +508,7 @@ class ValidateAgainstRuleSet
 
             // Check subject bucket against same-keyed ruleset.
             if (!$this->internalChallenge(
-                $value, $tableElements->rulesByElements[$sKey], $depth + 1, $keyPath . ' > ' . $key
+                $value, $tableElements->getElementRuleSet($sKey), $depth + 1, $keyPath . ' > ' . $key
             )) {
                 if ($this->recordFailure) {
                     // Don't record failure of child here.
@@ -526,11 +526,11 @@ class ValidateAgainstRuleSet
         }
 
         // Find missing keys that aren't defined optional.
-        $missing = array_diff($table_keys, $keys_found);
+        $missing = array_diff($target_keys, $keys_found);
         foreach ($missing as $key) {
             // PHP numeric index is not consistently integer.
             $sKey = '' . $key;
-            if (empty($tableElements->rulesByElements[$sKey]->optional)) {
+            if (empty($tableElements->getElementRuleSet($sKey)->optional)) {
                 if ($this->recordFailure) {
                     $record[] = $this->recordCurrent('tableElements missing required key[' . $key . ']');
                     if (!$this->continueOnFailure) {

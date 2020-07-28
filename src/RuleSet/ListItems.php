@@ -13,6 +13,7 @@ use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\Exception\InvalidRuleException;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
  * Pseudo rule using a common ruleset of every element of object|array subject.
@@ -21,6 +22,14 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * Relevant for a container derived from XML, which allows hash table
  * elements and list items within the same container (XML sucks ;-).
  * @see TableElements
+ *
+ * Immutable. All properties are read-only to prevent tampering.
+ * Meant to be created by a generator, itself issued by a factory.
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetFactory
+ * @property-read int $minOccur
+ * @property-read int $maxOccur
+ * @property-read ValidationRuleSet $itemRules
  *
  * @package SimpleComplex\Validate
  */
@@ -44,19 +53,19 @@ class ListItems
      *
      * @var int
      */
-    public $minOccur = 0;
+    protected $minOccur = 0;
 
     /**
      * Zero means no limitation.
      *
      * @var int
      */
-    public $maxOccur = 0;
+    protected $maxOccur = 0;
 
     /**
      * @var ValidationRuleSet
      */
-    public $itemRules;
+    protected $itemRules;
 
     /**
      * If no itemRules nor modifiers then arg $tableElements itself
@@ -75,11 +84,39 @@ class ListItems
     }
 
     /**
+     * @param string $key
+     *
+     * @return mixed
+     *
+     * @throws InvalidArgumentException
+     */
+    public function __get(string $key)
+    {
+        if (isset($this->{$key})) {
+            return $this->{$key};
+        }
+        throw new InvalidArgumentException(get_class($this) . ' instance exposes no property[' . $key . '].');
+    }
+
+    /**
+     * @param ValidationRuleSet $ruleSet
+     *
+     * @return self
+     *      Immutable.
+     */
+    public function replaceItemRuleSet(ValidationRuleSet $ruleSet) : self
+    {
+        $that = clone $this;
+        $that->itemRules = $ruleSet;
+        return $that;
+    }
+
+    /**
      * @param object $listItems
      * @param int $depth
      * @param string $keyPath
      */
-    protected function defineModifiers($listItems, $depth, $keyPath) : void
+    protected function defineModifiers(object $listItems, int $depth, string $keyPath) : void
     {
         if (isset($listItems->minOccur)) {
             if (!is_int($listItems->minOccur)) {
@@ -121,8 +158,9 @@ class ListItems
      * @param int $depth
      * @param string $keyPath
      */
-    protected function defineItemRules($ruleSetFactory, $listItems, $depth, $keyPath) : void
-    {
+    protected function defineItemRules(
+        RuleSetFactory $ruleSetFactory, object $listItems, int $depth, string $keyPath
+    ) : void {
         $class_rule_set = static::CLASS_RULE_SET;
         if (property_exists($listItems, 'itemRules')) {
             if (is_object($listItems->itemRules)) {
@@ -177,5 +215,13 @@ class ListItems
                 );
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function __debugInfo() : array
+    {
+        return get_object_vars($this);
     }
 }

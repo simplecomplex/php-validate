@@ -19,6 +19,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * ValidationFailureException no longer extends (SimpleComplex\Utils\Exception\)
   UserMessageException; extends \RuntimeException directly.
+* All in-library exceptions now implement catchable interface
+  ValidationException.
   
 * Pseudo-rule nullable renamed; from allowNull. Backwards compatible; ruleset
   generator still supports allowNull.
@@ -40,6 +42,9 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   Existing <v3.0 ValidationRuleSet instances, whether declared in code or cached
   as PHP serials, will hardly be compatible; whereas PHP array|stdClass rulesets
   and JSON-formatted rulesets should work fine.
+  
+* ValidationRuleSet, TableElements and ListItems are now immutable, to prevent
+  disorderly tampering.
 
 * unicodePrintable() now checks if unicode.
 * ISO-8601 date/time/datetime rules renamed; '8601' removed.

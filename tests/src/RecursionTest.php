@@ -135,14 +135,40 @@ class RecursionTest extends TestCase
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
 
-        $tableElements = $ruleSet->tableElements->rulesByElements['accessories']->tableElements;
+        $rule_set = $ruleSet->replaceTableElements(
+            $ruleSet->tableElements->setElementRuleSet(
+                'accessories',
+                $ruleSet->tableElements->getElementRuleSet('accessories')
+                    ->replaceTableElements(
+                        $ruleSet->tableElements->getElementRuleSet('accessories')->tableElements
+                            ->setElementRuleSet('whatever', $ruleSet)
+                    )
+            )
+        );
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($rule_set)->log();
+
+//        $tableElements_accessories = $ruleSet->tableElements->getElementRuleSet('accessories')->tableElements
+//            ->setElementRuleSet('whatever', $ruleSet);
+//        //$ruleSet->tableElements->rulesByElements['accessories']->tableElements = $tableElements;
+//        //$ruleSet->tableElements->rulesByElements['accessories']['whatever'] = true;
+//        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+////        $tableElements = $tableElements->setElementRuleSet('whatever', $ruleSet);
+//        $ruleSet->tableElements->getElementRuleSet('accessories')->replaceTableElements($tableElements);
+//
+//        $ruleSet = $ruleSet->replaceTableElements($tableElements);
+//
+//        //$ruleSet =
+
+
+
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
+
         $source['tableElements']['rulesByElements']['accessories']['tableElements'] = $tableElements;
-        $listItems = $ruleSet->tableElements->rulesByElements['various']->listItems;
+        $listItems = $ruleSet->tableElements->getElementRuleSet('various')->listItems;
         $source['tableElements']['rulesByElements']['various']['listItems'] = $listItems;
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($source)->log();
         $ruleSet = (new RuleSetFactory($validate))->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             null,

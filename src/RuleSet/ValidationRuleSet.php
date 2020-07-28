@@ -9,42 +9,45 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleSet;
 
+use SimpleComplex\Validate\Exception\InvalidRuleException;
+
 /**
  * Validation rule set.
  *
  * @see AbstractRuleProvider::challenge()
  *
+ * Immutable. All properties are read-only to prevent tampering.
  * Meant to be created by a generator, itself issued by a factory.
  * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
  * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetFactory
  *
  *
- * @property bool|array *
+ * @property-read bool|array *
  *      Provider rules are set/declared as instance vars dynamically.
  *
- * @property boolean|undefined $optional
+ * @property-read boolean|undefined $optional
  *      Flags that the object|array subject element do not have to exist.
  *
- * @property boolean|undefined $nullable
+ * @property-read boolean|undefined $nullable
  *      Flags that the element is allowed to be null.
  *      Null is not the same as non-existent (optional).
  *
- * @property boolean|undefined $empty
+ * @property-read boolean|undefined $empty
  * @see TypeRulesTrait::empty()
  *
- * @property boolean|undefined $nonEmpty
+ * @property-read boolean|undefined $nonEmpty
  * @see TypeRulesTrait::nonEmpty()
  *
- * @property array|undefined $alternativeEnum
+ * @property-read array|undefined $alternativeEnum
  *      List of alternative valid values used if subject doesn't comply with
  *      other - typically type checking - rules.
  *      Bucket values must be scalar|null.
  *
- * @property ValidationRuleSet|undefined $alternativeRuleSet
+ * @property-read ValidationRuleSet|undefined $alternativeRuleSet
  *      Alternative rule set used if subject doesn't comply with
  *      other - typically type checking - rules and/or alternativeEnum.
  *
- * @property TableElements|undefined $tableElements {
+ * @property-read TableElements|undefined $tableElements {
  *      @var ValidationRuleSet[] $rulesByElements
  *          ValidationRuleSet by element key.
  *      @var string[] $keys
@@ -70,7 +73,7 @@ namespace SimpleComplex\Validate\RuleSet;
  *      Relevant for a container derived from XML, which allows hash table
  *      elements and list items within the same container (XML sucks ;-).
  *
- * @property ListItems|undefined $listItems {
+ * @property-read ListItems|undefined $listItems {
  *      @var ValidationRuleSet|object|array $itemRules
  *          Rule set which will be applied on every item.
  *      @var int|undefined $minOccur
@@ -98,7 +101,93 @@ namespace SimpleComplex\Validate\RuleSet;
  */
 class ValidationRuleSet
 {
-    public function __construct()
+    /**
+     * @var array
+     */
+    protected $rules;
+
+    /**
+     * @param array $rules
+     */
+    public function __construct(array $rules)
     {
+        $this->defineRules($rules);
+    }
+
+    /**
+     * @param array $rules
+     */
+    protected function defineRules(array $rules) : void
+    {
+        $this->rules = $rules;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return mixed|null
+     */
+    public function __get(string $key)
+    {
+        return $this->rules[$key] ?? null;
+    }
+
+    /**
+     * Instance frozen upon instantiation, setting any property is illegal.
+     *
+     * @param string $key
+     * @param mixed $value
+     *
+     * @return void
+     *
+     * @throws \BadMethodCallException
+     */
+    public function __set(string $key, $value)
+    {
+        throw new \BadMethodCallException(get_class($this) . ' is frozen, cannot set property[' . $key . '].');
+    }
+
+    /**
+     * @return array
+     */
+    public function exportRules() : array
+    {
+        return $this->rules;
+    }
+
+    /**
+     * Replace existing tableElements rule with new.
+     *
+     * Adding or removing isn't legal, because that could affect the validation
+     * ruleset as a whole in an unforeseeable manner.
+     * Use the generator instead.
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
+     *
+     * @param TableElements $tableElements
+     *
+     * @return self
+     *      New TableElements; is immutable.
+     *
+     * @throws InvalidRuleException
+     *      The ruleset doesn't already contain tableElements.
+     */
+    public function replaceTableElements(TableElements $tableElements) : self
+    {
+        if (isset($this->rules['tableElements'])) {
+            $that = clone $this;
+            $that->rules['tableElements'] = $tableElements;
+            return $that;
+        }
+        throw new InvalidRuleException(
+            'Cannot replace tableElements of a ruleset that doesn\'t already have tableElements.'
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function __debugInfo() : array
+    {
+        return $this->rules;
     }
 }

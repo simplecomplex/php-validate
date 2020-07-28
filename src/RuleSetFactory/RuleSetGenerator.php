@@ -290,42 +290,44 @@ class RuleSetGenerator
      */
     protected function toRuleSet() : ValidationRuleSet
     {
-        $class_ruleset = static::CLASS_RULE_SET;
-        /** @var ValidationRuleSet $ruleset */
-        $ruleset = new $class_ruleset();
+        $rules = [];
 
         // At top for clarity.
         if ($this->optional) {
-            $ruleset->optional = true;
+            $rules['optional'] = true;
         }
         if ($this->nullable) {
-            $ruleset->nullable = true;
+            $rules['nullable'] = true;
         }
 
         // Type-checking rules must be the first real rules of the ruleset.
         foreach ($this->typeRules as $rule) {
-            $ruleset->{$rule->name} = $rule->argument;
+            $rules[$rule->name] = $rule->argument;
         }
 
         // Goes after type-checking, but don't require type-checking.
         if ($this->empty) {
-            $ruleset->empty = true;
+            $rules['empty'] = true;
         }
         elseif ($this->nonEmpty) {
-            $ruleset->nonEmpty = true;
+            $rules['nonEmpty'] = true;
         }
 
         // Non-type-checking rules must go after type-checking.
         foreach ($this->patternRules as $rule) {
-            $ruleset->{$rule->name} = $rule->argument;
+            $rules[$rule->name] = $rule->argument;
         }
 
         // Pseudo rules go at bottom of the ruleset, for clarity only.
         foreach (['alternativeEnum', 'alternativeRuleSet', 'tableElements', 'listItems'] as $pseudoRule) {
             if ($this->{$pseudoRule}) {
-                $ruleset->{$pseudoRule} = $this->{$pseudoRule};
+                $rules[$pseudoRule] = $this->{$pseudoRule};
             }
         }
+
+        $class_ruleset = static::CLASS_RULE_SET;
+        /** @var ValidationRuleSet $ruleset */
+        $ruleset = new $class_ruleset($rules);
 
         return $ruleset;
     }

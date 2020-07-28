@@ -15,9 +15,7 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
  * Pattern rules - non type-checking implementation.
- *
  * Methods which don't check subject's type before testing the actual rule.
- *
  *
  * Some string methods return true on empty
  * ----------------------------------------
@@ -26,7 +24,6 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  * - unicode, unicodePrintable, unicodeMultiLine
  * - ascii, asciiPrintable, asciiMultiLine
  * - plainText
- *
  *
  * Design technicalities
  * ---------------------

@@ -29,6 +29,16 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  * elements and list items within the same container (XML sucks ;-).
  * @see ListItems
  *
+ * Immutable. All properties are read-only to prevent tampering.
+ * Meant to be created by a generator, itself issued by a factory.
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
+ * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetFactory
+ * @property-read string[] $keys
+ * @property-read bool $exclusive
+ * @property-read string[] $whitelist
+ * @property-read string[] $blacklist
+ * @property-read ValidationRuleSet[] $rulesByElements
+ *
  * @package SimpleComplex\Validate
  */
 class TableElements
@@ -56,14 +66,14 @@ class TableElements
      *
      * @var string[]
      */
-    public $keys = [];
+    protected $keys = [];
 
     /**
      * Subject object|array must only contain keys defined by rulesByElements.
      *
      * @var bool
      */
-    public $exclusive = false;
+    protected $exclusive = false;
 
     /**
      * Subject object|array must _only_ contain these keys,
@@ -71,7 +81,7 @@ class TableElements
      *
      * @var string[]
      */
-    public $whitelist = [];
+    protected $whitelist = [];
 
     /**
      * Subject array|object must _not_ contain these keys,
@@ -79,12 +89,12 @@ class TableElements
      *
      * @var string[]
      */
-    public $blacklist = [];
+    protected $blacklist = [];
 
     /**
      * @var ValidationRuleSet[]
      */
-    public $rulesByElements = [];
+    protected $rulesByElements = [];
 
 
     /**
@@ -105,6 +115,102 @@ class TableElements
     ) {
         $this->defineModifiers($tableElements, $depth, $keyPath);
         $this->defineRulesByElements($ruleSetFactory, $tableElements, $depth, $keyPath);
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getModifiers()
+    {
+        return [
+            $this->exclusive,
+            $this->whitelist,
+            $this->blacklist,
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getKeys() : array
+    {
+        return $this->keys;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return ValidationRuleSet|null
+     */
+    public function getElementRuleSet(string $key) : ?ValidationRuleSet
+    {
+        return $this->rulesByElements[$key] ?? null;
+    }
+
+    /**
+     * Appends if nonexistent - the order of elements has no consequence.
+     *
+     * Overwrites if existent, and then removes the key from modifiers
+     * whitelist, blacklist.
+     *
+     * @param string $key
+     * @param ValidationRuleSet $ruleSet
+     *
+     * @return self
+     *      New TableElements; is immutable.
+     */
+    public function setElementRuleSet(string $key, ValidationRuleSet $ruleSet) : self
+    {
+        $that = clone $this;
+        $exists = in_array($key, $that->keys, true);
+        if (!$exists) {
+            if ($that->whitelist && ($index = array_search($key, $that->whitelist, true))) {
+                array_splice($that->whitelist, $index, 1);
+            }
+            elseif ($that->blacklist && ($index = array_search($key, $that->blacklist, true))) {
+                array_splice($that->blacklist, $index, 1);
+            }
+            $that->keys[] = $key;
+        }
+        $that->rulesByElements[$key] = $ruleSet;
+        return $that;
+    }
+
+    /**
+     * @param string $key
+     * @param bool $ifExists
+     *      True: don't err it that key doesn't exist.
+     *
+     * @return self
+     *      $this if the key doesn't exist and true arg $ifExists.
+     *      Otherwise new TableElements; is immutable.
+     *
+     * @throws InvalidRuleException
+     *      If the key doesn't exist and false arg $ifExists.
+     *      If current TableElements only contain one element; TableElements
+     *      is not allowed to be empty.
+     */
+    public function removeElementRuleSet(string $key, bool $ifExists = false) : self
+    {
+        $index = array_search($key, $this->keys, true);
+        if ($index === false) {
+            if (!$ifExists) {
+                throw new InvalidRuleException('Cannot remove nonexistent element key[' . $key . '].');
+            }
+            return $this;
+        }
+
+        $size = count($this->keys);
+        if ($size < 2) {
+            throw new InvalidRuleException(
+                'Removal of element key[' . $key . '] denied because tableElements would become empty.'
+            );
+        }
+        $that = clone $this;
+        unset($that->rulesByElements[$key]);
+        array_splice($that->keys, $index, 1);
+
+        return $that;
     }
 
     /**
@@ -167,9 +273,14 @@ class TableElements
      * @param object $tableElements
      * @param int $depth
      * @param string $keyPath
+     *
+     * @return void
+     *
+     * @throws InvalidRuleException
      */
-    protected function defineRulesByElements($ruleSetFactory, $tableElements, $depth, $keyPath) : void
-    {
+    protected function defineRulesByElements(
+        RuleSetFactory $ruleSetFactory, object $tableElements, int $depth, string $keyPath
+    ) : void {
         if (property_exists($tableElements, 'rulesByElements')) {
             if (!is_object($tableElements->rulesByElements) && !is_array($tableElements->rulesByElements)) {
                 throw new InvalidRuleException(
@@ -252,5 +363,20 @@ class TableElements
 
             $this->keys[] = $sKey;
         }
+
+        if (!count($this->keys)) {
+            throw new InvalidRuleException(
+                'Validation tableElements.rulesByElements is not allowed to empty'
+                . ', at (' . $depth . ') ' . $keyPath . '.'
+            );
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function __debugInfo() : array
+    {
+        return get_object_vars($this);
     }
 }

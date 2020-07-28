@@ -14,12 +14,10 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 /**
  * Rules that promise to check subject's type.
  *
- *
  * Some methods return string on pass
  * ----------------------------------
  * Composite type checkers like:
  * - number, stringable, numeric, container, loopable
- *
  *
  * Design technicalities
  * ---------------------
@@ -35,10 +33,7 @@ trait TypeRulesTrait
     /**
      * empty() and nonEmpty() are not usable as type-checking condition before
      * other rules.
-     * But they are type-safe; intended to handled any kind of type gracefully.
-     *
-     * Not required by TypeRulesInterface, but somewhat affiliated.
-     * @see TypeRulesInterface::MINIMAL_TYPE_RULES
+     * But they are type-safe; intended to handle any kind of type gracefully.
      */
 
     /**
