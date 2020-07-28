@@ -246,126 +246,7 @@ trait TypeRulesTrait
     }
 
 
-    // String/stringable.-------------------------------------------------------
-
-    /**
-     * Alternatives:
-     * @see stringableScalar()
-     * @see stringableObject()
-     * @see stringStringableObject()
-     * @see stringable()
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function string($subject) : bool
-    {
-        return is_string($subject);
-    }
-
-    /**
-     * String or number.
-     *
-     * Alternatives:
-     * @see string()
-     * @see stringableObject()
-     * @see stringStringableObject()
-     * @see stringable()
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function stringableScalar($subject) : bool
-    {
-        return $subject !== null
-            && (is_string($subject) || is_int($subject) || is_float($subject));
-    }
-
-    /**
-     * Stringable object, not string.
-     *
-     * Alternatives:
-     * @see string()
-     * @see stringableScalar()
-     * @see stringStringableObject()
-     * @see stringable()
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function stringableObject($subject) : bool
-    {
-        return is_object($subject) && method_exists($subject, '__toString');
-    }
-
-    /**
-     * String or stringable object.
-     *
-     * Alternatives:
-     * @see string()
-     * @see stringableScalar()
-     * @see stringableObject()
-     * @see stringable()
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function stringStringableObject($subject) : bool
-    {
-        return is_string($subject) || (is_object($subject) && method_exists($subject, '__toString'));
-    }
-
-    /**
-     * String, number or stringable object.
-     *
-     * @see string()
-     * @see stringableScalar()
-     * @see stringableObject()
-     * @see stringStringableObject()
-     *
-     * @param mixed $subject
-     *
-     * @return string|bool
-     *      String (string|integer|float|object) on pass,
-     *      boolean false on validation failure.
-     */
-    public function stringable($subject)
-    {
-        if ($subject !== null) {
-            if (is_string($subject)) {
-                return 'string';
-            }
-            if (is_int($subject)) {
-                return 'integer';
-            }
-            if (is_float($subject)) {
-                return 'float';
-            }
-            if (is_object($subject) && method_exists($subject, '__toString')) {
-                return 'object';
-            }
-        }
-        return false;
-    }
-
-
-    // Odd types.---------------------------------------------------------------
-
-    /**
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function resource($subject) : bool
-    {
-        return is_resource($subject);
-    }
-
-    // Numbers or stringed numbers.---------------------------------------------
+    // Number or stringed number.-----------------------------------------------
 
     /**
      * Integer, float or stringed integer/float.
@@ -527,7 +408,114 @@ trait TypeRulesTrait
     }
 
 
-    // Containers.--------------------------------------------------------------
+    // String/stringable.-------------------------------------------------------
+
+    /**
+     * Alternatives:
+     * @see stringableScalar()
+     * @see stringableObject()
+     * @see stringStringableObject()
+     * @see stringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function string($subject) : bool
+    {
+        return is_string($subject);
+    }
+
+    /**
+     * String or number.
+     *
+     * Alternatives:
+     * @see string()
+     * @see stringableObject()
+     * @see stringStringableObject()
+     * @see stringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function stringableScalar($subject) : bool
+    {
+        return $subject !== null
+            && (is_string($subject) || is_int($subject) || is_float($subject));
+    }
+
+    /**
+     * Stringable object, not string.
+     *
+     * Alternatives:
+     * @see string()
+     * @see stringableScalar()
+     * @see stringStringableObject()
+     * @see stringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function stringableObject($subject) : bool
+    {
+        return is_object($subject) && method_exists($subject, '__toString');
+    }
+
+    /**
+     * String or stringable object.
+     *
+     * Alternatives:
+     * @see string()
+     * @see stringableScalar()
+     * @see stringableObject()
+     * @see stringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function stringStringableObject($subject) : bool
+    {
+        return is_string($subject) || (is_object($subject) && method_exists($subject, '__toString'));
+    }
+
+    /**
+     * String, number or stringable object.
+     *
+     * @see string()
+     * @see stringableScalar()
+     * @see stringableObject()
+     * @see stringStringableObject()
+     *
+     * @param mixed $subject
+     *
+     * @return string|bool
+     *      String (string|integer|float|object) on pass,
+     *      boolean false on validation failure.
+     */
+    public function stringable($subject)
+    {
+        if ($subject !== null) {
+            if (is_string($subject)) {
+                return 'string';
+            }
+            if (is_int($subject)) {
+                return 'integer';
+            }
+            if (is_float($subject)) {
+                return 'float';
+            }
+            if (is_object($subject) && method_exists($subject, '__toString')) {
+                return 'object';
+            }
+        }
+        return false;
+    }
+
+
+    // Container.---------------------------------------------------------------
 
     /**
      * @param mixed $subject
@@ -811,6 +799,18 @@ trait TypeRulesTrait
             return true;
         }
         return !ctype_digit(join('', array_keys($subject)));
+    }
+
+    // Odd types.---------------------------------------------------------------
+
+    /**
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function resource($subject) : bool
+    {
+        return is_resource($subject);
     }
 
     

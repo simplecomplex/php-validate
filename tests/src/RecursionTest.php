@@ -145,7 +145,7 @@ class RecursionTest extends TestCase
                     )
             )
         );
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($rule_set)->log();
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($rule_set)->log();
 
 //        $tableElements_accessories = $ruleSet->tableElements->getElementRuleSet('accessories')->tableElements
 //            ->setElementRuleSet('whatever', $ruleSet);
@@ -161,14 +161,7 @@ class RecursionTest extends TestCase
 
 
 
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-
-        $source['tableElements']['rulesByElements']['accessories']['tableElements'] = $tableElements;
-        $listItems = $ruleSet->tableElements->getElementRuleSet('various')->listItems;
-        $source['tableElements']['rulesByElements']['various']['listItems'] = $listItems;
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($source)->log();
-        $ruleSet = (new RuleSetFactory($validate))->make($source);
-        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
         $bike = new Bicycle(
             null,

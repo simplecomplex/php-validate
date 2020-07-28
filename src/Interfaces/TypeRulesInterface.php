@@ -54,8 +54,10 @@ interface TypeRulesInterface
      * @var int[]
      */
     public const MINIMAL_TYPE_RULES = [
+        // Type indifferent, but type safe.
         'empty' => Type::ANY,
         'nonEmpty' => Type::ANY,
+        // Scalar/null.
         'null' => Type::NULL,
         'scalarNull' => Type::SCALAR_NULLABLE,
         'scalar' => Type::SCALAR,
@@ -66,15 +68,17 @@ interface TypeRulesInterface
         'number' => Type::NUMBER,
         'integer' => Type::INTEGER,
         'float' => Type::FLOAT,
+        // Number or stringed number.
+        'numeric' => Type::NUMERIC,
+        'digital' => Type::DIGITAL,
+        'decimal' => Type::DECIMAL,
+        // String/stringable.
         'string' => Type::STRING,
         'stringableScalar' => Type::STRINGABLE_SCALAR,
         'stringableObject' => Type::STRINGABLE_OBJECT,
         'stringStringableObject' => Type::STRING_STRINGABLE_OBJECT,
         'stringable' => Type::STRINGABLE,
-        'resource' => Type::RESOURCE,
-        'numeric' => Type::NUMERIC,
-        'digital' => Type::DIGITAL,
-        'decimal' => Type::DECIMAL,
+        // Container.
         'object' => Type::OBJECT,
         'class' => Type::OBJECT,
         'array' => Type::ARRAY,
@@ -87,6 +91,8 @@ interface TypeRulesInterface
         'keyedLoopable' => Type::LOOPABLE,
         'indexedArray' => Type::LOOPABLE,
         'keyedArray' => Type::LOOPABLE,
+        // Odd types.
+        'resource' => Type::RESOURCE,
     ];
 
     /**
@@ -132,6 +138,13 @@ interface TypeRulesInterface
     ];
 
 
+    // Type indifferent, but type safe.-----------------------------------------
+
+    public function empty($subject) : bool;
+
+    public function nonEmpty($subject) : bool;
+
+
     // Scalar/null.-------------------------------------------------------------
 
     public function null($subject) : bool;
@@ -155,6 +168,15 @@ interface TypeRulesInterface
     public function float($subject) : bool;
 
 
+    // Number or stringed number.----------------------------------------------
+
+    public function numeric($subject);
+
+    public function digital($subject) : bool;
+
+    public function decimal($subject) : bool;
+
+
     // String/stringable.-------------------------------------------------------
 
     public function string($subject) : bool;
@@ -168,27 +190,13 @@ interface TypeRulesInterface
     public function stringable($subject);
 
 
-    // Odd types.---------------------------------------------------------------
-
-    public function resource($subject) : bool;
-
-
-    // Numbers or stringed numbers.---------------------------------------------
-
-    public function numeric($subject);
-
-    public function digital($subject) : bool;
-
-    public function decimal($subject) : bool;
+    // Container.---------------------------------------------------------------
 
     public function object($subject) : bool;
 
     public function class($subject, string $className) : bool;
 
     public function array($subject) : bool;
-
-
-    // Containers.--------------------------------------------------------------
 
     public function container($subject);
 
@@ -207,4 +215,9 @@ interface TypeRulesInterface
     public function indexedArray($subject) : bool;
 
     public function keyedArray($subject) : bool;
+
+
+    // Odd types.---------------------------------------------------------------
+
+    public function resource($subject) : bool;
 }
