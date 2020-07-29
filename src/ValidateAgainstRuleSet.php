@@ -398,7 +398,7 @@ class ValidateAgainstRuleSet
 
         /**
          * RuleSetGenerator has ensured to provide a container type-checker.
-         * @see Type::LOOPABLE
+         * @see Type::CONTAINER
          * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
          */
 
@@ -418,13 +418,15 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Pseudo rule listing ValidationRuleSets of elements of a 'loopable'
-     * object|array subject.
+     * Pseudo rule listing ValidationRuleSets of elements of object|array
+     * subject.
      *
      * Iterates by order of subject buckets.
      *
-     * Subject must be loopable, and that must be checked prior to call.
-     * @see TypeRulesTrait::loopable()
+     * Subject must be at least container (ideally iterable or loopable),
+     * and that must be checked prior to call.
+     * @see TypeRulesTrait::container()
+     * @see RuleSetGenerator::ensureTypeChecking()
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param object|array $subject
@@ -555,8 +557,10 @@ class ValidateAgainstRuleSet
      * Pseudo rule using a common ruleset on every element of object|array
      * subject.
      *
-     * Subject must be loopable, and that must be checked prior to call.
-     * @see TypeRulesTrait::loopable()
+     * Subject must be at least container (ideally iterable or loopable),
+     * and that must be checked prior to call.
+     * @see TypeRulesTrait::container()
+     * @see RuleSetGenerator::ensureTypeChecking()
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param object|array $subject
