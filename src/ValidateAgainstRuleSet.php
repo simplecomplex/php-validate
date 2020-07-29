@@ -397,8 +397,7 @@ class ValidateAgainstRuleSet
         }
 
         /**
-         * RuleSetGenerator has ensured to provide nonEmpty() check
-         * and loopable type-checker.
+         * RuleSetGenerator has ensured to provide a container type-checker.
          * @see Type::LOOPABLE
          * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
          */
