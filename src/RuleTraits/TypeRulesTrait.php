@@ -57,9 +57,6 @@ trait TypeRulesTrait
                 return !count($subject);
             }
             if ($subject instanceof \Traversable) {
-                // No need to check/use ArrayObject|ArrayIterator, because
-                // those are both Countable (checked before this check).
-
                 // Have to iterate; horrible.
                 foreach ($subject as $ignore) {
                     return false;
@@ -98,9 +95,6 @@ trait TypeRulesTrait
                 return !!count($subject);
             }
             if ($subject instanceof \Traversable) {
-                // No need to check/use ArrayObject|ArrayIterator, because
-                // those are both Countable (checked before this check).
-
                 // Have to iterate; horrible.
                 foreach ($subject as $ignore) {
                     return true;
@@ -195,7 +189,6 @@ trait TypeRulesTrait
      * Boolean or integer 0|1.
      *
      * @param mixed $subject
-     *      bool|int to pass validation.
      *
      * @return bool
      */
@@ -216,7 +209,6 @@ trait TypeRulesTrait
      * @see numeric()
      *
      * @param mixed $subject
-     *      int|float to pass validation.
      *
      * @return bool
      */
@@ -531,7 +523,6 @@ trait TypeRulesTrait
      * Is object and is of that class or interface, or has it as ancestor.
      *
      * @param mixed $subject
-     *      object to pass validation.
      * @param string $className
      *
      * @return bool
@@ -568,7 +559,6 @@ trait TypeRulesTrait
     }
 
     /**
-     *
      * @see indexedArray()
      * @see keyedArray()
      *
@@ -635,6 +625,8 @@ trait TypeRulesTrait
     /**
      * Array or \Countable object.
      *
+     * @see sizeable()
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -651,9 +643,7 @@ trait TypeRulesTrait
      * \stdClass cannot be count()'ed directly, but via
      * count(get_object_vars($obj)).
      *
-     * (\Traversable) \ArrayObject|\ArrayIterator can be counted
-     * via getArrayCopy().
-     * Other \Traversable can only be counted via iteration.
+     * Non-\Countable \Traversable can only be counted via iteration.
      *
      * @see loopable()
      * @see countable()
@@ -700,8 +690,6 @@ trait TypeRulesTrait
             return count(get_object_vars($subject)) >= $min;
         }
         if ($subject instanceof \Traversable) {
-            // No need to check/use ArrayObject|ArrayIterator, because
-            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
@@ -737,8 +725,6 @@ trait TypeRulesTrait
             return count(get_object_vars($subject)) <= $max;
         }
         if ($subject instanceof \Traversable) {
-            // No need to check/use ArrayObject|ArrayIterator, because
-            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
@@ -774,8 +760,6 @@ trait TypeRulesTrait
             return count(get_object_vars($subject)) == $exact;
         }
         if ($subject instanceof \Traversable) {
-            // No need to check/use ArrayObject|ArrayIterator, because
-            // those are both Countable (checked before this check).
             $w = 0;
             // Have to iterate; horrible.
             foreach ($subject as $ignore) {
