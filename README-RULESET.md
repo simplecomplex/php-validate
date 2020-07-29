@@ -15,6 +15,13 @@ Test a variable against one of ```Validator```s 70+ rule methods
 
 ### Multidimensional validation ###
 
+// tableElements|listItems must require container.
+// Ideally iterable or loopable, but that would effectively
+// make tableElements|listItems incompatible with primitive class
+// those members are public, but doesn't implement \Traversable.
+
+// The 'empty' rule is not compatible with tableElements|listItems.
+
 #### Test against a set of rules ####
 
 A validation ruleset is a list of rules (```Validator``` methods)  

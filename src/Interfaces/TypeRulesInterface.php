@@ -144,11 +144,11 @@ interface TypeRulesInterface
      */
     public const TYPE_RULE_FLAGS = [
         /**
-         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::numeric()
-         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::digital()
-         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait::decimal()
+         * @see \SimpleComplex\Validate\RuleTraits\TypeRulesTrait::numeric()
+         * @see \SimpleComplex\Validate\RuleTraits\TypeRulesTrait::digital()
+         * @see \SimpleComplex\Validate\RuleTraits\TypeRulesTrait::decimal()
          */
-        'NUMERIC_NEGATIVE_ZERO' => false,
+        'STRINGED_NEGATIVE_ZERO' => false,
     ];
 
 

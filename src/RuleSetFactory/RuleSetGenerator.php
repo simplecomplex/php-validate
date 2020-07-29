@@ -367,7 +367,7 @@ class RuleSetGenerator
         // tableElements|listItems must check non-empty,
         // and require loopable container.
         if ($this->tableElements || $this->listItems) {
-            // The empty rules is not compatible with tableElements|listItems.
+            // The 'empty' rule is not compatible with tableElements|listItems.
             if ($this->empty) {
                 throw new InvalidRuleException(
                     'Validation ruleset ' . (!$this->tableElements ? 'tableElements' : 'listItems')
@@ -377,7 +377,7 @@ class RuleSetGenerator
             }
 
             // tableElements|listItems must require container.
-            // Should ideally iterable or loopable, but that would effectively
+            // Ideally iterable or loopable, but that would effectively
             // make tableElements|listItems incompatible with primitive class
             // those members are public, but doesn't implement \Traversable.
             $method = $this->factory->ruleProvider->patternRuleToTypeRule(Type::CONTAINER);

@@ -288,7 +288,7 @@ trait TypeRulesTrait
         $negative = $w_num == $w - 1;
 
         if (ctype_digit($num)) {
-            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -302,7 +302,7 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
-            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -344,7 +344,7 @@ trait TypeRulesTrait
         $negative = $w_int == $w - 1;
 
         if (ctype_digit($int)) {
-            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -356,6 +356,9 @@ trait TypeRulesTrait
 
     /**
      * Stringed number.
+     *
+     * Decimal point is not a requirement;
+     * a stringed integer is also stringed number.
      *
      * @param mixed $subject
      *
@@ -384,7 +387,7 @@ trait TypeRulesTrait
         $negative = $w_num == $w - 1;
 
         if (ctype_digit($num)) {
-            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -399,7 +402,7 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
-            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
                 // Minus zero is unhealthy.
                 return false;
             }
