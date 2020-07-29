@@ -58,7 +58,8 @@ interface TypeRulesInterface
         // Type indifferent, but type safe.
         'empty' => Type::ANY,
         'nonEmpty' => Type::ANY,
-        // Scalar/null.
+
+        // Scalar/null.-------------------------------------
         'null' => Type::NULL,
         'scalarNull' => Type::SCALAR_NULLABLE,
         'scalar' => Type::SCALAR,
@@ -69,27 +70,34 @@ interface TypeRulesInterface
         'number' => Type::NUMBER,
         'integer' => Type::INTEGER,
         'float' => Type::FLOAT,
-        // Number or stringed number.
+
+        // Number or stringed number.-----------------------
         'numeric' => Type::NUMERIC,
         'digital' => Type::DIGITAL,
         'decimal' => Type::DECIMAL,
-        // String/stringable.
+
+        // String/stringable.-------------------------------
         'string' => Type::STRING,
         'stringableScalar' => Type::STRINGABLE_SCALAR,
         'stringableObject' => Type::STRINGABLE_OBJECT,
         'stringStringableObject' => Type::STRING_STRINGABLE_OBJECT,
         'stringable' => Type::STRINGABLE,
-        // Container.
+
+        // Container.---------------------------------------
         'object' => Type::OBJECT,
         'class' => Type::OBJECT,
-        'stdClass' => Type::OBJECT,
-        'anonymousClass' => Type::OBJECT,
+        'stdClass' => Type::STDCLASS,
+        'extClass' => Type::EXTCLASS,
+        // Anonymous class is an extending class (object not \stdClass)
+        // with a bad class name.
+        'anonymousClass' => Type::EXTCLASS,
         'array' => Type::ARRAY,
         'container' => Type::CONTAINER,
         'iterable' => Type::ITERABLE,
         'loopable' => Type::LOOPABLE,
         'countable' => Type::COUNTABLE,
         'sizeable' => Type::SIZEABLE,
+
         // Pattern-like container rules that have to check type to work.
         'minSize' => Type::SIZEABLE,
         'maxSize' => Type::SIZEABLE,
@@ -100,7 +108,8 @@ interface TypeRulesInterface
         'keyedLoopable' => Type::LOOPABLE,
         'indexedArray' => Type::LOOPABLE,
         'keyedArray' => Type::LOOPABLE,
-        // Odd types.
+
+        // Odd types.---------------------------------------
         'resource' => Type::RESOURCE,
     ];
 
@@ -211,6 +220,8 @@ interface TypeRulesInterface
     public function class($subject, string $className) : bool;
 
     public function stdClass($subject) : bool;
+
+    public function extClass($subject) : bool;
 
     public function anonymousClass($subject) : bool;
 

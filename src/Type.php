@@ -31,6 +31,13 @@ class Type
     // Simple.------------------------------------------------------------------
 
     /**
+     * Any type.
+     * @see TypeRulesTrait::empty()
+     * @see TypeRulesTrait::nonEmpty()
+     */
+    public const ANY = 2147483648;
+
+    /**
      * @see ValidationRuleSet::$optional
      */
     public const UNDEFINED = 1;
@@ -67,10 +74,16 @@ class Type
     public const ARRAY = 64;
 
     /**
-     * @see TypeRulesTrait::object()
-     * @see TypeRulesTrait::class()
+     * \stdClass.
+     * @see TypeRulesTrait::stdClass()
      */
-    public const OBJECT = 128;
+    public const STDCLASS = 128;
+
+    /**
+     * Object not \stdClass; extending class.
+     * @see TypeRulesTrait::extClass()
+     */
+    public const EXTCLASS = 256;
 
     /**
      * @see TypeRulesTrait::resource()
@@ -78,14 +91,7 @@ class Type
     public const RESOURCE = 65536;
 
 
-    // Specials.----------------------------------------------------------------
-
-    /**
-     * Any type.
-     * @see TypeRulesTrait::empty()
-     * @see TypeRulesTrait::nonEmpty()
-     */
-    public const ANY = 2147483648;
+    // Modifiers.---------------------------------------------------------------
 
     /**
      * Stringed number.
@@ -117,100 +123,107 @@ class Type
     /**
      * @see TypeRulesTrait::number()
      *
-     * int|float: 8 + 16.
+     * INTEGER + FLOAT.
      */
-    public const NUMBER = 24;
+    public const NUMBER = 8 + 16;
 
     /**
      * Integer or stringed integer.
      * @see TypeRulesTrait::digital()
      *
-     * stringable + int: 2048 + 8.
+     * STRINGABLE + INTEGER.
      */
-    public const DIGITAL = 2056;
+    public const DIGITAL = 2048 + 8;
 
     /**
      * Integer, float or stringed number.
      * @see TypeRulesTrait::numeric()
      *
-     * stringable + int|float: 2048 + 8 + 16.
+     * STRINGABLE + INTEGER + FLOAT.
      */
-    public const NUMERIC = 2072;
+    public const NUMERIC = 2048 + 8 + 16;
 
     /**
      * Boolean, integer or string.
      * @see TypeRulesTrait::equatable()
      *
-     * bool|int|string: 4 + 8 + 32.
+     * BOOLEAN + INTEGER + STRING.
      */
-    public const EQUATABLE = 44;
+    public const EQUATABLE = 4 + 8 + 32;
 
     /**
      * Null, boolean, integer or string.
      * @see TypeRulesTrait::equatable()
      *
-     * null|bool|int|string: 2 + 4 + 8 + 32.
+     * NULL + BOOLEAN + INTEGER + STRING.
      */
-    public const EQUATABLE_NULLABLE = 46;
+    public const EQUATABLE_NULLABLE = 2 + 4 + 8 + 32;
 
     /**
      * @see TypeRulesTrait::scalar()
      *
-     * bool|int|float|string: 4 + 8 + 16 + 32.
+     * BOOLEAN + INTEGER + FLOAT + STRING.
      */
-    public const SCALAR = 60;
+    public const SCALAR = 4 + 8 + 16 + 32;
 
     /**
      * Scalar or null.
      * @see TypeRulesTrait::scalarNull()
      *
-     * null|bool|int|float|string: 2 + 4 + 8 + 16 + 32.
+     * NULL + BOOLEAN + INTEGER + FLOAT + STRING.
      */
-    public const SCALAR_NULLABLE = 62;
+    public const SCALAR_NULLABLE = 2 + 4 + 8 + 16 + 32;
 
     /**
      * Stringable scalar.
      * @see TypeRulesTrait::stringableScalar()
      *
-     * stringable + int|float|string: 2048 + 8 + 16 + 32.
+     * STRINGABLE + INTEGER + FLOAT + STRING.
      */
-    public const STRINGABLE_SCALAR = 2104;
+    public const STRINGABLE_SCALAR = 2048 + 8 + 16 + 32;
 
     /**
      * Stringable object.
      * @see TypeRulesTrait::stringableObject()
      *
-     * stringable + object: 2048 + 128.
+     * STRINGABLE + EXTCLASS.
      */
-    public const STRINGABLE_OBJECT = 2176;
+    public const STRINGABLE_OBJECT = 2048 + 256;
 
     /**
      * String or stringable object.
      *
-     * string + stringable + object: 32 + 2048 + 128.
+     * STRING + STRINGABLE + EXTCLASS.
      */
-    public const STRING_STRINGABLE_OBJECT = 2208;
+    public const STRING_STRINGABLE_OBJECT = 32 + 2048 + 256;
 
     /**
+     * \stdClass or extending class.
+     * @see TypeRulesTrait::object()
+     * STDCLASS + EXTCLASS.
+     */
+    public const OBJECT = 128 + 256;
+
+    /**
+     * Array or object.
      * @see TypeRulesTrait::container()
-     *
-     * array|object: 64 + 128.
+     * ARRAY + STDCLASS + EXTCLASS.
      */
-    public const CONTAINER = 192;
+    public const CONTAINER = 64 + 128 + 256;
 
     /**
+     * Iterable or \stdClass.
      * @see TypeRulesTrait::loopable()
-     *
-     * iterable|object: 4096 + 128.
+     * ITERABLE + STDCLASS.
      */
-    public const LOOPABLE = 4224;
+    public const LOOPABLE = 4096 + 128;
 
     /**
+     * \Countable, Iterable or \stdClass.
      * @see TypeRulesTrait::sizeable()
-     *
-     * countable|iterable|object = 8192 + 4096 + 128.
+     * COUNTABLE + ITERABLE + STDCLASS.
      */
-    public const SIZEABLE = 12416;
+    public const SIZEABLE = 8192 + 4096 + 128;
 
 
     /**

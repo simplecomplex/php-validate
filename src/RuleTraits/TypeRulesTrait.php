@@ -542,6 +542,8 @@ trait TypeRulesTrait
     }
 
     /**
+     * Is \stdClass.
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -552,6 +554,22 @@ trait TypeRulesTrait
     }
 
     /**
+     * Is extending class; object but not \stdClass.
+     *
+     * @param $subject
+     *
+     * @return bool
+     */
+    public function extClass($subject) : bool
+    {
+        return is_object($subject) && get_class($subject) != \stdClass::class;
+    }
+
+    /**
+     * Anonymous object.
+     *
+     * Is in effect extending class (object not \stdClass) with bad class name.
+     *
      * @param mixed $subject
      *
      * @return bool
@@ -609,6 +627,10 @@ trait TypeRulesTrait
 
     /**
      * Array, \stdClass or \Traversable object.
+     *
+     * \stdClass is iterable for sure.
+     * Whereas a non-\Traversable extending class cannot be determined
+     * as iterable or not.
      *
      * @see iterable()
      * @see indexedLoopable()
