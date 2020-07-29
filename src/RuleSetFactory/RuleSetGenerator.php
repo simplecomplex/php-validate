@@ -367,6 +367,7 @@ class RuleSetGenerator
         // tableElements|listItems must check non-empty,
         // and require loopable container.
         if ($this->tableElements || $this->listItems) {
+            // The empty rules is not compatible with tableElements|listItems.
             if ($this->empty) {
                 throw new InvalidRuleException(
                     'Validation ruleset ' . (!$this->tableElements ? 'tableElements' : 'listItems')
@@ -374,13 +375,16 @@ class RuleSetGenerator
                     . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
                 );
             }
-            $this->nonEmpty = true;
 
-            $method = $this->factory->ruleProvider->patternRuleToTypeRule(Type::LOOPABLE);
+            // tableElements|listItems must require container.
+            // Should ideally iterable or loopable, but that would effectively
+            // make tableElements|listItems incompatible with primitive class
+            // those members are public, but doesn't implement \Traversable.
+            $method = $this->factory->ruleProvider->patternRuleToTypeRule(Type::CONTAINER);
             if (!$method) {
                 throw new \LogicException(
                     'Rule provider ' . get_class($this->factory->ruleProvider)
-                    . ' has no type rule matching type LOOPABLE.'
+                    . ' has no type rule matching type CONTAINER.'
                 );
             }
             // Safe to use $method as name, because cannot be renamed;

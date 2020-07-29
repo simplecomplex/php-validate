@@ -706,6 +706,9 @@ class ValidateAgainstRuleSet
             elseif (is_array($subject) || $subject instanceof \Countable) {
                 $type .= ':' . count($subject);
             }
+            elseif ($subject instanceof \stdClass) {
+                $type .= ':' . count(get_object_vars($subject));
+            }
         }
         $type .= ')';
         return [

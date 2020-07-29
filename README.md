@@ -14,7 +14,7 @@ Test a variable against one of the validator's 70+ rule methods
 
 #### Type rules vs. pattern rules ####
 
-**> [Type rules](src/RuleTraits/TypeRulesTrait.php) check if the variable**:
+**> [Type rules](src/RuleTraits/TypeRulesTrait.php) check can if the variable**:
 - is of a type or class, or a pseudo type like 'digital' (stringed integer)
 - is directly (===) comparable, or stringable
 - is 'loopable' (array|stdClass|Traversable), or numerically indexed or keyed
@@ -24,7 +24,7 @@ Type rules are guaranteed to accept any kind of variable gracefully; never to er
 **> [Pattern rules](src/RuleTraits/PatternRulesUncheckedTrait.php) rules check secondary aspects like**:
 - less/shorter than, more/longer than
 - is unicode, ASCII or an ISO-8601 date
-- enum: value exactly one of these allowed
+- enum: value exactly same as one allowed
 
 Pattern rules exist in two shapes:
 - _un-checked_: do not check type, will err on unexpected subject type; meant to be used after a type rule check
