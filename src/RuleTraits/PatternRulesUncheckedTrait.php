@@ -877,7 +877,7 @@ trait PatternRulesUncheckedTrait
      *
      * @return bool
      */
-    public function dateISO($subject, int $subSeconds = -1) : bool
+    public function dateDateTimeISO($subject, int $subSeconds = -1) : bool
     {
         $v = '' . $subject;
         if (!$v) {

@@ -148,7 +148,7 @@ class BicycleRuleSets
                     ],
                     'datetime' => [
                         'optional' => true,
-                        'dateISO',
+                        'dateDateTimeISO',
                     ]
                 ]
             ]

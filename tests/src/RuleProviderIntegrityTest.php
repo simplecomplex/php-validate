@@ -29,7 +29,7 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class RuleProviderIntegrityTest extends TestCase
 {
     /**
-     * Names of concrete classes implementing RuleProviderInterface.
+     * Names of concrete Entity implementing RuleProviderInterface.
      *
      * @var string[]
      */

@@ -18,6 +18,10 @@ use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\Variants\EnumVersatileValidator;
 
+use SimpleComplex\Time\Time;
+use SimpleComplex\Tests\Validate\Entity\Stringable;
+use SimpleComplex\Tests\Validate\Entity\NoModelExplorable;
+
 /**
  * @code
  * // CLI, in document root:
@@ -74,6 +78,11 @@ class ValidateTest extends TestCase
 
         $o = new Stringable();
         static::assertFalse($validate->empty($o));
+
+        $o = new NoModelExplorable();
+        static::assertTrue($validate->empty($o));
+        $o->someProp = 'some prop';
+        static::assertFalse($validate->empty($o));
     }
 
     /**
@@ -112,6 +121,11 @@ class ValidateTest extends TestCase
 
         $o = new Stringable();
         static::assertFalse($validate->nonEmpty($o));
+
+        $o = new NoModelExplorable();
+        static::assertFalse($validate->nonEmpty($o));
+        $o->someProp = 'some prop';
+        static::assertTrue($validate->nonEmpty($o));
     }
 
     public function testNull()
@@ -123,6 +137,64 @@ class ValidateTest extends TestCase
         foreach ($rule_methods as $ruleName) {
             $rule = $validate->getRule($ruleName);
             if ($rule->paramsRequired) {
+                if ($rule->paramsRequired == 1) {
+                    switch ($ruleName) {
+                        // Type rules.----------------------
+                        case 'class':
+                            $arg1 = \stdClass::class;
+                            break;
+                        case 'minSize':
+                        case 'maxSize':
+                        case 'exactSize':
+                            $arg1 = 0;
+                            break;
+                        // Pattern rules.-------------------
+                        case 'enum':
+                            $arg1 = [0];
+                            break;
+                        case 'min':
+                        case 'max':
+                            $arg1 = 0;
+                            break;
+                        case 'maxDecimals':
+                            $arg1 = 1;
+                            break;
+                        case 'regex':
+                            $arg1 = '/0/';
+                            break;
+                        case 'unicodeMinLength':
+                        case 'unicodeMaxLength':
+                        case 'unicodeExactLength':
+                        case 'minLength':
+                        case 'maxLength':
+                        case 'exactLength':
+                            $arg1 = 0;
+                            break;
+                        default:
+                            throw new \LogicException(
+                                'Missing argument for single-parametered rule[' . $ruleName . '].'
+                            );
+                    }
+                    static::assertFalse($validate->{$ruleName}(null, $arg1), 'Rule method (false): ' . $ruleName);
+                }
+                elseif ($rule->paramsRequired == 2) {
+                    switch ($ruleName) {
+                        case 'range':
+                            $arg1 = 0;
+                            $arg2 = 1;
+                            break;
+                        default:
+                            throw new \LogicException(
+                                'Missing argument for double-parametered rule[' . $ruleName . '].'
+                            );
+                    }
+                    static::assertFalse($validate->{$ruleName}(null, $arg1, $arg2), 'Rule method (false): ' . $ruleName);
+                }
+                else {
+                    throw new \LogicException(
+                        'Missing argument for double-parametered rule[' . $ruleName . '].'
+                    );
+                }
                 continue;
             }
             switch ($ruleName) {
@@ -136,44 +208,6 @@ class ValidateTest extends TestCase
                     static::assertFalse($validate->{$ruleName}(null), 'Rule method (false): ' . $ruleName);
             }
         }
-
-        /**
-        'enum' => true,
-        'regex' => true,
-        'class' => true,
-        'hex' => false,
-        'min' => true,
-        'max' => true,
-        'range' => true,
-        'unicodeMultiLine' => false,
-        'unicodeMinLength' => true,
-        'unicodeMaxLength' => true,
-        'unicodeExactLength' => true,
-        //'asciiMultiLine' => false,
-        'minLength' => true,
-        'maxLength' => true,
-        'exactLength' => true,
-        'alphaNum' => false,
-        'name' => false,
-        'snakeName' => false,
-        'lispName' => false,
-        'uuid' => false,
-        'timeISO' => false,
-        'dateTimeISO' => false,
-        'dateTimeISOZonal' => false,
-        'dateTimeISOUTC' => false,
-         */
-
-        static::assertFalse($validate->regex(null, '/./'), 'Rule method (false): ' . 'regex');
-        static::assertFalse($validate->class(null, \stdClass::class), 'Rule method (false): ' . 'class');
-
-        static::assertFalse($validate->min(null, 0), 'Rule method (false): ' . 'min');
-        static::assertFalse($validate->max(null, 0), 'Rule method (false): ' . 'max');
-        static::assertFalse($validate->range(null, 0, 1), 'Rule method (false): ' . 'range');
-
-        static::assertFalse($validate->unicodeMinLength(null, 0), 'Rule method (false): ' . 'unicodeMinLength');
-        static::assertFalse($validate->unicodeMaxLength(null, 0), 'Rule method (false): ' . 'unicodeMaxLength');
-        static::assertFalse($validate->unicodeExactLength(null, 0), 'Rule method (false): ' . 'unicodeExactLength');
     }
 
     /**
@@ -464,7 +498,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateISO()
+     * @see Validator::dateDateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -495,7 +529,7 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->lispName($subject));
         static::assertFalse($validate->uuid($subject));
         static::assertFalse($validate->base64($subject));
-        static::assertFalse($validate->dateISO($subject));
+        static::assertFalse($validate->dateDateTimeISO($subject));
         static::assertFalse($validate->dateISOLocal($subject));
         static::assertFalse($validate->timeISO($subject));
         static::assertFalse($validate->dateTimeISO($subject));
@@ -540,7 +574,7 @@ class ValidateTest extends TestCase
         static::assertTrue($validate->base64($subject));
 
         $subject->property = '2019-01-01';
-        static::assertTrue($validate->dateISO($subject));
+        static::assertTrue($validate->dateDateTimeISO($subject));
         static::assertTrue($validate->dateISOLocal($subject));
 
         $subject->property = '00:00:01';
@@ -571,6 +605,19 @@ class ValidateTest extends TestCase
 
         $subject->property = 'a@a.a';
         static::assertTrue($validate->email($subject));
+
+        $time = new Time();
+        $dateTime = new \DateTime();
+        static::assertTrue($validate->dateDateTimeISO($time));
+        static::assertFalse($validate->dateDateTimeISO($dateTime));
+        static::assertTrue($validate->dateTimeISOZonal($time));
+        static::assertFalse($validate->dateTimeISOZonal($dateTime));
+
+        static::assertFalse($validate->string($time));
+        static::assertFalse($validate->stringableScalar($time));
+        static::assertTrue($validate->stringStringableObject($time));
+        static::assertTrue($validate->stringableObject($time));
+        static::assertTrue($validate->stringable($time));
     }
 
 
@@ -601,7 +648,7 @@ class ValidateTest extends TestCase
     ];
 
     /**
-     * @see Validator::dateISO()
+     * @see Validator::dateDateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -609,7 +656,7 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        $method = 'dateISO';
+        $method = 'dateDateTimeISO';
 
         foreach (static::DATE_SUBJECTS as $subject => $description) {
             switch ($description) {
@@ -778,5 +825,202 @@ class ValidateTest extends TestCase
         static::assertTrue(
             $validate->{$method}($subject_by_descr['ISO- datetime (HH:II:SS.nano) UTC'], 9)
         );
+    }
+
+    public function testContainer()
+    {
+        $validate = $this->testInstantiation();
+
+        $array = [];
+        $stdClass = new \stdClass();
+        $traversable = new NoModelExplorable();
+        $nonTraversable = new Stringable();
+
+        static::assertTrue($validate->container($array));
+        static::assertTrue($validate->container($stdClass));
+        static::assertTrue($validate->container($traversable));
+        static::assertTrue($validate->container($nonTraversable));
+
+        static::assertTrue($validate->iterable($array));
+        static::assertFalse($validate->iterable($stdClass));
+        static::assertTrue($validate->iterable($traversable));
+        static::assertFalse($validate->iterable($nonTraversable));
+
+        static::assertTrue($validate->loopable($array));
+        static::assertTrue($validate->loopable($stdClass));
+        static::assertTrue($validate->loopable($traversable));
+        static::assertFalse($validate->loopable($nonTraversable));
+
+        static::assertTrue($validate->countable($array));
+        static::assertFalse($validate->countable($stdClass));
+        static::assertTrue($validate->countable($traversable));
+        static::assertFalse($validate->countable($nonTraversable));
+
+        static::assertTrue($validate->sizeable($array));
+        static::assertTrue($validate->sizeable($stdClass));
+        static::assertTrue($validate->sizeable($traversable));
+        static::assertFalse($validate->sizeable($nonTraversable));
+    }
+
+    public function testContainerIndexedKeyed()
+    {
+        $validate = $this->testInstantiation();
+
+        $array = [];
+        $stdClass = new \stdClass();
+        $traversable = new NoModelExplorable();
+        $nonTraversable = new Stringable();
+
+        static::assertTrue($validate->indexedArray($array));
+        static::assertFalse($validate->indexedArray($stdClass));
+        static::assertFalse($validate->indexedArray($traversable));
+        static::assertFalse($validate->indexedArray($nonTraversable));
+        static::assertTrue($validate->keyedArray($array));
+        static::assertFalse($validate->keyedArray($stdClass));
+        static::assertFalse($validate->keyedArray($traversable));
+        static::assertFalse($validate->keyedArray($nonTraversable));
+
+        static::assertTrue($validate->indexedIterable($array));
+        static::assertFalse($validate->indexedIterable($stdClass));
+        static::assertTrue($validate->indexedIterable($traversable));
+        static::assertFalse($validate->indexedIterable($nonTraversable));
+        static::assertTrue($validate->keyedIterable($array));
+        static::assertFalse($validate->keyedIterable($stdClass));
+        static::assertTrue($validate->keyedIterable($traversable));
+        static::assertFalse($validate->keyedIterable($nonTraversable));
+
+        static::assertTrue($validate->indexedLoopable($array));
+        static::assertTrue($validate->indexedLoopable($stdClass));
+        static::assertTrue($validate->indexedLoopable($traversable));
+        static::assertFalse($validate->indexedLoopable($nonTraversable));
+        static::assertTrue($validate->keyedLoopable($array));
+        static::assertTrue($validate->keyedLoopable($stdClass));
+        static::assertTrue($validate->keyedLoopable($traversable));
+        static::assertFalse($validate->keyedLoopable($nonTraversable));
+
+
+        $array[0] = 0;
+        $stdClass->{'0'} = 0;
+        $traversable->{'0'} = 0;
+        $nonTraversable->property = 0;
+
+        static::assertTrue($validate->indexedArray($array));
+        static::assertFalse($validate->indexedArray($stdClass));
+        static::assertFalse($validate->indexedArray($traversable));
+        static::assertFalse($validate->indexedArray($nonTraversable));
+        static::assertFalse($validate->keyedArray($array));
+        static::assertFalse($validate->keyedArray($stdClass));
+        static::assertFalse($validate->keyedArray($traversable));
+        static::assertFalse($validate->keyedArray($nonTraversable));
+
+        static::assertTrue($validate->indexedIterable($array));
+        static::assertFalse($validate->indexedIterable($stdClass));
+        static::assertTrue($validate->indexedIterable($traversable));
+        static::assertFalse($validate->indexedIterable($nonTraversable));
+        static::assertFalse($validate->keyedIterable($array));
+        static::assertFalse($validate->keyedIterable($stdClass));
+        static::assertFalse($validate->keyedIterable($traversable));
+        static::assertFalse($validate->keyedIterable($nonTraversable));
+
+        static::assertTrue($validate->indexedLoopable($array));
+        static::assertTrue($validate->indexedLoopable($stdClass));
+        static::assertTrue($validate->indexedLoopable($traversable));
+        static::assertFalse($validate->indexedLoopable($nonTraversable));
+        static::assertFalse($validate->keyedLoopable($array));
+        static::assertFalse($validate->keyedLoopable($stdClass));
+        static::assertFalse($validate->keyedLoopable($traversable));
+        static::assertFalse($validate->keyedLoopable($nonTraversable));
+
+
+        $array['one'] = 1;
+        $stdClass->{'one'} = 1;
+        $traversable->{'one'} = 1;
+
+        static::assertFalse($validate->indexedArray($array));
+        static::assertFalse($validate->indexedArray($stdClass));
+        static::assertFalse($validate->indexedArray($traversable));
+        static::assertFalse($validate->indexedArray($nonTraversable));
+        static::assertTrue($validate->keyedArray($array));
+        static::assertFalse($validate->keyedArray($stdClass));
+        static::assertFalse($validate->keyedArray($traversable));
+        static::assertFalse($validate->keyedArray($nonTraversable));
+
+        static::assertFalse($validate->indexedIterable($array));
+        static::assertFalse($validate->indexedIterable($stdClass));
+        static::assertFalse($validate->indexedIterable($traversable));
+        static::assertFalse($validate->indexedIterable($nonTraversable));
+        static::assertTrue($validate->keyedIterable($array));
+        static::assertFalse($validate->keyedIterable($stdClass));
+        static::assertTrue($validate->keyedIterable($traversable));
+        static::assertFalse($validate->keyedIterable($nonTraversable));
+
+        static::assertFalse($validate->indexedLoopable($array));
+        static::assertFalse($validate->indexedLoopable($stdClass));
+        static::assertFalse($validate->indexedLoopable($traversable));
+        static::assertFalse($validate->indexedLoopable($nonTraversable));
+        static::assertTrue($validate->keyedLoopable($array));
+        static::assertTrue($validate->keyedLoopable($stdClass));
+        static::assertTrue($validate->keyedLoopable($traversable));
+        static::assertFalse($validate->keyedLoopable($nonTraversable));
+    }
+
+    public function testContainerSize()
+    {
+        $validate = $this->testInstantiation();
+
+        $array = [];
+        $stdClass = new \stdClass();
+        $traversable = new NoModelExplorable();
+        $nonTraversable = new Stringable();
+
+        static::assertFalse($validate->minSize($array, 1));
+        static::assertFalse($validate->minSize($stdClass, 1));
+        static::assertFalse($validate->minSize($traversable, 1));
+        static::assertFalse($validate->minSize($nonTraversable, 1));
+        static::assertTrue($validate->maxSize($array, 1));
+        static::assertTrue($validate->maxSize($stdClass, 1));
+        static::assertTrue($validate->maxSize($traversable, 1));
+        static::assertFalse($validate->maxSize($nonTraversable, 1));
+        static::assertFalse($validate->exactSize($array, 1));
+        static::assertFalse($validate->exactSize($stdClass, 1));
+        static::assertFalse($validate->exactSize($traversable, 1));
+        static::assertFalse($validate->exactSize($nonTraversable, 1));
+
+
+        $array[0] = 0;
+        $stdClass->{'0'} = 0;
+        $traversable->{'0'} = 0;
+        $nonTraversable->property = 0;
+
+        static::assertTrue($validate->minSize($array, 1));
+        static::assertTrue($validate->minSize($stdClass, 1));
+        static::assertTrue($validate->minSize($traversable, 1));
+        static::assertFalse($validate->minSize($nonTraversable, 1));
+        static::assertTrue($validate->maxSize($array, 1));
+        static::assertTrue($validate->maxSize($stdClass, 1));
+        static::assertTrue($validate->maxSize($traversable, 1));
+        static::assertFalse($validate->maxSize($nonTraversable, 1));
+        static::assertTrue($validate->exactSize($array, 1));
+        static::assertTrue($validate->exactSize($stdClass, 1));
+        static::assertTrue($validate->exactSize($traversable, 1));
+        static::assertFalse($validate->exactSize($nonTraversable, 1));
+
+
+        $array['one'] = 1;
+        $stdClass->{'one'} = 1;
+        $traversable->{'one'} = 1;
+
+        static::assertTrue($validate->minSize($array, 1));
+        static::assertTrue($validate->minSize($stdClass, 1));
+        static::assertTrue($validate->minSize($traversable, 1));
+        static::assertFalse($validate->minSize($nonTraversable, 1));
+        static::assertFalse($validate->maxSize($array, 1));
+        static::assertFalse($validate->maxSize($stdClass, 1));
+        static::assertFalse($validate->maxSize($traversable, 1));
+        static::assertFalse($validate->maxSize($nonTraversable, 1));
+        static::assertFalse($validate->exactSize($array, 1));
+        static::assertFalse($validate->exactSize($stdClass, 1));
+        static::assertFalse($validate->exactSize($traversable, 1));
+        static::assertFalse($validate->exactSize($nonTraversable, 1));
     }
 }

@@ -98,7 +98,7 @@ interface PatternRulesInterface
         'base64' => Type::STRINGABLE,
 
         // Datetimes cannot be int|float.
-        'dateISO' => Type::STRING_STRINGABLE_OBJECT,
+        'dateDateTimeISO' => Type::STRING_STRINGABLE_OBJECT,
         'dateISOLocal' => Type::STRING_STRINGABLE_OBJECT,
         'timeISO' => Type::STRING_STRINGABLE_OBJECT,
         'dateTimeISO' => Type::STRING_STRINGABLE_OBJECT,
@@ -153,7 +153,7 @@ interface PatternRulesInterface
         'snakeName' => 1,
         'lispName' => 1,
         'uuid' => 1,
-        'dateISO' => 1,
+        'dateDateTimeISO' => 1,
         'timeISO' => 1,
         'dateTimeISO' => 1,
         'dateTimeISOZonal' => 1,
@@ -168,7 +168,7 @@ interface PatternRulesInterface
      * @var string[]
      */
     public const PATTERN_RULES_RENAMED = [
-        'dateISO8601' => 'dateISO',
+        'dateISO8601' => 'dateDateTimeISO',
         'dateISO8601Local' => 'dateISOLocal',
         'timeISO8601' => 'timeISO',
         'dateTimeISO8601' => 'dateTimeISO',
@@ -271,7 +271,7 @@ interface PatternRulesInterface
 
     public function base64($subject) : bool;
 
-    public function dateISO($subject, int $subSeconds = -1) : bool;
+    public function dateDateTimeISO($subject, int $subSeconds = -1) : bool;
 
     public function dateISOLocal($subject) : bool;
 

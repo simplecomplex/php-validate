@@ -428,12 +428,12 @@ trait PatternRulesCheckedTrait
     /**
      * {@inheritDoc}
      */
-    public function dateISO($subject, int $subSeconds = -1) : bool
+    public function dateDateTimeISO($subject, int $subSeconds = -1) : bool
     {
         if (!$this->stringStringableObject($subject)) {
             return false;
         }
-        return parent::dateISO($subject, $subSeconds);
+        return parent::dateDateTimeISO($subject, $subSeconds);
     }
 
     /**

@@ -12,6 +12,7 @@ namespace SimpleComplex\Tests\Validate;
 use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Helper\Helper;
+use SimpleComplex\Tests\Validate\Entity\Stringable;
 
 /**
  * @code
@@ -24,7 +25,7 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ObjectTest extends TestCase
 {
     /**
-     * Test that all unextended classes are \stdClass, except anonymous classes.
+     * Test that all unextended Entity are \stdClass, except anonymous Entity.
      */
     public function testObjectType()
     {

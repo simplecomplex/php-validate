@@ -17,7 +17,8 @@
         "ext-mbstring": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8"
+        "phpunit/phpunit": "^8",
+        "simplecomplex/time": "^1"
     },
     "suggest": {
         "simplecomplex/inspect": "Great for logging; better variable dumps and traces."

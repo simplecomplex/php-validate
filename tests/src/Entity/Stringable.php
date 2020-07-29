@@ -1,9 +1,11 @@
 <?php
 
-namespace SimpleComplex\Tests\Validate;
+declare(strict_types=1);
+
+namespace SimpleComplex\Tests\Validate\Entity;
 
 /**
- * @package SimpleComplex\Tests\Validate
+ * @package SimpleComplex\Tests\Validate\Entity
  */
 class Stringable
 {

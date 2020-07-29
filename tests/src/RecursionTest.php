@@ -19,6 +19,8 @@ use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
+use SimpleComplex\Tests\Validate\Entity\Bicycle;
+
 /**
  * @code
  * // CLI, in document root:

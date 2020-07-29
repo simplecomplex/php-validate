@@ -58,6 +58,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   disorderly tampering.
 
 * unicodePrintable() now checks if unicode.
+* ISO-8601 date/datetime catchall renamed to dateDateTimeISO; from dateISO8601.
 * ISO-8601 date/time/datetime rules renamed; '8601' removed.
 
 * Deprecated ValidationRuleSet::ruleMethodsAvailable() removed.
