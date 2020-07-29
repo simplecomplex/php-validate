@@ -18,10 +18,12 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * All rule methods now return boolean. Thus these methods no longer return
   string on pass:  
   number, numeric, container, iterable, loopable, indexedIterable, keyedIterable, indexedLoopable, keyedLoopable.
-  
+
 * The 'loopable' pseudo-class now passes array|\stdClass|\Traversable;
   used to ignore \stdClass but pass any un-identifiable object that wasn't
   (non-\Traversable) \ArrayAccess.
+* empty/nonEmpty() now investigates \stdClass; no longer fool about with
+  un-identifiable object nor \ArrayAccess.
   
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].

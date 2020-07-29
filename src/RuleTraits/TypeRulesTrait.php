@@ -33,24 +33,26 @@ trait TypeRulesTrait
      */
 
     /**
-     * Subject is null, falsy or array|object is empty.
+     * Subject is falsy, or array or 'sizeable' object is empty.
      *
      * NB: Stringed zero - '0' - is _not_ empty.
-     *
-     * ArrayAccess that is neither Countable nor Traversable fails validation,
-     * because no means of accessing it's content.
      *
      * @param mixed $subject
      *
      * @return bool
+     *      False: is not empty, or is non-countable object.
      */
     public function empty($subject) : bool
     {
         if (!$subject) {
+            // Passes null|scalar|array.
             // Stringed zero - '0' - is not empty.
             return $subject !== '0';
         }
         if (is_object($subject)) {
+            if ($subject instanceof \stdClass) {
+                return !get_object_vars($subject);
+            }
             if ($subject instanceof \Countable) {
                 return !count($subject);
             }
@@ -64,36 +66,52 @@ trait TypeRulesTrait
                 }
                 return true;
             }
-            if ($subject instanceof \ArrayAccess) {
-                return false;
-            }
-            return !get_object_vars($subject);
+            // Non-countable object
+            return false;
         }
+        // Non-empty scalar|array, or resource.
         return false;
     }
 
     /**
-     * Subject is not falsy or array|object is non-empty.
+     * Subject is not falsy, or array or 'sizeable' object is not empty.
      *
      * NB: Stringed zero - '0' - _is_ non-empty.
-     *
-     * ArrayAccess that is neither Countable nor Traversable fails validation,
-     * because no means of accessing it's content.
      *
      * @param mixed $subject
      *
      * @return bool
+     *      False: is empty, or is non-countable object.
      */
     public function nonEmpty($subject) : bool
     {
-        // Have to check for enigmatic \ArrayAccess to prevent false positive.
-        if (
-            $subject instanceof \ArrayAccess
-            && !($subject instanceof \Countable) && !($subject instanceof \Traversable)
-        ) {
+        if (!$subject) {
+            // Fails null|scalar|array.
+            // Stringed zero - '0' - is not empty.
+            return $subject === '0';
+        }
+        if (is_object($subject)) {
+            if ($subject instanceof \stdClass) {
+                return !!get_object_vars($subject);
+            }
+            if ($subject instanceof \Countable) {
+                return !!count($subject);
+            }
+            if ($subject instanceof \Traversable) {
+                // No need to check/use ArrayObject|ArrayIterator, because
+                // those are both Countable (checked before this check).
+
+                // Have to iterate; horrible.
+                foreach ($subject as $ignore) {
+                    return true;
+                }
+                return false;
+            }
+            // Non-countable object
             return false;
         }
-        return !$this->empty($subject);
+        // Non-empty scalar|array, or resource.
+        return true;
     }
 
 
@@ -278,7 +296,7 @@ trait TypeRulesTrait
         $negative = $w_num == $w - 1;
 
         if (ctype_digit($num)) {
-            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -292,7 +310,7 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
-            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -331,7 +349,17 @@ trait TypeRulesTrait
         if (!$w_int || $w_int < $w - 1) {
             return false;
         }
-        return ctype_digit('' . $int);
+        $negative = $w_int == $w - 1;
+
+        if (ctype_digit($int)) {
+            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -364,7 +392,7 @@ trait TypeRulesTrait
         $negative = $w_num == $w - 1;
 
         if (ctype_digit($num)) {
-            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
                 // Minus zero is unhealthy.
                 return false;
             }
@@ -379,7 +407,7 @@ trait TypeRulesTrait
             && $w_int == $w_num - 1
             && ctype_digit($int)
         ) {
-            if ($negative && !static::RULE_FLAGS['DECIMAL_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+            if ($negative && !static::RULE_FLAGS['NUMERIC_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
                 // Minus zero is unhealthy.
                 return false;
             }

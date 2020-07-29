@@ -72,10 +72,8 @@ class ValidateTest extends TestCase
         $o[0] = 0;
         static::assertFalse($validate->empty($o));
 
-//        $o = new EmptyExplorable();
-//        static::assertTrue($validate->empty($o));
-//        $o = new NonEmptyExplorable();
-//        static::assertFalse($validate->empty($o));
+        $o = new Stringable();
+        static::assertFalse($validate->empty($o));
     }
 
     /**
@@ -112,10 +110,8 @@ class ValidateTest extends TestCase
         $o[0] = 0;
         static::assertTrue($validate->nonEmpty($o));
 
-//        $o = new EmptyExplorable();
-//        static::assertFalse($validate->nonEmpty($o));
-//        $o = new NonEmptyExplorable();
-//        static::assertTrue($validate->nonEmpty($o));
+        $o = new Stringable();
+        static::assertFalse($validate->nonEmpty($o));
     }
 
     public function testNull()
@@ -298,13 +294,13 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->number(false));
         static::assertFalse($validate->number(true));
 
-        static::assertSame('integer', $validate->number(0));
-        static::assertSame('float', $validate->number(0.0));
-        static::assertSame('integer', $validate->number(1));
-        static::assertSame('float', $validate->number(1.0));
-        static::assertSame('integer', $validate->number(PHP_INT_MAX));
+        static::assertTrue($validate->number(0));
+        static::assertTrue($validate->number(0.0));
+        static::assertTrue($validate->number(1));
+        static::assertTrue($validate->number(1.0));
+        static::assertTrue($validate->number(PHP_INT_MAX));
         if (defined('PHP_FLOAT_MAX')) {
-            static::assertSame('float', $validate->number(constant('PHP_FLOAT_MAX')));
+            static::assertTrue($validate->number(constant('PHP_FLOAT_MAX')));
         }
         static::assertFalse($validate->number('0'));
         static::assertFalse($validate->number('a'));
@@ -388,26 +384,26 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->digital('.1'));
         static::assertFalse($validate->digital('0.1'));
         static::assertFalse($validate->digital('-0'));
-        static::assertFalse($validate->digital(-100));
-        static::assertFalse($validate->digital('-1'));
+        static::assertTrue($validate->digital(-100));
+        static::assertTrue($validate->digital('-1'));
 
         static::assertFalse($validate->numeric(''));
-        static::assertSame('integer', $validate->numeric(0));
-        static::assertSame('integer', $validate->numeric(1));
-        static::assertSame('integer', $validate->numeric('0'));
-        static::assertSame('integer', $validate->numeric('1'));
-        static::assertSame('float', $validate->numeric(0.0));
-        static::assertSame('float', $validate->numeric(0.1));
-        static::assertSame('float', $validate->numeric('.0'));
-        static::assertSame('float', $validate->numeric('0.0'));
-        static::assertSame('float', $validate->numeric('.1'));
-        static::assertSame('float', $validate->numeric('0.1'));
-        static::assertSame('float', $validate->numeric('1.'));
-        static::assertSame('float', $validate->numeric('0.'));
+        static::assertTrue($validate->numeric(0));
+        static::assertTrue($validate->numeric(1));
+        static::assertTrue($validate->numeric('0'));
+        static::assertTrue($validate->numeric('1'));
+        static::assertTrue($validate->numeric(0.0));
+        static::assertTrue($validate->numeric(0.1));
+        static::assertTrue($validate->numeric('.0'));
+        static::assertTrue($validate->numeric('0.0'));
+        static::assertTrue($validate->numeric('.1'));
+        static::assertTrue($validate->numeric('0.1'));
+        static::assertTrue($validate->numeric('1.'));
+        static::assertTrue($validate->numeric('0.'));
         static::assertFalse($validate->numeric('-0'));
         static::assertFalse($validate->numeric('-0.0'));
-        static::assertSame('integer', $validate->numeric(-1));
-        static::assertSame('integer', $validate->numeric('-1'));
+        static::assertTrue($validate->numeric(-1));
+        static::assertTrue($validate->numeric('-1'));
         static::assertFalse($validate->numeric('+1'));
         static::assertFalse($validate->numeric(' +1'));
         static::assertFalse($validate->numeric('+ 1'));
