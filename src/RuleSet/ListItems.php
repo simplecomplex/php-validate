@@ -204,7 +204,7 @@ class ListItems
         }
         else {
             $mods_found = [];
-            foreach (static::MODIFIERS as $mod) {
+            foreach (array_keys(static::MODIFIERS) as $mod) {
                 if (property_exists($listItems, $mod)) {
                     $mods_found[] = $mod;
                 }

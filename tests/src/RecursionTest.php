@@ -70,44 +70,174 @@ class RecursionTest extends TestCase
         return $json;
     }
 
+    protected function sampleAddress()
+    {
+        return [
+            'streetName' => 'Any Street',
+            'streetBuilding' => '7A',
+            'municipalityName' => 'Any Municipality',
+        ];
+    }
+
+    protected function samplePerson()
+    {
+        return [
+            'personName' => 'Firstname Surname',
+            'personAddress' => $this->sampleAddress(),
+        ];
+    }
+
+    protected function sampleBusiness(int $numberOfOwners = 0)
+    {
+        $business = [
+            'businessName' => 'Rocket Science',
+            'country' => 'Nowhereland',
+        ];
+        if ($numberOfOwners < 1) {
+            return $business;
+        }
+        if ($numberOfOwners == 1) {
+            // Object.
+            $business['ownership'] = $this->samplePerson();
+            //unset($business['ownership']['personAddress']['streetName']);
+        }
+        else {
+            // List of objects.
+            $business['ownership'] = array_fill(0, $numberOfOwners, $this->samplePerson());
+            //unset($business['ownership'][1]['personAddress']['streetName']);
+        }
+        return $business;
+    }
+
     /**
      * @throws ValidationException
      */
-    public function testRuleSetAddress()
+    public function testRuleSetAddress() : ?ValidationRuleSet
     {
         $validator = $this->testInstantiateUncheckedValidator();
         $factory = new RuleSetFactory($validator);
 
-        $source_address = Helper::parseJsonString(static::getRuleSetJSON('Address'));
-        static::assertIsObject($source_address);
+        $source = Helper::parseJsonString(static::getRuleSetJSON('Address'));
+        static::assertIsObject($source);
 
-        $ruleSet_address = $factory->make($source_address);
+        $ruleSet_address = $factory->make($source);
         static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_address);
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_address)->log();
-
-        $address = [
-            'streetName' => 'Any Street',
-            'streetBuilding' => '7A',
-            //'streetBuilding' => 7,
-            //'streetBuilding' => [],
-            'municipalityName' => 'Any Municipality',
-        ];
-
-        $valid = $validator->challenge($address, $ruleSet_address, static::CHALLENGE_MODE);
-        if (!$valid && static::CHALLENGE_MODE) {
-            error_log("\n" . $validator->getLastFailure() . "\n");
+        if (!($ruleSet_address instanceof ValidationRuleSet)) {
+            return null;
         }
-        static::assertTrue($valid);
 
-        $source_person = Helper::parseJsonString(static::getRuleSetJSON('Person'));
-        static::assertIsObject($source_person);
-        //
-        $source_person->tableElements->address = $source_address;
+        $valid = $validator->challenge($this->sampleAddress(), $ruleSet_address, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
+        }
+        static::assertTrue($valid, 'Challenge Address');
 
-        $ruleSet_person = $factory->make($source_person);
-        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_person);
-        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_person)->log();
-
+        return $ruleSet_address;
     }
+
+    /**
+     * @return ValidationRuleSet|null
+     *
+     * @throws ValidationException
+     */
+    public function testRuleSetPerson() : ?ValidationRuleSet
+    {
+        $validator = $this->testInstantiateUncheckedValidator();
+        $factory = new RuleSetFactory($validator);
+
+        $ruleSet_address = $this->testRuleSetAddress();
+        if (!$ruleSet_address) {
+            static::assertTrue(true);
+            return null;
+        }
+
+        $source = Helper::parseJsonString(static::getRuleSetJSON('Person'));
+        static::assertIsObject($source);
+
+        $ruleSet_person = $factory->make($source);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_person)->log();
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_person);
+        if (!($ruleSet_person instanceof ValidationRuleSet)) {
+            return null;
+        }
+
+        // Replace child dummy Address ruleset.
+        // Replace Person.tableElements...
+        $ruleSet_tampered = $ruleSet_person->replaceTableElements(
+            // ...with TableElements whose 'address' element has been replaced...
+            $ruleSet_person->tableElements->setElementRuleSet(
+                'personAddress',
+                // ...with real Address ruleset.
+                $ruleSet_address
+            )
+        );
+        // Same as above, but simpler.
+        $ruleSet_tampered = $ruleSet_person->replaceTableElementsKeyRuleSet('personAddress', $ruleSet_address);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_tampered)->log();
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_tampered);
+        if (!($ruleSet_tampered instanceof ValidationRuleSet)) {
+            return null;
+        }
+
+        $valid = $validator->challenge($this->samplePerson(), $ruleSet_tampered, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
+        }
+        static::assertTrue($valid, 'Challenge Person');
+
+        return $ruleSet_tampered;
+    }
+
+    /**
+     * @return ValidationRuleSet|null
+     *
+     * @throws ValidationException
+     */
+    public function testRuleSetBusiness() : ?ValidationRuleSet
+    {
+        $validator = $this->testInstantiateUncheckedValidator();
+        $factory = new RuleSetFactory($validator);
+
+        $ruleSet_person = $this->testRuleSetPerson();
+        if (!$ruleSet_person) {
+            static::assertTrue(true);
+            return null;
+        }
+
+        $source = Helper::parseJsonString(static::getRuleSetJSON('Business_verbatim'));
+        static::assertIsObject($source);
+
+        $ruleSet_business = $factory->make($source);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_business)->log();
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_business);
+        if (!($ruleSet_business instanceof ValidationRuleSet)) {
+            return null;
+        }
+
+        // No ownership bucket.
+        $valid = $validator->challenge($this->sampleBusiness(), $ruleSet_business, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
+        }
+        static::assertTrue($valid, 'Challenge Business - no owner');
+
+        // Single ownership - an object.
+        $valid = $validator->challenge($this->sampleBusiness(1), $ruleSet_business, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
+        }
+        static::assertTrue($valid, 'Challenge Business - single owner');
+
+        // Multiple ownerships - a list of objects.
+        $valid = $validator->challenge($this->sampleBusiness(2), $ruleSet_business, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
+        }
+        static::assertTrue($valid, 'Challenge Business - multiple owners');
+
+        return $ruleSet_business;
+    }
+
 
 }

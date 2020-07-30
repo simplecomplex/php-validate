@@ -185,7 +185,7 @@ class ValidationRuleSet
     }
 
     /**
-     * Replace existing tableElements rule with new.
+     * Replace existing tableElements pseudo-rule with new.
      *
      * Adding or removing isn't legal, because that could affect the validation
      * ruleset as a whole in an unforeseeable manner.
@@ -195,7 +195,7 @@ class ValidationRuleSet
      * @param TableElements $tableElements
      *
      * @return self
-     *      New TableElements; is immutable.
+     *      New ValidationRuleSet; is immutable.
      *
      * @throws InvalidRuleException
      *      The ruleset doesn't already contain tableElements.
@@ -208,7 +208,71 @@ class ValidationRuleSet
             return $that;
         }
         throw new InvalidRuleException(
-            'Cannot replace tableElements of a ruleset that doesn\'t already have tableElements.'
+            'Cannot replace tableElements of ruleset that doesn\'t already have tableElements.'
+        );
+    }
+
+    /**
+     * Replace ruleset of key in child tableElements.
+     *
+     * Convenience method, instead of counter-intuitive immutable calls:
+     * (new parent ruleset) = (parent ruleset)->replaceTableElements(
+     *     (parent ruleset)->tableElements->setElementRuleSet(
+     *         'key',
+     *         (replacer child ruleset)
+     *     )
+     * )
+     *
+     * @param string $key
+     * @param ValidationRuleSet $ruleSet
+     *
+     * @return self
+     *      New ValidationRuleSet; is immutable.
+     */
+    public function replaceTableElementsKeyRuleSet(string $key, ValidationRuleSet $ruleSet) : self
+    {
+        if (isset($this->rules['tableElements'])) {
+            $that = clone $this;
+            /** @var TableElements $tableElements */
+            $tableElements = $that->rules['tableElements'];
+            if (!$tableElements->getElementRuleSet($key)) {
+                throw new InvalidArgumentException(
+                    'Cannot replace ruleset in tableElements because the tableElements has no key[' . $key . '].'
+                );
+            }
+            $that->rules['tableElements'] = $tableElements->setElementRuleSet($key, $ruleSet);
+            return $that;
+        }
+        throw new InvalidRuleException(
+            'Cannot replace ruleset in tableElements of ruleset that doesn\'t have tableElements.'
+        );
+    }
+
+    /**
+     * Replace existing listItems pseudo-rule with new.
+     *
+     * Adding or removing isn't legal, because that could affect the validation
+     * ruleset as a whole in an unforeseeable manner.
+     * Use the generator instead.
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator
+     *
+     * @param ListItems $listItems
+     *
+     * @return self
+     *      New ValidationRuleSet; is immutable.
+     *
+     * @throws InvalidRuleException
+     *      The ruleset doesn't already contain listItems.
+     */
+    public function replaceListItems(ListItems $listItems) : self
+    {
+        if (isset($this->rules['listItems'])) {
+            $that = clone $this;
+            $that->rules['listItems'] = $listItems;
+            return $that;
+        }
+        throw new InvalidRuleException(
+            'Cannot replace listItems of ruleset that doesn\'t already have listItems.'
         );
     }
 

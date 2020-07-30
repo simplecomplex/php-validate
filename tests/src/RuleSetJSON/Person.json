@@ -1,15 +1,15 @@
 {
     "loopable": true,
     "tableElements": {
-        "name": {
+        "personName": {
             "string": true,
             "nonEmpty": true,
             "unicodePrintable": true
         },
-        "address": {
+        "personAddress": {
             "tableElements": {
-                "replace-with-Address": {
-                    "optional": true
+                "dummy_replace-with-Address": {
+                    "string": true
                 }
             }
         }

@@ -186,7 +186,7 @@ interface RuleProviderInterface
     /**
      * Checks for equality against a list of scalar|null values.
      *
-     * Implementation is free to forbid (fail on) float.
+     * Implementation is free to forbid (fail on) float and/or null.
      *
      * Method expected by recursive validator, for alternativeEnum.
      * @see ValidateAgainstRuleSet::internalChallenge()
@@ -206,20 +206,17 @@ interface RuleProviderInterface
     public function enum($subject, array $allowedValues) : bool;
 
     /**
-     * Array or Traversable object, or non-Traversable non-ArrayAccess object.
+     * Empty or indexed array|\Traversable.
      *
-     * 'arrayAccess' is a Traversable ArrayAccess object.
-     *
-     * Method expected by recursive validator, for tableElements, listItems.
+     * Method expected by recursive validator, when a ruleset contains
+     * both tableElements and listItems.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param mixed $subject
      *
-     * @return string|bool
-     *      String (array|arrayAccess|traversable|object) on pass,
-     *      boolean false on validation failure.
+     * @return bool
      *
-     * @see TypeRulesTrait::loopable()
+     * @see TypeRulesTrait::indexedIterable()
      */
-    public function loopable($subject);
+    public function indexedIterable($subject);
 }

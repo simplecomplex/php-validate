@@ -940,6 +940,7 @@ trait TypeRulesTrait
                 return true;
             }
             if ($subject instanceof \ArrayObject || $subject instanceof \ArrayIterator) {
+                // \Countable, but apparantly not empty.
                 $keys = array_keys($subject->getArrayCopy());
             }
             else {
@@ -948,10 +949,10 @@ trait TypeRulesTrait
                 foreach ($subject as $k => $ignore) {
                     $keys[] = $k;
                 }
-            }
-            if (!$keys) {
-                // Empty is always true.
-                return true;
+                if (!$keys) {
+                    // Empty is always true.
+                    return true;
+                }
             }
             return ctype_digit(join('', $keys)) ? (!$keyed) : $keyed;
         }

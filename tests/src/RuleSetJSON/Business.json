@@ -1,123 +1,31 @@
 {
-    "name": {
-        "string": true,
-        "nonEmpty": true,
-        "unicodePrintable": true
-    },
-    "country": {
-        "string": true,
-        "unicodePrintable": true
-    },
-    "owner": {
-        "optional": true,
-        "container": true,
-        // One Person.
-        "tableElements": {
-            "name": {
-                "string": true,
-                "nonEmpty": true,
-                "unicodePrintable": true
-            },
-            "address": {
-                "streetName": {
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true
-                },
-                "streetBuilding": {
-                    "optional": true,
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true,
-                    "alternativeRuleSet": {
-                        "integer": true,
-                        "positive": true
-                    }
-                },
-                "floor": {
-                    "optional": true,
-                    "digital": true,
-                    "alternativeRuleSet": {
-                        "string": true,
-                        "nonEmpty": true,
-                        "unicodePrintable": true
-                    }
-                },
-                "floorLocation": {
-                    "optional": true,
-                    "nullable": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "postCode": {
-                    "optional": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "district": {
-                    "optional": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "municipalityName": {
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true
-                }
-            }
+    "loopable": true,
+    "tableElements": {
+        "businessName": {
+            "string": true,
+            "nonEmpty": true,
+            "unicodePrintable": true
         },
-        // List of Persons.
-        "listItems": {
-            "name": {
-                "string": true,
-                "nonEmpty": true,
-                "unicodePrintable": true
+        "country": {
+            "string": true,
+            "unicodePrintable": true
+        },
+        "ownership": {
+            "optional": true,
+            "container": true,
+            // One Person.
+            "tableElements": {
+                "dummy_replace-with-Person": {
+                    "string": true
+                }
             },
-            "address": {
-                "streetName": {
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true
-                },
-                "streetBuilding": {
-                    "optional": true,
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true,
-                    "alternativeRuleSet": {
-                        "integer": true,
-                        "positive": true
+            // List of Persons.
+            "listItems": {
+                "loopable": true,
+                "tableElements": {
+                    "dummy_replace-with-Person": {
+                        "string": true
                     }
-                },
-                "floor": {
-                    "optional": true,
-                    "digital": true,
-                    "alternativeRuleSet": {
-                        "string": true,
-                        "nonEmpty": true,
-                        "unicodePrintable": true
-                    }
-                },
-                "floorLocation": {
-                    "optional": true,
-                    "nullable": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "postCode": {
-                    "optional": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "district": {
-                    "optional": true,
-                    "string": true,
-                    "unicodePrintable": true
-                },
-                "municipalityName": {
-                    "string": true,
-                    "nonEmpty": true,
-                    "unicodePrintable": true
                 }
             }
         }

@@ -16,6 +16,40 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
  */
 class Helper
 {
+    /**
+     * Get subject class name or (non-object) type.
+     *
+     * Counter to native gettype() this method returns:
+     * - class name instead of 'object'
+     * - 'float' instead of 'double'
+     * - 'null' instead of 'NULL'
+     *
+     * Like native gettype() this method returns:
+     * - 'boolean' not 'bool'
+     * - 'integer' not 'int'
+     * - 'resource (closed)'
+     * - 'unknown type' for unknown type
+     *
+     * @param mixed $subject
+     *
+     * @return string
+     */
+    public static function getType($subject)
+    {
+        if (!is_object($subject)) {
+            $type = gettype($subject);
+            switch ($type) {
+                case 'double':
+                    return 'float';
+                case 'NULL':
+                    return 'null';
+                default:
+                    return $type;
+            }
+        }
+        return get_class($subject);
+    }
+
 //    /**
 //     * For listing public properties within method of object self.
 //     *
@@ -87,40 +121,6 @@ class Helper
     }
 
     /**
-     * Get subject class name or (non-object) type.
-     *
-     * Counter to native gettype() this method returns:
-     * - class name instead of 'object'
-     * - 'float' instead of 'double'
-     * - 'null' instead of 'NULL'
-     *
-     * Like native gettype() this method returns:
-     * - 'boolean' not 'bool'
-     * - 'integer' not 'int'
-     * - 'resource (closed)'
-     * - 'unknown type' for unknown type
-     *
-     * @param mixed $subject
-     *
-     * @return string
-     */
-    public static function getType($subject)
-    {
-        if (!is_object($subject)) {
-            $type = gettype($subject);
-            switch ($type) {
-                case 'double':
-                    return 'float';
-                case 'NULL':
-                    return 'null';
-                default:
-                    return $type;
-            }
-        }
-        return get_class($subject);
-    }
-
-    /**
      * Removes line comments that begin at line start
      * or before any code in line.
      *
@@ -168,5 +168,16 @@ class Helper
             );
         }
         return $parsed;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function removeNamespace(string $name) : string
+    {
+        $pos = strrpos($name, '\\');
+        return $pos || $pos === 0 ? substr($name, $pos + 1) : $name;
     }
 }

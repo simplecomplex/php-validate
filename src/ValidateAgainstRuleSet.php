@@ -402,19 +402,21 @@ class ValidateAgainstRuleSet
          * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
          */
 
-        // If tableElements pass then listItems will be ignored.
         if ($tableElements) {
-            $passed = $this->tableElements($subject, $tableElements, $depth, $keyPath);
-            if ($passed) {
-                return true;
+            // Checking tableElements AND listItems is not viable, because would
+            // be quite obscure what's actually being tested (certainly failure
+            // messages become very weird, seen that).
+            // So if indexed iterable (~ a true array in other languages), then
+            // listItems; otherwise tableElements.
+            if ($listItems
+                && $this->ruleProvider->indexedIterable($subject)
+            ) {
+                return $this->listItems($subject, $listItems, $depth, $keyPath);
             }
-            if (!$listItems) {
-                return false;
-            }
+            return $this->tableElements($subject, $tableElements, $depth, $keyPath);
         }
 
-        $passed = $this->listItems($subject, $listItems, $depth, $keyPath);
-        return $passed;
+        return $this->listItems($subject, $listItems, $depth, $keyPath);
     }
 
     /**

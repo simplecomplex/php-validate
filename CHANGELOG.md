@@ -39,8 +39,9 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * regex() no longers passes boolean subject, no matter what pattern provided.
 * numeric() no longer passes stringed negative zero.
 
-* tableElements, listItems combined is legal, but if tableElements pass then
-  listItems won't be used/checked.
+* tableElements, listItems combined is legal, but only one will be used;   
+  if subject is numerically indexed array/Traversable object then listItems,
+  otherwise tableElements.
 
 * Recursive validation (ValidateAgainstRuleSet) now iterates tableElements
   by subject buckets (instead of tableElements.rulesByElements), and then checks
