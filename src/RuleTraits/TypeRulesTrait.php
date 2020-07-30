@@ -566,7 +566,7 @@ trait TypeRulesTrait
     }
 
     /**
-     * Anonymous object.
+     * Anonymous class.
      *
      * Is in effect extending class (object not \stdClass) with bad class name.
      *
