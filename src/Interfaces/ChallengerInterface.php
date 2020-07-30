@@ -72,7 +72,9 @@ interface ChallengerInterface extends RuleProviderInterface
     /**
      * Get failure(s) recorded by last recording challenge.
      *
-     * @return string[]
+     * @param string $delimiter
+     *
+     * @return string
      */
-    public function getLastFailure() : array;
+    public function getLastFailure(string $delimiter = PHP_EOL) : string;
 }

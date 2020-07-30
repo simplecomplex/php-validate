@@ -377,10 +377,26 @@ class TableElements
     }
 
     /**
+     * Sparse info only, skips keys and skips empty modifiers.
+     * And if no modifiers, lists rulesByElements directly
+     * instead of in a rulesByElements bucket.
+     *
      * @return array
      */
     public function __debugInfo() : array
     {
-        return get_object_vars($this);
+        // return get_object_vars($this);
+        $a = [];
+        // Ignore $keys.
+        foreach (array_keys(static::MODIFIERS) as $modifier) {
+            if ($this->{$modifier}) {
+                $a[$modifier] = $this->{$modifier};
+            }
+        }
+        if (!$a) {
+            return $this->rulesByElements;
+        }
+        $a['rulesByElements'] = $this->rulesByElements;
+        return $a;
     }
 }

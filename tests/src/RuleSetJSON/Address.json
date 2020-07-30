@@ -1,0 +1,50 @@
+{
+    "loopable": true,
+    "tableElements": {
+        "streetName": {
+            "string": true,
+            "nonEmpty": true,
+            "unicodePrintable": true
+        },
+        "streetBuilding": {
+            "optional": true,
+            "string": true,
+            "nonEmpty": true,
+            "unicodePrintable": true,
+            "alternativeRuleSet": {
+                "integer": true,
+                "positive": true
+            }
+        },
+        "floor": {
+            "optional": true,
+            "digital": true,
+            "alternativeRuleSet": {
+                "string": true,
+                "nonEmpty": true,
+                "unicodePrintable": true
+            }
+        },
+        "floorLocation": {
+            "optional": true,
+            "nullable": true,
+            "string": true,
+            "unicodePrintable": true
+        },
+        "postCode": {
+            "optional": true,
+            "string": true,
+            "unicodePrintable": true
+        },
+        "district": {
+            "optional": true,
+            "string": true,
+            "unicodePrintable": true
+        },
+        "municipalityName": {
+            "string": true,
+            "nonEmpty": true,
+            "unicodePrintable": true
+        }
+    }
+}

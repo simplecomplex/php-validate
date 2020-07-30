@@ -11,6 +11,9 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
+use SimpleComplex\Validate\Exception\ValidationException;
+use SimpleComplex\Validate\Helper\Helper;
+
 use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\Interfaces\ChallengerInterface;
 use SimpleComplex\Validate\UncheckedValidator;
@@ -20,6 +23,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
 use SimpleComplex\Tests\Validate\Entity\Bicycle;
+use SimpleComplex\Tests\Validate\RuleSetPHP\BicycleRuleSets;
 
 /**
  * @code
@@ -31,165 +35,79 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
  */
 class RecursionTest extends TestCase
 {
+    protected const RULESET_JSON_PATH = '/RuleSetJSON';
+
+    protected const CHALLENGE_MODE = ChallengerInterface::RECORD | ChallengerInterface::CONTINUE;
+
     /**
      * @return AbstractValidator
      */
-    public function testInstantiation()
+    public function testInstantiateUncheckedValidator()
     {
-        $validate = UncheckedValidator::getInstance();
-        static::assertInstanceOf(UncheckedValidator::class, $validate);
-        $validate = Validator::getInstance();
-        static::assertInstanceOf(Validator::class, $validate);
-        static::assertNotInstanceOf(UncheckedValidator::class, $validate);
-        $validate = UncheckedValidator::getInstance();
-        static::assertInstanceOf(UncheckedValidator::class, $validate);
-        static::assertNotInstanceOf(Validator::class, $validate);
-
-//        $validate = new UncheckedValidator();
-//        static::assertInstanceOf(UncheckedValidator::class, $validate);
-        return $validate;
+        $validator = UncheckedValidator::getInstance();
+        static::assertInstanceOf(UncheckedValidator::class, $validator);
+        return $validator;
     }
 
     /**
-     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     * @return AbstractValidator
      */
-    public function testRuleSetBicycleOriginal()
+    public function testInstantiateValidator()
     {
-        $validate = $this->testInstantiation();
+        $validator = Validator::getInstance();
+        static::assertInstanceOf(Validator::class, $validator);
+        return $validator;
+    }
 
-        $source = BicycleRuleSets::original();
+    protected static function getRuleSetJSON(string $name)
+    {
+        $file = realpath(dirname(__FILE__) . '/' . static::RULESET_JSON_PATH) . '/' . $name . '.json';
+        static::assertFileExists($file, dirname(__FILE__) . '/' . static::RULESET_JSON_PATH . '/' . $name . '.json');
 
-        $ruleSet = (new RuleSetFactory($validate))->make($source);
-        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-
-        $bike = new Bicycle(
-            2,
-            true,
-            'swooshy',
-            [
-                'luggageCarrier' => false,
-            ],
-            null
-        );
-        $bike->unspecified_1 = 'sneaky';
-        $bike->unspecified_2 = 'stealthy';
-
-//        // Fail, because 'class' rule missing namespace.
-//        $valid = $validate->challenge($bike, $ruleSet);
-//        if (!$valid) {
-//            $record = $validate->challengeRecording($bike, $ruleSet);
-//            if (!$record['passed']) {
-//                error_log(join("\n", $record['record']));
-//            }
-//        }
-//        static::assertFalse($valid);
-//
-//        if (isset($ruleSet->class)) {
-//            // unqualified class name.
-//            $ruleSet->class[] = true;
-//        }
-//        $valid = $validate->challenge($bike, $ruleSet);
-//        static::assertTrue($valid);
-
-        $bike->accessories = [
-            'lights' => 'not numeric',
-            false,
-            true,
-            'paint',
-            13,
-            'rubbish',
-            //'luggageCarrier' => 'handy',
-        ];
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-
-        // Wrong, not array listItems string|bool.
-        $bike->various = [8];
-
-        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD);
-        if (!$valid) {
-            error_log(__LINE__ . ': pre-converted, no continue:' . "\n" . join("\n", $validate->getLastFailure()));
-        }
-
-        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
-        if (!$valid) {
-            error_log(__LINE__ . ': pre-converted:' . "\n" . join("\n", $validate->getLastFailure()));
-        }
-        static::assertTrue($valid, __LINE__ . ': pre-converted');
-
-        $valid = $validate->challenge($bike, $source);
-//        $record = $validate->challengeRecording($bike, $source);
-//        if (!$record['passed']) {
-//            error_log('runtime converted:' . "\n" . join("\n", $record['record']));
-//        }
-        static::assertFalse($valid, 'runtime converted');
+        $json = file_get_contents($file);
+        static::assertIsString($json, $file);
+        static::assertNotEmpty($json, $file);
+        return $json;
     }
 
     /**
-     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     * @throws ValidationException
      */
-    public function testRuleSetNumericIndexString()
+    public function testRuleSetAddress()
     {
-        $validate = $this->testInstantiation();
+        $validator = $this->testInstantiateUncheckedValidator();
+        $factory = new RuleSetFactory($validator);
 
-        $source = BicycleRuleSets::numericIndex();
+        $source_address = Helper::parseJsonString(static::getRuleSetJSON('Address'));
+        static::assertIsObject($source_address);
 
-        $ruleSet = (new RuleSetFactory($validate))->make($source);
-        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet);
+        $ruleSet_address = $factory->make($source_address);
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_address);
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_address)->log();
 
-        $rule_set = $ruleSet->replaceTableElements(
-            $ruleSet->tableElements->setElementRuleSet(
-                'accessories',
-                $ruleSet->tableElements->getElementRuleSet('accessories')
-                    ->replaceTableElements(
-                        $ruleSet->tableElements->getElementRuleSet('accessories')->tableElements
-                            ->setElementRuleSet('whatever', $ruleSet)
-                    )
-            )
-        );
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($rule_set)->log();
-
-//        $tableElements_accessories = $ruleSet->tableElements->getElementRuleSet('accessories')->tableElements
-//            ->setElementRuleSet('whatever', $ruleSet);
-//        //$ruleSet->tableElements->rulesByElements['accessories']->tableElements = $tableElements;
-//        //$ruleSet->tableElements->rulesByElements['accessories']['whatever'] = true;
-//        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-////        $tableElements = $tableElements->setElementRuleSet('whatever', $ruleSet);
-//        $ruleSet->tableElements->getElementRuleSet('accessories')->replaceTableElements($tableElements);
-//
-//        $ruleSet = $ruleSet->replaceTableElements($tableElements);
-//
-//        //$ruleSet =
-
-
-
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-
-        $bike = new Bicycle(
-            null,
-            true,
-            'swooshy',
-            [
-                'luggageCarrier' => false,
-            ],
-            null
-        );
-
-//        unset($bike->saddle);
-//        $bike->sound = false;
-
-        $bike->accessories = [
-            'whatever',
+        $address = [
+            'streetName' => 'Any Street',
+            'streetBuilding' => '7A',
+            //'streetBuilding' => 7,
+            //'streetBuilding' => [],
+            'municipalityName' => 'Any Municipality',
         ];
-        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
-        $valid = $validate->challenge($bike, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
-        if (!$valid) {
-            //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
-            error_log(__LINE__ . ': pre-converted:' . "\n" . join("\n", $validate->getLastFailure()));
+        $valid = $validator->challenge($address, $ruleSet_address, static::CHALLENGE_MODE);
+        if (!$valid && static::CHALLENGE_MODE) {
+            error_log("\n" . $validator->getLastFailure() . "\n");
         }
-        static::assertTrue($valid, 'le pre-converted');
-    }
+        static::assertTrue($valid);
 
+        $source_person = Helper::parseJsonString(static::getRuleSetJSON('Person'));
+        static::assertIsObject($source_person);
+        //
+        $source_person->tableElements->address = $source_address;
+
+        $ruleSet_person = $factory->make($source_person);
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_person);
+        \SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_person)->log();
+
+    }
 
 }

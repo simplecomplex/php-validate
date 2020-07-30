@@ -86,6 +86,16 @@ class ListItems
     /**
      * @param string $key
      *
+     * @return bool
+     */
+    public function __isset(string $key)
+    {
+        return isset($this->{$key});
+    }
+
+    /**
+     * @param string $key
+     *
      * @return mixed
      *
      * @throws InvalidArgumentException
@@ -95,6 +105,7 @@ class ListItems
         if (isset($this->{$key})) {
             return $this->{$key};
         }
+        // Exception because user should know what to look for.
         throw new InvalidArgumentException(get_class($this) . ' instance exposes no property[' . $key . '].');
     }
 

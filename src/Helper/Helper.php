@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Helper;
 
+use SimpleComplex\Validate\Exception\InvalidRuleException;
+
 /**
  * @package SimpleComplex\Validate
  */
@@ -116,5 +118,55 @@ class Helper
             }
         }
         return get_class($subject);
+    }
+
+    /**
+     * Removes line comments that begin at line start
+     * or before any code in line.
+     *
+     * Also remove carriage return.
+     *
+     * @param string $json
+     * @param bool $assoc
+     *
+     * @return mixed
+     *
+     * @throws InvalidRuleException
+     *      On parse failure.
+     */
+    public static function parseJsonString(string $json, bool $assoc = false) {
+        if ($json) {
+            // Remove line comments that begin at line start
+            // or before any code in line.
+            $json = trim(
+                preg_replace(
+                    '/\n[ ]*\/\/[^\n]*/m',
+                    '',
+                    "\n" . str_replace("\r", '', $json)
+                )
+            );
+        }
+        $parsed = json_decode($json, $assoc);
+        $error = json_last_error();
+        if ($error) {
+            switch ($error) {
+                case JSON_ERROR_NONE: $name = 'NONE'; break;
+                case JSON_ERROR_DEPTH: $name = 'DEPTH'; break;
+                case JSON_ERROR_STATE_MISMATCH: $name = 'STATE_MISMATCH'; break;
+                case JSON_ERROR_CTRL_CHAR: $name = 'CTRL_CHAR'; break;
+                case JSON_ERROR_SYNTAX: $name = 'SYNTAX'; break;
+                case JSON_ERROR_UTF8: $name = 'UTF8'; break;
+                case JSON_ERROR_RECURSION: $name = 'RECURSION'; break;
+                case JSON_ERROR_INF_OR_NAN: $name = 'INF_OR_NAN'; break;
+                case JSON_ERROR_UNSUPPORTED_TYPE: $name = 'UNSUPPORTED_TYPE'; break;
+                case JSON_ERROR_INVALID_PROPERTY_NAME: $name = 'INVALID_PROPERTY_NAME'; break;
+                case JSON_ERROR_UTF16: $name = 'UTF16'; break;
+                default: $name = 'unknown';
+            }
+            throw new InvalidRuleException(
+                'Failed parsing JSON, error: (' . $name . ') ' . json_last_error_msg() . '.'
+            );
+        }
+        return $parsed;
     }
 }

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleSet;
 
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
+use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -108,18 +110,42 @@ class ValidationRuleSet
 
     /**
      * @param array $rules
+     *
+     * @throws InvalidArgumentException
+     *      Arg $rules empty.
      */
     public function __construct(array $rules)
     {
+        if (!$rules) {
+            throw new InvalidArgumentException('Arg $rules cannot be empty.');
+        }
         $this->defineRules($rules);
     }
 
     /**
      * @param array $rules
+     *
+     * @throws BadMethodCallException
+     *      If called a second time; upon intantiation.
      */
     protected function defineRules(array $rules) : void
     {
+        if ($this->rules) {
+            throw new BadMethodCallException(
+                get_class($this) . ' is frozen, cannot populate rules upon instantiation.'
+            );
+        }
         $this->rules = $rules;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function __isset(string $key)
+    {
+        return isset($this->rules[$key]);
     }
 
     /**
@@ -129,6 +155,8 @@ class ValidationRuleSet
      */
     public function __get(string $key)
     {
+        // No exception; asking for nonexistent is necessary, since properties
+        // don't exist at all if not defined.
         return $this->rules[$key] ?? null;
     }
 
@@ -140,11 +168,12 @@ class ValidationRuleSet
      *
      * @return void
      *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
+     *      Always, at any call.
      */
     public function __set(string $key, $value)
     {
-        throw new \BadMethodCallException(get_class($this) . ' is frozen, cannot set property[' . $key . '].');
+        throw new BadMethodCallException(get_class($this) . ' is frozen, cannot set property[' . $key . '].');
     }
 
     /**

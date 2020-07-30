@@ -1,6 +1,8 @@
 <?php
 
-namespace SimpleComplex\Tests\Validate;
+namespace SimpleComplex\Tests\Validate\RuleSetPHP;
+
+use SimpleComplex\Tests\Validate\Entity\Bicycle;
 
 class BicycleRuleSets
 {
