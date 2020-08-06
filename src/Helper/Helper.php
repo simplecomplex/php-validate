@@ -50,6 +50,45 @@ class Helper
         return get_class($subject);
     }
 
+    /**
+     * List class and parent classes of an object or class name.
+     *
+     * @param object|string $objectOrClass
+     *
+     * @return string[]
+     *
+     * @throws \TypeError
+     *      Arg $objectOrClass not object|string.
+     * @throws \InvalidArgumentException
+     *      Class (str) $objectOrClass doesn't exist.
+     */
+    public static function getClassLineage($objectOrClass)
+    {
+        if (is_object($objectOrClass)) {
+            $class = get_class($objectOrClass);
+        }
+        elseif (is_string($objectOrClass)) {
+            $class = $objectOrClass;
+            if (!class_exists($class)) {
+                throw new \InvalidArgumentException(
+                    'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
+                );
+            }
+        }
+        else {
+            throw new \TypeError(
+                'Arg $objectOrClass type[' . static::getType($objectOrClass) . '] is not object|string.'
+            );
+        }
+        $a = [
+            $class
+        ];
+        while (($class = get_parent_class($class))) {
+            $a[] = $class;
+        }
+        return $a;
+    }
+
 //    /**
 //     * For listing public properties within method of object self.
 //     *

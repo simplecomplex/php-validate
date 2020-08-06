@@ -25,7 +25,7 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ObjectTest extends TestCase
 {
     /**
-     * Test that all unextended Entity are \stdClass, except anonymous Entity.
+     * Test that all unextended entities are \stdClass, except anonymous entity.
      */
     public function testObjectType()
     {
@@ -48,7 +48,7 @@ class ObjectTest extends TestCase
                 case 'new class{}':
                     $expected = 'class@anonymous';
                     break;
-                case 'new Stringabe()':
+                case 'new Stringable()':
                     $expected = 'SimpleComplex\\T';
                     break;
                 default:
@@ -68,5 +68,26 @@ class ObjectTest extends TestCase
             }
 
         }
+    }
+
+    /**
+     * Test that custom and built-in classes don't extend \stdClass,
+     * nor extends a (PHP nonexistent) Object base class.
+     */
+    public function testThereIsNoBaseClass()
+    {
+        $lineage = Helper::getClassLineage(new Stringable());
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($lineage)->log();
+        static::assertIsArray($lineage);
+        static::assertNotEmpty($lineage);
+        static::assertSame(1, count($lineage));
+        static::assertSame(Stringable::class, $lineage[0]);
+
+        $lineage = Helper::getClassLineage(new \ArrayObject());
+        //\SimpleComplex\Inspect\Inspect::getInstance()->variable($lineage)->log();
+        static::assertIsArray($lineage);
+        static::assertNotEmpty($lineage);
+        static::assertSame(1, count($lineage));
+        static::assertSame(\ArrayObject::class, $lineage[0]);
     }
 }
