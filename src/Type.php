@@ -81,6 +81,17 @@ class Type
 
     /**
      * Object not \stdClass; extending class.
+     *
+     * Built-in and userland classes actually don't extend \stdClass* or another
+     * (PHP missing) Object base class.
+     * But the point is that a non-\stdClass class is unknown territory except
+     * for qualities revealed through interface compliance.
+     * Is it traversable? Maybe. All we know is that \stdClass and \Traversable
+     * definitely are.
+     *
+     * *At least not normally, because the language doesn't enforce that,
+     * and there's no benefit by doing it.
+     *
      * @see TypeRulesTrait::extClass()
      */
     public const EXTCLASS = 256;
