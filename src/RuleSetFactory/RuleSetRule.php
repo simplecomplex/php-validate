@@ -44,7 +44,7 @@ class RuleSetRule extends AbstractRule
     /**
      * @param AbstractRule $rule
      * @param mixed $argument
-     * @param int $passedByValueAtIndex
+     * @param int|null $passedByValueAtIndex
      */
     public function __construct(AbstractRule $rule, $argument, int $passedByValueAtIndex = null)
     {
