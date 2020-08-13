@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Exception\InvalidRuleException;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /** @noinspection PhpUnused */
 
@@ -151,6 +152,7 @@ class Type
      * @see TypeRulesTrait::numeric()
      *
      * STRINGABLE + INTEGER + FLOAT.
+     * @todo: INTEGER + FLOAT + DECIMAL?
      */
     public const NUMERIC = 2048 + 8 + 16;
 
@@ -259,5 +261,80 @@ class Type
         catch (\ReflectionException $xcptn) {
             throw new InvalidRuleException('See previous.', 0, $xcptn);
         }
+    }
+
+    /**
+     * Get pipe-separated list of type aliases covered by a type.
+     *
+     * @param int $type
+     *
+     * @return string
+     *
+     * @throws InvalidArgumentException
+     *      Arg $type not supported.
+     */
+    public static function typeMessage(int $type) : string
+    {
+        switch ($type) {
+            case static::ANY:
+                return 'any';
+            case static::UNDEFINED:
+                return 'undefined';
+            case static::NULL:
+                return 'null';
+            case static::BOOLEAN:
+                return 'boolean';
+            case static::INTEGER:
+                return 'integer';
+            case static::FLOAT:
+                return 'float';
+            case static::STRING:
+                return 'string';
+            case static::ARRAY:
+                return 'array';
+            case static::STDCLASS:
+                return '\stdClass';
+            case static::EXTCLASS:
+                return 'object-not-\stdClass';
+            case static::RESOURCE:
+                return 'resource';
+            case static::DECIMAL:
+                return 'stringed-number';
+            case static::STRINGABLE:
+                return 'string|integer|float|stringable-object';
+            case static::ITERABLE:
+                return 'array|\Traversable';
+            case static::COUNTABLE:
+                return 'array|\Countable';
+            case static::NUMBER:
+                return 'integer|float';
+            case static::DIGITAL:
+                return 'integer|stringed-integer';
+            case static::NUMERIC:
+                return 'integer|float|stringed-number';
+            case static::EQUATABLE:
+                return 'boolean|integer|string';
+            case static::EQUATABLE_NULLABLE:
+                return 'boolean|integer|string|null';
+            case static::SCALAR:
+                return 'boolean|integer|float|string';
+            case static::SCALAR_NULLABLE:
+                return 'boolean|integer|float|string|null';
+            case static::STRINGABLE_SCALAR:
+                return 'integer|float|string';
+            case static::STRINGABLE_OBJECT:
+                return 'stringable-object';
+            case static::STRING_STRINGABLE_OBJECT:
+                return 'string|stringable-object';
+            case static::OBJECT:
+                return 'object';
+            case static::CONTAINER:
+                return 'array|object';
+            case static::LOOPABLE:
+                return 'array|\Traversable|\stdClass';
+            case static::SIZEABLE:
+                return 'array|\Countable|\Traversable|\stdClass';
+        }
+        throw new InvalidArgumentException('Arg $type value[' . $type . '] is not a supported type.');
     }
 }

@@ -132,7 +132,7 @@ trait EnumVersatileTrait
             else {
                 throw new InvalidArgumentException(
                     'Arg $allowedValues bucket ' . $i . ' type[' . Helper::getType($allowed)
-                    . '] is not scalar.'
+                    . '] is not ' . Type::typeMessage($type) . '.'
                 );
             }
         }
