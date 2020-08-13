@@ -72,6 +72,8 @@ interface TypeRulesInterface
         'float' => Type::FLOAT,
 
         // Number or stringed number.-----------------------
+        'integerString' => Type::INTEGER_STRING,
+        'floatString' => Type::FLOAT_STRING,
         'numeric' => Type::NUMERIC,
         'digital' => Type::DIGITAL,
         'decimal' => Type::DECIMAL,
@@ -79,9 +81,9 @@ interface TypeRulesInterface
         // String/stringable.-------------------------------
         'string' => Type::STRING,
         'stringableScalar' => Type::STRINGABLE_SCALAR,
-        'stringableObject' => Type::STRINGABLE_OBJECT,
-        'stringStringableObject' => Type::STRING_STRINGABLE_OBJECT,
         'stringable' => Type::STRINGABLE,
+        'stringStringable' => Type::STRING_STRINGABLE,
+        'anyStringable' => Type::ANY_STRINGABLE,
 
         // Container.---------------------------------------
         'object' => Type::OBJECT,
@@ -193,6 +195,10 @@ interface TypeRulesInterface
 
     // Number or stringed number.----------------------------------------------
 
+    public function integerString($subject) : bool;
+
+    public function floatString($subject) : bool;
+
     public function numeric($subject) : bool;
 
     public function digital($subject) : bool;
@@ -206,11 +212,11 @@ interface TypeRulesInterface
 
     public function stringableScalar($subject) : bool;
 
-    public function stringableObject($subject) : bool;
-
-    public function stringStringableObject($subject) : bool;
-
     public function stringable($subject) : bool;
+
+    public function stringStringable($subject) : bool;
+
+    public function anyStringable($subject) : bool;
 
 
     // Container.---------------------------------------------------------------

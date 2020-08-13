@@ -190,7 +190,7 @@ trait PatternRulesCheckedTrait
      */
     public function regex($subject, string $pattern) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::regex($subject, $pattern);
@@ -204,7 +204,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicode($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicode($subject);
@@ -215,7 +215,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicodePrintable($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicodePrintable($subject);
@@ -226,7 +226,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicodeMultiLine($subject, $noCarriageReturn = false) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicodeMultiLine($subject, $noCarriageReturn);
@@ -237,7 +237,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicodeMinLength($subject, int $min) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicodeMinLength($subject, $min);
@@ -248,7 +248,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicodeMaxLength($subject, int $max) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicodeMaxLength($subject, $max);
@@ -259,7 +259,7 @@ trait PatternRulesCheckedTrait
      */
     public function unicodeExactLength($subject, int $exact) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::unicodeExactLength($subject, $exact);
@@ -273,7 +273,7 @@ trait PatternRulesCheckedTrait
      */
     public function hex($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::hex($subject, $case);
@@ -284,7 +284,7 @@ trait PatternRulesCheckedTrait
      */
     public function ascii($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::ascii($subject);
@@ -295,7 +295,7 @@ trait PatternRulesCheckedTrait
      */
     public function asciiPrintable($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::asciiPrintable($subject);
@@ -306,7 +306,7 @@ trait PatternRulesCheckedTrait
      */
     public function asciiMultiLine($subject, $noCarriageReturn = false) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::asciiMultiLine($subject, $noCarriageReturn);
@@ -317,7 +317,7 @@ trait PatternRulesCheckedTrait
      */
     public function minLength($subject, int $min) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::minLength($subject, $min);
@@ -328,7 +328,7 @@ trait PatternRulesCheckedTrait
      */
     public function maxLength($subject, int $max) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::maxLength($subject, $max);
@@ -339,7 +339,7 @@ trait PatternRulesCheckedTrait
      */
     public function exactLength($subject, int $exact) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::exactLength($subject, $exact);
@@ -353,7 +353,7 @@ trait PatternRulesCheckedTrait
      */
     public function alphaNum($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::alphaNum($subject, $case);
@@ -364,7 +364,7 @@ trait PatternRulesCheckedTrait
      */
     public function name($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::name($subject, $case);
@@ -375,7 +375,7 @@ trait PatternRulesCheckedTrait
      */
     public function camelName($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::camelName($subject, $case);
@@ -386,7 +386,7 @@ trait PatternRulesCheckedTrait
      */
     public function snakeName($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::snakeName($subject, $case);
@@ -397,7 +397,7 @@ trait PatternRulesCheckedTrait
      */
     public function lispName($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::lispName($subject, $case);
@@ -408,7 +408,7 @@ trait PatternRulesCheckedTrait
      */
     public function uuid($subject, string $case = '') : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::uuid($subject, $case);
@@ -419,7 +419,7 @@ trait PatternRulesCheckedTrait
      */
     public function base64($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::base64($subject);
@@ -430,7 +430,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateDateTimeISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateDateTimeISO($subject, $subSeconds);
@@ -441,7 +441,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateISOLocal($subject) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateISOLocal($subject);
@@ -452,7 +452,7 @@ trait PatternRulesCheckedTrait
      */
     public function timeISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::timeISO($subject, $subSeconds);
@@ -463,7 +463,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISO($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateTimeISO($subject, $subSeconds);
@@ -474,7 +474,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOLocal($subject) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateTimeISOLocal($subject);
@@ -485,7 +485,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOZonal($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateTimeISOZonal($subject, $subSeconds);
@@ -496,7 +496,7 @@ trait PatternRulesCheckedTrait
      */
     public function dateTimeISOUTC($subject, int $subSeconds = -1) : bool
     {
-        if (!$this->stringStringableObject($subject)) {
+        if (!$this->stringStringable($subject)) {
             return false;
         }
         return parent::dateTimeISOUTC($subject, $subSeconds);
@@ -510,7 +510,7 @@ trait PatternRulesCheckedTrait
      */
     public function plainText($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::plainText($subject);
@@ -521,7 +521,7 @@ trait PatternRulesCheckedTrait
      */
     public function ipAddress($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::ipAddress($subject);
@@ -532,7 +532,7 @@ trait PatternRulesCheckedTrait
      */
     public function url($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::url($subject);
@@ -543,7 +543,7 @@ trait PatternRulesCheckedTrait
      */
     public function httpUrl($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::httpUrl($subject);
@@ -554,7 +554,7 @@ trait PatternRulesCheckedTrait
      */
     public function email($subject) : bool
     {
-        if (!$this->stringable($subject)) {
+        if (!$this->anyStringable($subject)) {
             return false;
         }
         return parent::email($subject);

@@ -406,20 +406,47 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
-        static::assertFalse($validate->digital(''));
-        static::assertTrue($validate->digital(0));
-        static::assertTrue($validate->digital(1));
-        static::assertTrue($validate->digital('0'));
-        static::assertTrue($validate->digital('1'));
-        static::assertFalse($validate->digital(0.0));
-        static::assertFalse($validate->digital(0.1));
-        static::assertFalse($validate->digital('.0'));
-        static::assertFalse($validate->digital('0.0'));
-        static::assertFalse($validate->digital('.1'));
-        static::assertFalse($validate->digital('0.1'));
-        static::assertFalse($validate->digital('-0'));
-        static::assertTrue($validate->digital(-100));
-        static::assertTrue($validate->digital('-1'));
+        static::assertFalse($validate->integerString(''));
+        static::assertFalse($validate->integerString(0));
+        static::assertFalse($validate->integerString(1));
+        static::assertTrue($validate->integerString('0'));
+        static::assertTrue($validate->integerString('1'));
+        static::assertFalse($validate->integerString(0.0));
+        static::assertFalse($validate->integerString(0.1));
+        static::assertFalse($validate->integerString('.0'));
+        static::assertFalse($validate->integerString('0.0'));
+        static::assertFalse($validate->integerString('.1'));
+        static::assertFalse($validate->integerString('0.1'));
+        static::assertFalse($validate->integerString('1.'));
+        static::assertFalse($validate->integerString('0.'));
+        static::assertFalse($validate->integerString('-0'));
+        static::assertFalse($validate->integerString('-0.0'));
+        static::assertFalse($validate->integerString(-1));
+        static::assertTrue($validate->integerString('-1'));
+        static::assertFalse($validate->integerString('+1'));
+        static::assertFalse($validate->integerString(' +1'));
+        static::assertFalse($validate->integerString('+ 1'));
+
+        static::assertFalse($validate->floatString(''));
+        static::assertFalse($validate->floatString(0));
+        static::assertFalse($validate->floatString(1));
+        static::assertFalse($validate->floatString('0'));
+        static::assertFalse($validate->floatString('1'));
+        static::assertFalse($validate->floatString(0.0));
+        static::assertFalse($validate->floatString(0.1));
+        static::assertTrue($validate->floatString('.0'));
+        static::assertTrue($validate->floatString('0.0'));
+        static::assertTrue($validate->floatString('.1'));
+        static::assertTrue($validate->floatString('0.1'));
+        static::assertTrue($validate->floatString('1.'));
+        static::assertTrue($validate->floatString('0.'));
+        static::assertFalse($validate->floatString('-0'));
+        static::assertFalse($validate->floatString('-0.0'));
+        static::assertFalse($validate->floatString(-1));
+        static::assertFalse($validate->floatString('-1'));
+        static::assertFalse($validate->floatString('+1'));
+        static::assertFalse($validate->floatString(' +1'));
+        static::assertFalse($validate->floatString('+ 1'));
 
         static::assertFalse($validate->numeric(''));
         static::assertTrue($validate->numeric(0));
@@ -441,6 +468,21 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->numeric('+1'));
         static::assertFalse($validate->numeric(' +1'));
         static::assertFalse($validate->numeric('+ 1'));
+
+        static::assertFalse($validate->digital(''));
+        static::assertTrue($validate->digital(0));
+        static::assertTrue($validate->digital(1));
+        static::assertTrue($validate->digital('0'));
+        static::assertTrue($validate->digital('1'));
+        static::assertFalse($validate->digital(0.0));
+        static::assertFalse($validate->digital(0.1));
+        static::assertFalse($validate->digital('.0'));
+        static::assertFalse($validate->digital('0.0'));
+        static::assertFalse($validate->digital('.1'));
+        static::assertFalse($validate->digital('0.1'));
+        static::assertFalse($validate->digital('-0'));
+        static::assertTrue($validate->digital(-100));
+        static::assertTrue($validate->digital('-1'));
 
         static::assertFalse($validate->decimal(''));
         static::assertFalse($validate->decimal(0));
@@ -615,9 +657,9 @@ class ValidateTest extends TestCase
 
         static::assertFalse($validate->string($time));
         static::assertFalse($validate->stringableScalar($time));
-        static::assertTrue($validate->stringStringableObject($time));
-        static::assertTrue($validate->stringableObject($time));
+        static::assertTrue($validate->stringStringable($time));
         static::assertTrue($validate->stringable($time));
+        static::assertTrue($validate->anyStringable($time));
     }
 
 

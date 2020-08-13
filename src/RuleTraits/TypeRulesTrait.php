@@ -247,6 +247,84 @@ trait TypeRulesTrait
     // Number or stringed number.-----------------------------------------------
 
     /**
+     * Stringed integer.
+     *
+     * @param $subject
+     *
+     * @return bool
+     */
+    public function integerString($subject) : bool
+    {
+        if (!is_string($subject)) {
+            return false;
+        }
+        $w = strlen($subject);
+        if (!$w) {
+            return false;
+        }
+
+        // Remove minus.
+        $num = ltrim($subject, '-');
+        $w_num = strlen($num);
+        if (!$w_num || $w_num < $w - 1) {
+            return false;
+        }
+        $negative = $w_num == $w - 1;
+
+        if (ctype_digit($num)) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $num)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Stringed float.
+     *
+     * @param $subject
+     *
+     * @return bool
+     */
+    public function floatString($subject) : bool
+    {
+        if (!is_string($subject)) {
+            return false;
+        }
+        $w = strlen($subject);
+        if (!$w) {
+            return false;
+        }
+
+        // Remove minus.
+        $num = ltrim($subject, '-');
+        $w_num = strlen($num);
+        if (!$w_num || $w_num < $w - 1) {
+            return false;
+        }
+        $negative = $w_num == $w - 1;
+
+        // Remove dot.
+        $int = str_replace('.', '', $num);
+        $w_int = strlen($int);
+        if ($w_int
+            && $w_int == $w_num - 1
+            && ctype_digit($int)
+        ) {
+            if ($negative && !static::RULE_FLAGS['STRINGED_NEGATIVE_ZERO'] && !str_replace('0', '', $int)) {
+                // Minus zero is unhealthy.
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Integer, float or stringed integer/float.
      *
      * Unlike native is_numeric() this method doesn't allow
@@ -419,9 +497,9 @@ trait TypeRulesTrait
     /**
      * Alternatives:
      * @see stringableScalar()
-     * @see stringableObject()
-     * @see stringStringableObject()
      * @see stringable()
+     * @see stringStringable()
+     * @see anyStringable()
      *
      * @param mixed $subject
      *
@@ -437,9 +515,9 @@ trait TypeRulesTrait
      *
      * Alternatives:
      * @see string()
-     * @see stringableObject()
-     * @see stringStringableObject()
      * @see stringable()
+     * @see stringStringable()
+     * @see anyStringable()
      *
      * @param mixed $subject
      *
@@ -458,14 +536,14 @@ trait TypeRulesTrait
      * Alternatives:
      * @see string()
      * @see stringableScalar()
-     * @see stringStringableObject()
-     * @see stringable()
+     * @see stringStringable()
+     * @see anyStringable()
      *
      * @param mixed $subject
      *
      * @return bool
      */
-    public function stringableObject($subject) : bool
+    public function stringable($subject) : bool
     {
         return is_object($subject) && method_exists($subject, '__toString');
     }
@@ -476,14 +554,14 @@ trait TypeRulesTrait
      * Alternatives:
      * @see string()
      * @see stringableScalar()
-     * @see stringableObject()
      * @see stringable()
+     * @see anyStringable()
      *
      * @param mixed $subject
      *
      * @return bool
      */
-    public function stringStringableObject($subject) : bool
+    public function stringStringable($subject) : bool
     {
         return is_string($subject)
             || (is_object($subject) && method_exists($subject, '__toString'));
@@ -494,14 +572,14 @@ trait TypeRulesTrait
      *
      * @see string()
      * @see stringableScalar()
-     * @see stringableObject()
-     * @see stringStringableObject()
+     * @see stringable()
+     * @see stringStringable()
      *
      * @param mixed $subject
      *
      * @return bool
      */
-    public function stringable($subject) : bool
+    public function anyStringable($subject) : bool
     {
         return is_string($subject)
             || is_int($subject)

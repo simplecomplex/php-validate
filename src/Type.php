@@ -103,31 +103,38 @@ class Type
     public const RESOURCE = 65536;
 
 
-    // Modifiers.---------------------------------------------------------------
+    // Stringed scalars.--------------------------------------------------------
 
     /**
-     * Stringed number.
-     * @see TypeRulesTrait::decimal()
+     * Stringed integer.
      */
-    public const DECIMAL = 1024;
+    public const INTEGER_STRING = 1024;
 
     /**
-     * String, number or stringable object.
-     * @see TypeRulesTrait::stringable()
+     * Stringed float.
      */
-    public const STRINGABLE = 2048;
+    public const FLOAT_STRING = 2048;
 
-    /**
-     * Array or \Traversable object.
-     * @see TypeRulesTrait::iterable()
-     */
-    public const ITERABLE = 4096;
+
+    // Interfaces.--------------------------------------------------------------
 
     /**
      * Array or \Countable object.
      * @see TypeRulesTrait::countable()
      */
     public const COUNTABLE = 8192;
+
+    /**
+     * Array or \Traversable object.
+     * @see TypeRulesTrait::iterable()
+     */
+    public const ITERABLE = 16384;
+
+    /**
+     * Stringable object.
+     * @see TypeRulesTrait::stringable()
+     */
+    public const STRINGABLE = 32768;
 
 
     // Composites.--------------------------------------------------------------
@@ -140,21 +147,28 @@ class Type
     public const NUMBER = 8 + 16;
 
     /**
+     * Integer, float or stringed number.
+     * @see TypeRulesTrait::numeric()
+
+     * INTEGER + FLOAT + INTEGER_STRING + FLOAT_STRING
+     */
+    public const NUMERIC = 8 + 16 + 1024 + 2048;
+
+    /**
      * Integer or stringed integer.
      * @see TypeRulesTrait::digital()
      *
-     * STRINGABLE + INTEGER.
+     * INTEGER + INTEGER_STRING
      */
-    public const DIGITAL = 2048 + 8;
+    public const DIGITAL = 8 + 1024;
 
     /**
-     * Integer, float or stringed number.
-     * @see TypeRulesTrait::numeric()
+     * Stringed number.
+     * @see TypeRulesTrait::decimal()
      *
-     * STRINGABLE + INTEGER + FLOAT.
-     * @todo: INTEGER + FLOAT + DECIMAL?
+     * INTEGER_STRING + FLOAT_STRING
      */
-    public const NUMERIC = 2048 + 8 + 16;
+    public const DECIMAL = 1024 + 2048;
 
     /**
      * Boolean, integer or string.
@@ -191,24 +205,24 @@ class Type
      * Stringable scalar.
      * @see TypeRulesTrait::stringableScalar()
      *
-     * STRINGABLE + INTEGER + FLOAT + STRING.
+     * INTEGER + FLOAT + STRING
      */
-    public const STRINGABLE_SCALAR = 2048 + 8 + 16 + 32;
-
-    /**
-     * Stringable object.
-     * @see TypeRulesTrait::stringableObject()
-     *
-     * STRINGABLE + EXTCLASS.
-     */
-    public const STRINGABLE_OBJECT = 2048 + 256;
+    public const STRINGABLE_SCALAR = 8 + 16 + 32;
 
     /**
      * String or stringable object.
      *
-     * STRING + STRINGABLE + EXTCLASS.
+     * STRING + STRINGABLE
      */
-    public const STRING_STRINGABLE_OBJECT = 32 + 2048 + 256;
+    public const STRING_STRINGABLE = 32 + 32768;
+
+    /**
+     * String, number or stringable object.
+     * @see TypeRulesTrait::anyStringable()
+     *
+     * INTEGER + FLOAT + STRING + STRINGABLE
+     */
+    public const ANY_STRINGABLE = 8 + 16 + 32 + 32768;
 
     /**
      * \stdClass or extending class.
@@ -229,14 +243,14 @@ class Type
      * @see TypeRulesTrait::loopable()
      * ITERABLE + STDCLASS.
      */
-    public const LOOPABLE = 4096 + 128;
+    public const LOOPABLE = 16384 + 128;
 
     /**
      * \Countable, Iterable or \stdClass.
      * @see TypeRulesTrait::sizeable()
      * COUNTABLE + ITERABLE + STDCLASS.
      */
-    public const SIZEABLE = 8192 + 4096 + 128;
+    public const SIZEABLE = 8192 + 16384 + 128;
 
 
     /**
@@ -298,20 +312,24 @@ class Type
                 return 'object-not-\stdClass';
             case static::RESOURCE:
                 return 'resource';
-            case static::DECIMAL:
-                return 'stringed-number';
-            case static::STRINGABLE:
-                return 'string|integer|float|stringable-object';
-            case static::ITERABLE:
-                return 'array|\Traversable';
+            case static::INTEGER_STRING:
+                return 'stringed-integer';
+            case static::FLOAT_STRING:
+                return 'stringed-float';
             case static::COUNTABLE:
                 return 'array|\Countable';
+            case static::ITERABLE:
+                return 'array|\Traversable';
+            case static::STRINGABLE:
+                return 'stringable-object';
             case static::NUMBER:
                 return 'integer|float';
-            case static::DIGITAL:
-                return 'integer|stringed-integer';
             case static::NUMERIC:
                 return 'integer|float|stringed-number';
+            case static::DIGITAL:
+                return 'integer|stringed-integer';
+            case static::DECIMAL:
+                return 'stringed-number';
             case static::EQUATABLE:
                 return 'boolean|integer|string';
             case static::EQUATABLE_NULLABLE:
@@ -322,10 +340,10 @@ class Type
                 return 'boolean|integer|float|string|null';
             case static::STRINGABLE_SCALAR:
                 return 'integer|float|string';
-            case static::STRINGABLE_OBJECT:
-                return 'stringable-object';
-            case static::STRING_STRINGABLE_OBJECT:
+            case static::STRING_STRINGABLE:
                 return 'string|stringable-object';
+            case static::ANY_STRINGABLE:
+                return 'string|integer|float|stringable-object';
             case static::OBJECT:
                 return 'object';
             case static::CONTAINER:

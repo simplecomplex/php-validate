@@ -247,7 +247,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Matches regular expression.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -276,7 +276,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -301,7 +301,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -337,7 +337,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -364,7 +364,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
      * @see unicode()
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -394,7 +394,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
      * @see unicode()
      *
-     * @see stringable()
+     * @see anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -424,7 +424,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if valid UTF-8; use 'unicode' rule before this.
      * @see unicode()
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -454,7 +454,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Hexadeximal number (string).
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -483,7 +483,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -502,7 +502,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -534,7 +534,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -561,7 +561,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -587,7 +587,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -613,7 +613,7 @@ trait PatternRulesUncheckedTrait
      * Beware: Does not check if ascii; use 'ascii' rule before this.
      * @see ascii()
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -639,7 +639,7 @@ trait PatternRulesUncheckedTrait
     /**
      * ASCII alphanumeric.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -674,7 +674,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Name: starts with alpha, followed by alphanum/underscore/hyphen.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -708,7 +708,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Camel cased name: starts with alpha, followed by alphanum.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -742,7 +742,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Snake cased name: starts with alpha, followed by alphanum/underscore.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -776,7 +776,7 @@ trait PatternRulesUncheckedTrait
     /**
      * Lisp cased name: starts with alpha, followed by alphanum/dash.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -808,7 +808,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -839,7 +839,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -866,7 +866,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD([T ]HH(:ii(:ss)?(.m{1,N})?)?(Z|[+- ]HH:?(II)?)?)?
      * The format is supported by native \DateTime constructor.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -906,7 +906,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD
      * The format is supported by native \DateTime constructor.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -926,7 +926,7 @@ trait PatternRulesUncheckedTrait
      *
      * HH:ii(:ss)?(.m{1,N})?
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -968,7 +968,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?(Z|[+- ]HH:?(II)?)
      * The format is supported by native \DateTime constructor.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1007,7 +1007,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DD HH:II(:SS)?
      * The format is supported by native \DateTime constructor.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1034,7 +1034,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?[+- ]HH(:II)?
      * The format is supported by native \DateTime constructor.
      *
-     * @@see TypeRulesTrait::stringable()
+     * @@see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1073,7 +1073,7 @@ trait PatternRulesUncheckedTrait
      * YYYY-MM-DDTHH:ii(:ss)?(.m{1,N})?Z
      * The format is supported by native \DateTime constructor.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1112,7 +1112,7 @@ trait PatternRulesUncheckedTrait
      *
      * Beware: Returns true on empty ('') string.
      *
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1126,7 +1126,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1143,7 +1143,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1160,7 +1160,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
@@ -1178,7 +1178,7 @@ trait PatternRulesUncheckedTrait
     }
 
     /**
-     * @see TypeRulesTrait::stringable()
+     * @see TypeRulesTrait::anyStringable()
      *
      * @param mixed $subject
      *      Checked stringified, and accepts stringable object.
