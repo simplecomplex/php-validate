@@ -72,7 +72,7 @@ trait EnumVersatileTrait
          * @see \SimpleComplex\Validate\Validator::TYPE_RULES
          * @var int $type
          */
-        $type = static::TYPE_RULES['enum'] ?? static::PATTERN_RULES['enum'];
+        $type = static::PATTERN_RULES['enum'] ?? static::TYPE_RULES['enum'] ?? null;
         if (!$type) {
             throw new InvalidRuleException(
                 __CLASS__ . '::TYPE_RULES|PATTERN_RULES misses type of rule \'enum\''
