@@ -9,14 +9,11 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleTraits;
 
-use SimpleComplex\Validate\AbstractValidator;
-use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
-use SimpleComplex\Validate\Validator;
 
 /**
  *
@@ -68,11 +65,11 @@ trait EnumVersatileTrait
          * Get 'enum' type from the validator's lists of rule types.
          * @see Type
          * From the outset 'enum' is defined as a pattern rule.
-         * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
-         * @see AbstractValidator::PATTERN_RULES
+         * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface::MINIMAL_PATTERN_RULES
+         * @see \SimpleComplex\Validate\AbstractValidator::PATTERN_RULES
          * But if the current validator is _checked_ then the rule will (as all
          * pattern rules) be listed as a type-checking rule.
-         * @see Validator::TYPE_RULES
+         * @see \SimpleComplex\Validate\Validator::TYPE_RULES
          * @var int $type
          */
         $type = static::TYPE_RULES['enum'] ?? static::PATTERN_RULES['enum'];
