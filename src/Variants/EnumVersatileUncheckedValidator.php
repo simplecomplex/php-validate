@@ -37,7 +37,7 @@ class EnumVersatileUncheckedValidator extends UncheckedValidator
          * but accommodates to this type setting.
          * @see EnumVersatileTrait::enum()
          */
-        'enum' => Type::SCALAR_NULLABLE,
+        'enum' => Type::SCALAR_NULL,
     ]
     + UncheckedValidator::PATTERN_RULES;
 }

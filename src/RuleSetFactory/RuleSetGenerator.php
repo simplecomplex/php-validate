@@ -689,10 +689,10 @@ class RuleSetGenerator
      *
      * Bucket values must be scalar (or null)
      * @see Type::SCALAR
-     * @see Type::SCALAR_NULLABLE
+     * @see Type::SCALAR_NULL
      * or bool|int|string (or null).
      * @see Type::EQUATABLE
-     * @see Type::EQUATABLE_NULLABLE
+     * @see Type::EQUATABLE_NULL
      * Type definition of the 'enum' pattern rule decides which:
      * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
      *
@@ -729,14 +729,14 @@ class RuleSetGenerator
         switch ($rule->type) {
             case Type::EQUATABLE:
                 break;
-            case Type::EQUATABLE_NULLABLE:
+            case Type::EQUATABLE_NULL:
                 $pass_null = true;
                 break;
             case Type::SCALAR:
                 $pass_float = true;
                 break;
             default:
-                /** @see Type::SCALAR_NULLABLE */
+                /** @see Type::SCALAR_NULL */
                 $pass_null = $pass_float = true;
         }
 
@@ -771,7 +771,7 @@ class RuleSetGenerator
                     $enum[] = $value;
                 }
                 else {
-                    // EQUATABLE|EQUATABLE_NULLABLE.
+                    // EQUATABLE|EQUATABLE_NULL.
                     throw new InvalidRuleException(
                         'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i . '] type[float] is not '
                         . ($rule->type == Type::EQUATABLE ? 'bool|int|string' : 'bool|int|string|null')

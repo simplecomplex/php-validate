@@ -61,25 +61,25 @@ interface TypeRulesInterface
 
         // Scalar/null.-------------------------------------
         'null' => Type::NULL,
-        'scalarNull' => Type::SCALAR_NULLABLE,
-        'scalar' => Type::SCALAR,
-        'equatableNull' => Type::EQUATABLE_NULLABLE,
-        'equatable' => Type::EQUATABLE,
         'boolean' => Type::BOOLEAN,
-        'bit' => Type::DIGITAL,
-        'number' => Type::NUMBER,
         'integer' => Type::INTEGER,
         'float' => Type::FLOAT,
+        'string' => Type::STRING,
+        'bit' => Type::BIT,
+        'number' => Type::NUMBER,
+        'equatable' => Type::EQUATABLE,
+        'equatableNull' => Type::EQUATABLE_NULL,
+        'scalar' => Type::SCALAR,
+        'scalarNull' => Type::SCALAR_NULL,
 
-        // Number or stringed number.-----------------------
+        // Number/stringed number.--------------------------
         'integerString' => Type::INTEGER_STRING,
         'floatString' => Type::FLOAT_STRING,
         'numeric' => Type::NUMERIC,
         'digital' => Type::DIGITAL,
         'decimal' => Type::DECIMAL,
 
-        // String/stringable.-------------------------------
-        'string' => Type::STRING,
+        // Stringable.--------------------------------------
         'stringableScalar' => Type::STRINGABLE_SCALAR,
         'stringable' => Type::STRINGABLE,
         'stringStringable' => Type::STRING_STRINGABLE,
@@ -174,26 +174,28 @@ interface TypeRulesInterface
 
     public function null($subject) : bool;
 
-    public function scalarNull($subject) : bool;
-
-    public function scalar($subject) : bool;
-
-    public function equatableNull($subject) : bool;
-
-    public function equatable($subject) : bool;
-
     public function boolean($subject) : bool;
-
-    public function bit($subject) : bool;
-
-    public function number($subject) : bool;
 
     public function integer($subject) : bool;
 
     public function float($subject) : bool;
 
+    public function string($subject) : bool;
 
-    // Number or stringed number.----------------------------------------------
+    public function bit($subject) : bool;
+
+    public function number($subject) : bool;
+
+    public function equatable($subject) : bool;
+
+    public function equatableNull($subject) : bool;
+
+    public function scalar($subject) : bool;
+
+    public function scalarNull($subject) : bool;
+
+
+    // Number/stringed number.--------------------------------------------------
 
     public function integerString($subject) : bool;
 
@@ -206,9 +208,7 @@ interface TypeRulesInterface
     public function decimal($subject) : bool;
 
 
-    // String/stringable.-------------------------------------------------------
-
-    public function string($subject) : bool;
+    // Stringable.--------------------------------------------------------------
 
     public function stringableScalar($subject) : bool;
 

@@ -122,60 +122,6 @@ trait TypeRulesTrait
     }
 
     /**
-     * Boolean, integer, float, string or null.
-     *
-     * Needed if someone defines an enum() which can compare floats.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function scalarNull($subject) : bool
-    {
-        return $subject === null || is_scalar($subject);
-    }
-
-    /**
-     * Boolean, integer, float or string.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function scalar($subject) : bool
-    {
-        return is_scalar($subject);
-    }
-
-    /**
-     * Boolean, integer, string or null.
-     *
-     * Float is not equatable.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function equatableNull($subject) : bool
-    {
-        return $subject === null || (is_scalar($subject) && !is_float($subject));
-    }
-
-    /**
-     * Boolean, integer, string.
-     *
-     * Float is not equatable.
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function equatable($subject) : bool
-    {
-        return $subject !== null && (is_scalar($subject) && !is_float($subject));
-    }
-
-    /**
      * @param mixed $subject
      *
      * @return bool
@@ -183,6 +129,48 @@ trait TypeRulesTrait
     public function boolean($subject) : bool
     {
         return is_bool($subject);
+    }
+
+    /**
+     * @see digital()
+     *
+     * @see range()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function integer($subject) : bool
+    {
+        return is_int($subject);
+    }
+
+    /**
+     * @see numeric()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function float($subject) : bool
+    {
+        return is_float($subject);
+    }
+
+    /**
+     * Alternatives:
+     * @see stringableScalar()
+     * @see stringable()
+     * @see stringStringable()
+     * @see anyStringable()
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function string($subject) : bool
+    {
+        return is_string($subject);
     }
 
     /**
@@ -218,38 +206,66 @@ trait TypeRulesTrait
     }
 
     /**
-     * @see digital()
+     * Boolean, integer, string.
      *
-     * @see range()
+     * Float is not equatable.
      *
      * @param mixed $subject
      *
      * @return bool
      */
-    public function integer($subject) : bool
+    public function equatable($subject) : bool
     {
-        return is_int($subject);
+        return $subject !== null && (is_scalar($subject) && !is_float($subject));
     }
 
     /**
-     * @see numeric()
+     * Boolean, integer, string or null.
+     *
+     * Float is not equatable.
      *
      * @param mixed $subject
      *
      * @return bool
      */
-    public function float($subject) : bool
+    public function equatableNull($subject) : bool
     {
-        return is_float($subject);
+        return $subject === null || (is_scalar($subject) && !is_float($subject));
+    }
+
+    /**
+     * Boolean, integer, float or string.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function scalar($subject) : bool
+    {
+        return is_scalar($subject);
+    }
+
+    /**
+     * Boolean, integer, float, string or null.
+     *
+     * Needed if someone defines an enum() which can compare floats.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function scalarNull($subject) : bool
+    {
+        return $subject === null || is_scalar($subject);
     }
 
 
-    // Number or stringed number.-----------------------------------------------
+    // Number/stringed number.--------------------------------------------------
 
     /**
      * Stringed integer.
      *
-     * @param $subject
+     * @param mixed $subject
      *
      * @return bool
      */
@@ -285,7 +301,7 @@ trait TypeRulesTrait
     /**
      * Stringed float.
      *
-     * @param $subject
+     * @param mixed $subject
      *
      * @return bool
      */
@@ -492,23 +508,7 @@ trait TypeRulesTrait
     }
 
 
-    // String/stringable.-------------------------------------------------------
-
-    /**
-     * Alternatives:
-     * @see stringableScalar()
-     * @see stringable()
-     * @see stringStringable()
-     * @see anyStringable()
-     *
-     * @param mixed $subject
-     *
-     * @return bool
-     */
-    public function string($subject) : bool
-    {
-        return is_string($subject);
-    }
+    // Stringable.--------------------------------------------------------------
 
     /**
      * String or number.

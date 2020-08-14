@@ -124,6 +124,9 @@ class Type
      */
     public const COUNTABLE = 8192;
 
+
+    // @todo: TRAVERSABLE, and ITERABLE = ARRAY + TRAVERSABLE.
+
     /**
      * Array or \Traversable object.
      * @see TypeRulesTrait::iterable()
@@ -138,6 +141,13 @@ class Type
 
 
     // Composites.--------------------------------------------------------------
+
+    /**
+     * @see TypeRulesTrait::bit()
+     *
+     * BOOLEAN + INTEGER.
+     */
+    public const BIT = 4 + 8;
 
     /**
      * @see TypeRulesTrait::number()
@@ -184,7 +194,7 @@ class Type
      *
      * NULL + BOOLEAN + INTEGER + STRING.
      */
-    public const EQUATABLE_NULLABLE = 2 + 4 + 8 + 32;
+    public const EQUATABLE_NULL = 2 + 4 + 8 + 32;
 
     /**
      * @see TypeRulesTrait::scalar()
@@ -199,7 +209,7 @@ class Type
      *
      * NULL + BOOLEAN + INTEGER + FLOAT + STRING.
      */
-    public const SCALAR_NULLABLE = 2 + 4 + 8 + 16 + 32;
+    public const SCALAR_NULL = 2 + 4 + 8 + 16 + 32;
 
     /**
      * Stringable scalar.
@@ -322,6 +332,8 @@ class Type
                 return 'array|\Traversable';
             case static::STRINGABLE:
                 return 'stringable-object';
+            case static::BIT:
+                return 'false|true|0|1';
             case static::NUMBER:
                 return 'integer|float';
             case static::NUMERIC:
@@ -332,11 +344,11 @@ class Type
                 return 'stringed-number';
             case static::EQUATABLE:
                 return 'boolean|integer|string';
-            case static::EQUATABLE_NULLABLE:
+            case static::EQUATABLE_NULL:
                 return 'boolean|integer|string|null';
             case static::SCALAR:
                 return 'boolean|integer|float|string';
-            case static::SCALAR_NULLABLE:
+            case static::SCALAR_NULL:
                 return 'boolean|integer|float|string|null';
             case static::STRINGABLE_SCALAR:
                 return 'integer|float|string';

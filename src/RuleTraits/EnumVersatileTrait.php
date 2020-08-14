@@ -83,14 +83,14 @@ trait EnumVersatileTrait
         switch ($type) {
             case Type::EQUATABLE:
                 break;
-            case Type::EQUATABLE_NULLABLE:
+            case Type::EQUATABLE_NULL:
                 $pass_null = true;
                 break;
             case Type::SCALAR:
                 $pass_float = true;
                 break;
             default:
-                /** @see Type::SCALAR_NULLABLE */
+                /** @see Type::SCALAR_NULL */
                 $pass_null = $pass_float = true;
         }
 

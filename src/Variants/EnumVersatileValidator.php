@@ -43,7 +43,7 @@ class EnumVersatileValidator extends Validator implements CheckedRuleProviderInt
          * but accommodates to this type setting.
          * @see EnumVersatileTrait::enum()
          */
-        'enum' => Type::SCALAR_NULLABLE,
+        'enum' => Type::SCALAR_NULL,
     ]
     + Validator::TYPE_RULES;
 }
