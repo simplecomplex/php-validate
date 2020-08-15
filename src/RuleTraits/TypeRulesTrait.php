@@ -132,10 +132,6 @@ trait TypeRulesTrait
     }
 
     /**
-     * @see digital()
-     *
-     * @see range()
-     *
      * @param mixed $subject
      *
      * @return bool
@@ -146,8 +142,6 @@ trait TypeRulesTrait
     }
 
     /**
-     * @see numeric()
-     *
      * @param mixed $subject
      *
      * @return bool
@@ -683,6 +677,18 @@ trait TypeRulesTrait
     {
         return is_array($subject)
             || is_object($subject);
+    }
+
+    /**
+     * \Traversable object.
+     *
+     * @param mixed $subject
+     *
+     * @return bool
+     */
+    public function traversable($subject) : bool
+    {
+        return $subject instanceof \Traversable;
     }
 
     /**

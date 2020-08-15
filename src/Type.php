@@ -124,14 +124,11 @@ class Type
      */
     public const COUNTABLE = 8192;
 
-
-    // @todo: TRAVERSABLE, and ITERABLE = ARRAY + TRAVERSABLE.
-
     /**
-     * Array or \Traversable object.
-     * @see TypeRulesTrait::iterable()
+     * \Traversable object.
+     * @see TypeRulesTrait::traversable()
      */
-    public const ITERABLE = 16384;
+    public const TRAVERSABLE = 16384;
 
     /**
      * Stringable object.
@@ -249,18 +246,24 @@ class Type
     public const CONTAINER = 64 + 128 + 256;
 
     /**
+     * Array or \Traversable object.
+     * @see TypeRulesTrait::iterable()
+     */
+    public const ITERABLE = 64 + 16384;
+
+    /**
      * Iterable or \stdClass.
      * @see TypeRulesTrait::loopable()
      * ITERABLE + STDCLASS.
      */
-    public const LOOPABLE = 16384 + 128;
+    public const LOOPABLE = 64 + 128 + 16384;
 
     /**
      * \Countable, Iterable or \stdClass.
      * @see TypeRulesTrait::sizeable()
      * COUNTABLE + ITERABLE + STDCLASS.
      */
-    public const SIZEABLE = 8192 + 16384 + 128;
+    public const SIZEABLE = 64 + 128 + 8192 + 16384;
 
 
     /**
@@ -328,8 +331,8 @@ class Type
                 return 'stringed-float';
             case static::COUNTABLE:
                 return 'array|\Countable';
-            case static::ITERABLE:
-                return 'array|\Traversable';
+            case static::TRAVERSABLE:
+                return '\Traversable';
             case static::STRINGABLE:
                 return 'stringable-object';
             case static::BIT:
@@ -360,6 +363,8 @@ class Type
                 return 'object';
             case static::CONTAINER:
                 return 'array|object';
+            case static::ITERABLE:
+                return 'array|\Traversable';
             case static::LOOPABLE:
                 return 'array|\Traversable|\stdClass';
             case static::SIZEABLE:

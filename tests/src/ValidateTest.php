@@ -873,31 +873,50 @@ class ValidateTest extends TestCase
     {
         $validate = $this->testInstantiation();
 
+        $null = null;
+        $bool = false;
         $array = [];
         $stdClass = new \stdClass();
         $traversable = new NoModelExplorable();
         $nonTraversable = new Stringable();
 
+        static::assertFalse($validate->container($null));
+        static::assertFalse($validate->container($bool));
         static::assertTrue($validate->container($array));
         static::assertTrue($validate->container($stdClass));
         static::assertTrue($validate->container($traversable));
         static::assertTrue($validate->container($nonTraversable));
 
+        static::assertFalse($validate->traversable($null));
+        static::assertFalse($validate->traversable($bool));
+        static::assertFalse($validate->traversable($array));
+        static::assertFalse($validate->traversable($stdClass));
+        static::assertTrue($validate->traversable($traversable));
+        static::assertFalse($validate->traversable($nonTraversable));
+
+        static::assertFalse($validate->iterable($null));
+        static::assertFalse($validate->iterable($bool));
         static::assertTrue($validate->iterable($array));
         static::assertFalse($validate->iterable($stdClass));
         static::assertTrue($validate->iterable($traversable));
         static::assertFalse($validate->iterable($nonTraversable));
 
+        static::assertFalse($validate->loopable($null));
+        static::assertFalse($validate->loopable($bool));
         static::assertTrue($validate->loopable($array));
         static::assertTrue($validate->loopable($stdClass));
         static::assertTrue($validate->loopable($traversable));
         static::assertFalse($validate->loopable($nonTraversable));
 
+        static::assertFalse($validate->countable($null));
+        static::assertFalse($validate->countable($bool));
         static::assertTrue($validate->countable($array));
         static::assertFalse($validate->countable($stdClass));
         static::assertTrue($validate->countable($traversable));
         static::assertFalse($validate->countable($nonTraversable));
 
+        static::assertFalse($validate->sizeable($null));
+        static::assertFalse($validate->sizeable($bool));
         static::assertTrue($validate->sizeable($array));
         static::assertTrue($validate->sizeable($stdClass));
         static::assertTrue($validate->sizeable($traversable));

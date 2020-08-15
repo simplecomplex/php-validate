@@ -95,6 +95,7 @@ interface TypeRulesInterface
         'anonymousClass' => Type::EXTCLASS,
         'array' => Type::ARRAY,
         'container' => Type::CONTAINER,
+        'traversable' => Type::TRAVERSABLE,
         'iterable' => Type::ITERABLE,
         'loopable' => Type::LOOPABLE,
         'countable' => Type::COUNTABLE,
@@ -234,6 +235,8 @@ interface TypeRulesInterface
     public function array($subject) : bool;
 
     public function container($subject) : bool;
+
+    public function traversable($subject) : bool;
 
     public function iterable($subject) : bool;
 
