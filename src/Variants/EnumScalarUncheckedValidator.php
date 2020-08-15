@@ -11,25 +11,20 @@ namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\UncheckedValidator;
-use SimpleComplex\Validate\RuleTraits\EnumScalarTrait;
 
 /**
  * Unchecked validator with enum() accepting bool|int|float|string.
  *
- * @see UncheckedValidator
- *
- * Checked counterpart:
- * @see EnumScalarValidator
+ * Ruleset generator will deny null bucket in allowed-values argument for enum.
+ * @see Type::SCALAR
  *
  * @package SimpleComplex\Validate
  */
 class EnumScalarUncheckedValidator extends UncheckedValidator
 {
-    use EnumScalarTrait;
-
     /**
      * Tell ruleset generator (indirectly) that this validator only accepts
-     * bool|int|float|string values.
+     * bool|int|float|string as allowed values.
      * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::enum()
      *
      * Overrides by prepending overriding bucket(s);

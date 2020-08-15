@@ -41,11 +41,8 @@ class RuleProviderIntegrityTest extends TestCase
         UncheckedValidator::class,
         Validator::class,
         EnumScalarUncheckedValidator::class,
-        EnumScalarValidator::class,
         EnumEquatableNullUncheckedValidator::class,
-        EnumEquatableNullValidator::class,
         EnumEquatableUncheckedValidator::class,
-        EnumEquatableValidator::class,
     ];
 
     /**

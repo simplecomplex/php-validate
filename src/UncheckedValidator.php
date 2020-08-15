@@ -23,6 +23,7 @@ namespace SimpleComplex\Validate;
  * Type checking rules:
  * @see TypeRulesTrait
  * Pattern rules:
+ * @see EnumScalarNullTrait
  * @see PatternRulesUncheckedTrait
  *
  * @package SimpleComplex\Validate
@@ -36,6 +37,7 @@ class UncheckedValidator extends AbstractValidator
      *
      * Contains all rules of these traits:
      * @see TypeRulesTrait
+     * @see EnumScalarNullTrait
      * @see PatternRulesUncheckedTrait
      */
 }

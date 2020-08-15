@@ -761,7 +761,7 @@ class RuleSetGenerator
                     // EQUATABLE|SCALAR.
                     throw new InvalidRuleException(
                         'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i . '] type[null] is not '
-                        . ($rule->type == Type::EQUATABLE ? 'bool|int|string' : 'bool|int|float|string')
+                        . Type::typeMessage($rule->type)
                         . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
                     );
                 }
@@ -774,7 +774,7 @@ class RuleSetGenerator
                     // EQUATABLE|EQUATABLE_NULL.
                     throw new InvalidRuleException(
                         'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i . '] type[float] is not '
-                        . ($rule->type == Type::EQUATABLE ? 'bool|int|string' : 'bool|int|string|null')
+                        . Type::typeMessage($rule->type)
                         . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
                     );
                 }
@@ -785,7 +785,7 @@ class RuleSetGenerator
             else {
                 throw new InvalidRuleException(
                     'Validation rule \'' . $rule->name . '\' allowed values bucket[' . $i
-                    . '] type[' . Helper::getType($value) . '] is not scalar'
+                    . '] type[' . Helper::getType($value) . '] is not ' . Type::typeMessage($rule->type)
                     . ', at (' . $this->depth . ') ' . $this->keyPath . '.'
                 );
             }

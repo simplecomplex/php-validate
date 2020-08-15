@@ -16,7 +16,14 @@ use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumDynamicTypeValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullUncheckedValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableUncheckedValidator;
+use SimpleComplex\Validate\Variants\EnumScalarUncheckedValidator;
+
+use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
+use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
+
+use SimpleComplex\Validate\Exception\ValidationException;
 
 use SimpleComplex\Time\Time;
 use SimpleComplex\Tests\Validate\Entity\Stringable;
@@ -261,22 +268,199 @@ class ValidateTest extends TestCase
         static::assertTrue($validate->enum(0.1, [0.1]));
     }
 
-    public function testEnumDynamicType()
+    /**
+     * @throws ValidationException
+     */
+    public function testEnumUncheckedRuleProviders()
     {
-        $validate = new EnumDynamicTypeValidator();
-        static::assertInstanceOf(EnumDynamicTypeValidator::class, $validate);
+        $ruleProviders = [
+            UncheckedValidator::class,
+            EnumScalarUncheckedValidator::class,
+            EnumEquatableNullUncheckedValidator::class,
+            EnumEquatableUncheckedValidator::class,
+        ];
+        foreach ($ruleProviders as $class) {
+            /** @var AbstractValidator $validate */
+            $validate = new $class();
+            $ruleset = (new RuleSetFactory($validate))->make(
+                [
+                    'enum' => [
+                        /**
+                         * All validators' enums accept bool|int|string.
+                         * @see Type::EQUATABLE
+                         */
+                        false,
+                        0,
+                        ''
+                    ]
+                ]
+            );
+            static::assertTrue($validate->challenge(false, $ruleset));
+            static::assertTrue($validate->challenge(0, $ruleset));
+            static::assertTrue($validate->challenge('', $ruleset));
+            static::assertFalse($validate->challenge(true, $ruleset));
+            static::assertFalse($validate->challenge(1, $ruleset));
+            static::assertFalse($validate->challenge(' ', $ruleset));
+            static::assertFalse($validate->challenge([], $ruleset));
+            static::assertFalse($validate->challenge(new \stdClass(), $ruleset));
+        }
+    }
 
-        /**
-         * Float and null allowed.
-         * @see EnumDynamicTypeValidator::enum()
-         */
-        static::assertTrue($validate->enum(0.1, [0.1]));
-        static::assertFalse($validate->enum(0.1, [0.01]));
-        static::assertTrue($validate->enum(null, [null]));
-        static::assertFalse($validate->enum(null, [0.1]));
+    /**
+     * @throws ValidationException
+     */
+    public function testEnumUncheckedValidator()
+    {
+        $validate = new UncheckedValidator();
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    /**
+                     * All validators' enums accept bool|int|string.
+                     * @see Type::EQUATABLE
+                     */
+                    false,
+                    0,
+                    '',
+                    /**
+                     * UncheckedValidator enum furthermore accepts float|null.
+                     * @see UncheckedValidator
+                     * @see Type::SCALAR_NULL
+                     */
+                    null,
+                    0.0
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+        static::assertTrue($validate->challenge(null, $ruleset));
+        static::assertTrue($validate->challenge(0.0, $ruleset));
 
-        static::assertTrue($validate->enum(false, [false, true]));
-        static::assertTrue($validate->enum(true, [false, true]));
+        static::expectException(ValidationException::class);
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    false,
+                    0,
+                    '',
+                    null,
+                    0.0,
+                    // Not SCALAR_NULL.
+                    new \stdClass(),
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function testEnumScalarUncheckedValidator()
+    {
+        $validate = new EnumScalarUncheckedValidator();
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    /**
+                     * All validators' enums accept bool|int|string.
+                     * @see Type::EQUATABLE
+                     */
+                    false,
+                    0,
+                    '',
+                    /**
+                     * EnumScalarUncheckedValidator enum furthermore accepts float.
+                     * @see EnumScalarUncheckedValidator
+                     * @see Type::SCALAR
+                     */
+                    0.0,
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+        static::assertFalse($validate->challenge(null, $ruleset));
+        static::assertTrue($validate->challenge(0.0, $ruleset));
+
+        static::expectException(ValidationException::class);
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    false,
+                    0,
+                    '',
+                    0.0,
+                    // Not SCALAR.
+                    null,
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function testEnumEquatableNullUncheckedValidator()
+    {
+        $validate = new EnumEquatableNullUncheckedValidator();
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    /**
+                     * All validators' enums accept bool|int|string.
+                     * @see Type::EQUATABLE
+                     */
+                    false,
+                    0,
+                    '',
+                    /**
+                     * EnumEquatableNullUncheckedValidator enum furthermore accepts null.
+                     * @see EnumEquatableNullUncheckedValidator
+                     * @see Type::EQUATABLE_NULL
+                     */
+                    null
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+        static::assertTrue($validate->challenge(null, $ruleset));
+        static::assertFalse($validate->challenge(0.0, $ruleset));
+
+        static::expectException(ValidationException::class);
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    false,
+                    0,
+                    '',
+                    // Not EQUATABLE_NULL.
+                    0.0,
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function testEnumEquatableUncheckedValidator()
+    {
+        $validate = new EnumEquatableUncheckedValidator();
+        static::expectException(ValidationException::class);
+        $ruleset = (new RuleSetFactory($validate))->make(
+            [
+                'enum' => [
+                    false,
+                    0,
+                    '',
+                    // Not EQUATABLE.
+                    0.0
+                ]
+            ]
+        );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
     }
 
     /**
