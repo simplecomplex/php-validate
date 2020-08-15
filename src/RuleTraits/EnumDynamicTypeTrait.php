@@ -2,7 +2,7 @@
 /**
  * SimpleComplex PHP Validate
  * @link      https://github.com/simplecomplex/php-validate
- * @copyright Copyright (c) 2017-2020 Jacob Friis Mathiasen
+ * @copyright Copyright (c) 2020 Jacob Friis Mathiasen
  * @license   https://github.com/simplecomplex/php-validate/blob/master/LICENSE (MIT License)
  */
 declare(strict_types=1);
@@ -16,28 +16,28 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
 
 /**
+ * enum rule whose type is settled runtime by looking up the rule-provider's
+ * type declaration of 'enum'.
+ *
+ * Type-checking; usable for checked as well as unchecked validator.
+ *
+ * Rule-provider's type declaration of the 'enum' rule.
+ * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface::MINIMAL_PATTERN_RULES
+ * Unchecked validator:
+ * @see \SimpleComplex\Validate\AbstractValidator::PATTERN_RULES
+ * Checked validator:
+ * @see \SimpleComplex\Validate\Validator::TYPE_RULES
+ *
+ * @mixin \SimpleComplex\Validate\AbstractValidator
  *
  * @package SimpleComplex\Validate
  */
-trait EnumVersatileTrait
+trait EnumDynamicTypeTrait
 {
-    /**
-     * @param float $allowed
-     * @param float $subject
-     *
-     * @return bool
-     */
-    protected function helperCompareFloat(float $allowed, float $subject) : bool
-    {
-        return abs($allowed - $subject) < PHP_FLOAT_EPSILON;
-    }
-
     /**
      * Subject strictly equal to a bucket of an array.
      *
-     * Checks whether all allowed values are bool|int(|float)|string|null.
-     * @see TypeRulesTrait::equatable()
-     * @see TypeRulesTrait::scalarNull()
+     * @see PatternRulesUncheckedTrait::helperCompareFloat()
      *
      * @param mixed $subject
      * @param mixed[] $allowedValues

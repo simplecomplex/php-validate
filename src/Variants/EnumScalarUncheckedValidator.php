@@ -11,33 +11,32 @@ namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\UncheckedValidator;
-use SimpleComplex\Validate\RuleTraits\EnumVersatileTrait;
+use SimpleComplex\Validate\RuleTraits\EnumScalarTrait;
 
 /**
- * Unchecked validator with enum() supporting float and null.
+ * Unchecked validator with enum() accepting bool|int|float|string.
  *
  * @see UncheckedValidator
  *
  * Checked counterpart:
- * @see EnumVersatileValidator
+ * @see EnumScalarValidator
  *
  * @package SimpleComplex\Validate
  */
-class EnumVersatileUncheckedValidator extends UncheckedValidator
+class EnumScalarUncheckedValidator extends UncheckedValidator
 {
-    use EnumVersatileTrait;
+    use EnumScalarTrait;
 
     /**
+     * Tell ruleset generator (indirectly) that this validator only accepts
+     * bool|int|float|string values.
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::enum()
+     *
      * Overrides by prepending overriding bucket(s);
      * PHP array union(+) ignores duplicate in righthand array.
      */
     protected const PATTERN_RULES = [
-        /**
-         * enum() supports bool|int|float|string|null,
-         * but accommodates to this type setting.
-         * @see EnumVersatileTrait::enum()
-         */
-        'enum' => Type::SCALAR_NULL,
+        'enum' => Type::SCALAR,
     ]
     + UncheckedValidator::PATTERN_RULES;
 }

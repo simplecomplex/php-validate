@@ -35,27 +35,12 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 trait PatternRulesUncheckedTrait
 {
     /**
-     * Subject strictly equal to a bucket of an array.
-     *
-     * BEWARE: Does not check whether allowed values are type-wise acceptable.
-     * @see TypeRulesTrait::equatable()
-     * @see TypeRulesTrait::equatableNull()
-     * @see TypeRulesTrait::scalar()
-     * @see TypeRulesTrait::scalarNull()
-     *
-     * @param mixed $subject
-     * @param mixed[] $allowedValues
-     *
-     * @return bool
+     * enum rule is in other trait.
+     * @see EnumScalarNullTrait
+     * @see EnumScalarTrait
+     * @see EnumEquatableUncheckedTrait
+     * @see EnumEquatableCheckedTrait
      */
-    public function enum($subject, array $allowedValues) : bool
-    {
-        /**
-         * Shan't check for empty $allowedValues; ruleset generator does that.
-         * @see RuleSetGenerator::enum()
-         */
-        return in_array($subject, $allowedValues, true);
-    }
 
     // Numeric secondaries.-----------------------------------------------------
 
@@ -1194,5 +1179,19 @@ trait PatternRulesUncheckedTrait
         }
         return !!filter_var($v, FILTER_VALIDATE_EMAIL)
             && !!preg_match('/\.[a-zA-Z\d]+$/', $v);
+    }
+
+
+    // Helpers.-----------------------------------------------------------------
+
+    /**
+     * @param float $allowed
+     * @param float $subject
+     *
+     * @return bool
+     */
+    protected function helperCompareFloat(float $allowed, float $subject) : bool
+    {
+        return abs($allowed - $subject) < PHP_FLOAT_EPSILON;
     }
 }

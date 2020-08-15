@@ -16,7 +16,7 @@ use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumVersatileValidator;
+use SimpleComplex\Validate\Variants\EnumDynamicTypeValidator;
 
 use SimpleComplex\Time\Time;
 use SimpleComplex\Tests\Validate\Entity\Stringable;
@@ -241,11 +241,11 @@ class ValidateTest extends TestCase
         $o = new \stdClass();
         static::assertFalse($validate->enum($o, [$o]));
 
-        //static::assertFalse($validate->enum(null, [0]));
+        static::assertFalse($validate->enum(null, [0]));
         static::assertFalse($validate->enum(false, [0]));
         static::assertFalse($validate->enum(true, [0]));
 
-        //static::assertTrue($validate->enum(null, [null, false, true]));
+        static::assertTrue($validate->enum(null, [null, false, true]));
         static::assertTrue($validate->enum(false, [false, true]));
         static::assertTrue($validate->enum(true, [false, true]));
 
@@ -253,21 +253,22 @@ class ValidateTest extends TestCase
         static::assertFalse($validate->enum('0', [0]));
 
         /**
-         * Float is not allowed.
-         * @see Type::EQUATABLE
+         * Float and null are allowed.
+         * @see Type::SCALAR_NULL
          * @see PatternRulesInterface::MINIMAL_PATTERN_RULES
          */
-        static::assertFalse($validate->enum(0.1, [0.1]));
+        static::assertTrue($validate->enum(null, [false, null]));
+        static::assertTrue($validate->enum(0.1, [0.1]));
     }
 
-    public function testEnumVersatile()
+    public function testEnumDynamicType()
     {
-        $validate = new EnumVersatileValidator();
-        static::assertInstanceOf(EnumVersatileValidator::class, $validate);
+        $validate = new EnumDynamicTypeValidator();
+        static::assertInstanceOf(EnumDynamicTypeValidator::class, $validate);
 
         /**
          * Float and null allowed.
-         * @see EnumVersatileValidator::enum()
+         * @see EnumDynamicTypeValidator::enum()
          */
         static::assertTrue($validate->enum(0.1, [0.1]));
         static::assertFalse($validate->enum(0.1, [0.01]));

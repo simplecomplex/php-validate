@@ -55,10 +55,10 @@ interface PatternRulesInterface
      */
     public const MINIMAL_PATTERN_RULES = [
         /**
-         * Type-checking enum() only supports EQUATABLE (bool|int|string).
-         * @see \SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait::enum()
+         * Default enum() supports SCALAR_NULL (bool|int|float|string|null).
+         * @see \SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait::enum()
          */
-        'enum' => Type::EQUATABLE,
+        'enum' => Type::SCALAR_NULL,
 
         'bit32' => Type::NUMERIC,
         'bit64' => Type::NUMERIC,
