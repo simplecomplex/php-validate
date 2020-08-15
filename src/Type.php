@@ -15,20 +15,31 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 /** @noinspection PhpUnused */
 
 /**
- * Type definitions used by ruleset generator to find a type-checking rule
- * matching a pattern rule.
+ * Type definitions used to declare what types type-checking rules pass,
+ * and what types pattern rules accept.
  *
- * All integer constants must be unique.
+ * All integer constants are unique and usable as bitmasks.
  *
  * BEWARE: The exact values may vary across versions of this library.
  * Use the constants, not their literal values.
  *
+ * Used by ruleset generator to find a type-checking rule
+ * matching a pattern rule.
  * @see RuleSetGenerator::ensureTypeChecking()
+ * Use by ruleset generator to check enum/alternativeEnum
+ * allowed-values arguement
+ * @see RuleSetGenerator::enum()
  *
  * @package SimpleComplex\Validate
  */
 class Type
 {
+    /**
+     * All integer constants must be unique.
+     * @see AbstractValidator::getIntegrity()
+     * @see \SimpleComplex\Tests\Validate\RuleProviderIntegrityTest
+     */
+
     // Simple.------------------------------------------------------------------
 
     /**

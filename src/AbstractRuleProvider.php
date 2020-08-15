@@ -375,6 +375,9 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * are unique.
      * @see TYPE_CLASS
      *
+     * Method used by rule-provider integrity test.
+     * @see \SimpleComplex\Tests\Validate\RuleProviderIntegrityTest
+     *
      * @return string[]
      *
      * @throws \ReflectionException
