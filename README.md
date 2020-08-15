@@ -52,7 +52,11 @@ memorizes all failures along the way.
 
 **> [More about ruleset validation](README-RULESET.md)**
 
+### All exceptions are ValidationException ###
 
+Any exception thrown by a constructor or method of this library is
+\SimpleComplex\Validate\Exception\ValidationException.  
+Despite being an interface it _is_ catchable, because it extends \Throwable.
 
 
 

@@ -245,7 +245,9 @@ trait PatternRulesUncheckedTrait
     public function regex($subject, string $pattern) : bool
     {
         if (!$pattern || $pattern[0] !== '/') {
-            throw new InvalidArgumentException('Arg $pattern ' . (!$pattern ? 'is empty.' : 'is not slash delimited.'));
+            throw new InvalidArgumentException(
+                'Arg $pattern is ' . ($pattern === '' ? 'empty.' : 'not slash delimited.')
+            );
         }
         return !!preg_match($pattern, '' . $subject);
     }

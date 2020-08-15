@@ -12,7 +12,7 @@ namespace SimpleComplex\Validate\Exception;
  * To differentiate exceptions thrown in-package from exceptions thrown
  * out-package.
  *
- * Please do not use - throw - in code of another package/library.
+ * Please do not throw this in code of library that doesn't extend this library.
  *
  * @package SimpleComplex\Validate
  */

@@ -442,9 +442,6 @@ class ValidateTest extends TestCase
         static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function testEnumEquatableUncheckedValidator()
     {
         $validate = new EnumEquatableUncheckedValidator();

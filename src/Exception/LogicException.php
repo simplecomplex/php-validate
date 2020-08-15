@@ -9,14 +9,13 @@
 namespace SimpleComplex\Validate\Exception;
 
 /**
- * All exceptions of this library implements this interface.
+ * To differentiate exceptions thrown in-package from exceptions thrown
+ * out-package.
  *
- * Please do not use this in code of library that doesn't extend this library.
+ * Please do not throw this in code of library that doesn't extend this library.
  *
- * Extends \Throwable to be catchable.
- *
- * @package SimpleComplex\Validate\Exception
+ * @package SimpleComplex\Validate
  */
-interface ValidationException extends \Throwable
+class LogicException extends \LogicException implements ValidationException
 {
 }

@@ -16,11 +16,8 @@ use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\Variants\EnumScalarUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumScalarValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableNullUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableValidator;
 
 /**
  * @code

@@ -56,7 +56,6 @@ trait ChallengerTrait
      *
      * @return bool
      *
-     * @throws \TypeError  Propagated; arg $ruleSet not object|array.
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
      */
@@ -124,7 +123,6 @@ trait ChallengerTrait
      *      @var array record
      * }
      *
-     * @throws \TypeError  Propagated; arg $ruleSet not object|array.
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
      */

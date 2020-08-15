@@ -18,6 +18,7 @@ use SimpleComplex\Validate\RuleSet\TableElements;
 use SimpleComplex\Validate\RuleSet\ListItems;
 
 use SimpleComplex\Validate\Exception\BadMethodCallException;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
@@ -211,7 +212,7 @@ class ValidateAgainstRuleSet
      *
      * @return bool
      *
-     * @throws \TypeError
+     * @throws InvalidArgumentException
      *      Arg rules not array|object.
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
@@ -220,7 +221,7 @@ class ValidateAgainstRuleSet
             return $this->internalChallenge($subject, $ruleSet, 0, $keyPath);
         }
         elseif (is_object($ruleSet) && !is_array($ruleSet)) {
-            throw new \TypeError(
+            throw new InvalidArgumentException(
                 'Arg rules type[' . Helper::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
         }

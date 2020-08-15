@@ -117,7 +117,7 @@ interface RuleProviderInterface
      * @return string|null
      *      Null: no such pattern rule, or type rule type, found.
      *
-     * @throws \InvalidArgumentException
+     * @throws \SimpleComplex\Validate\Exception\InvalidArgumentException
      *      Both arguments falsy.
      *
      * @see AbstractRuleProvider::patternRuleToTypeRule()

@@ -9,10 +9,6 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleTraits;
 
-use SimpleComplex\Validate\Helper\Helper;
-
-use SimpleComplex\Validate\Exception\InvalidArgumentException;
-
 /**
  * Pattern rules - type-checking implementation.
  *

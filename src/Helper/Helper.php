@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Helper;
 
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -57,10 +58,9 @@ class Helper
      *
      * @return string[]
      *
-     * @throws \TypeError
-     *      Arg $objectOrClass not object|string.
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *      Class (str) $objectOrClass doesn't exist.
+     *      Arg $objectOrClass not object|string.
      */
     public static function getClassLineage($objectOrClass)
     {
@@ -70,13 +70,13 @@ class Helper
         elseif (is_string($objectOrClass)) {
             $class = $objectOrClass;
             if (!class_exists($class)) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
                 );
             }
         }
         else {
-            throw new \TypeError(
+            throw new InvalidArgumentException(
                 'Arg $objectOrClass type[' . static::getType($objectOrClass) . '] is not object|string.'
             );
         }
@@ -112,10 +112,9 @@ class Helper
      *
      * @return string[]
      *
-     * @throws \TypeError
-     *      Arg $objectOrClass not object|string.
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *      Class (str) $objectOrClass doesn't exist.
+     *      Arg $objectOrClass not object|string.
      */
     public static function getPublicMethods($objectOrClass, bool $instanceOnly = false) : array
     {
@@ -125,13 +124,13 @@ class Helper
         elseif (is_string($objectOrClass)) {
             $class = $objectOrClass;
             if (!class_exists($class)) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Arg $objectOrClass value[' . $class . '] class doesn\'t exist.'
                 );
             }
         }
         else {
-            throw new \TypeError(
+            throw new InvalidArgumentException(
                 'Arg $objectOrClass type[' . static::getType($objectOrClass) . '] is not object|string.'
             );
         }
@@ -145,7 +144,7 @@ class Helper
             }
             catch (\Throwable $xcptn) {
                 // Unlikely because class existence checked previously.
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'See previous.', 0, /*\ReflectionException*/ $xcptn
                 );
             }

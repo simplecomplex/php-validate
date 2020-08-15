@@ -16,6 +16,7 @@ use SimpleComplex\Validate\Helper\AbstractRule;
 use SimpleComplex\Validate\Helper\Rule;
 use SimpleComplex\Validate\Helper\Helper;
 
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
 /**
@@ -168,13 +169,13 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @return string[]
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *      Both args falsy.
      */
     public function getRuleNames(bool $typeRulesOnly = false, bool $patternRulesOnly = false) : array
     {
         if ($typeRulesOnly && $patternRulesOnly) {
-            throw new \InvalidArgumentException('Args $typeRulesOnly and $patternRulesOnly cannot both be true.');
+            throw new InvalidArgumentException('Args $typeRulesOnly and $patternRulesOnly cannot both be true.');
         }
         if ($typeRulesOnly) {
             return array_keys(static::TYPE_RULES);
@@ -304,7 +305,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @return string|null
      *      Null: no such pattern rule, or type rule type, found.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *      Both arguments falsy.
      */
     public function patternRuleToTypeRule(int $patternType = null, string $patternRuleName = null) : ?string
@@ -313,7 +314,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
             $type = static::PATTERN_RULES[$patternRuleName] ?? null;
         }
         elseif (!$patternType) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Args $patternType type[' . Helper::getType($patternType) . '] and $patternRuleName['
                 . Helper::getType($patternRuleName) . '] cannot both be falsy.'
             );

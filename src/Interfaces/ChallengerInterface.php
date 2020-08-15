@@ -64,7 +64,7 @@ interface ChallengerInterface extends RuleProviderInterface
      *
      * @return bool
      *
-     * @throws \Throwable
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated.
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool;

@@ -36,8 +36,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   
 * Pseudo-rule nullable renamed; from allowNull. Backwards compatible; ruleset
   generator still supports allowNull.
-  
-* regex() no longers passes boolean subject, no matter what pattern provided.
+
 * numeric() no longer passes stringed negative zero.
 
 * tableElements, listItems combined is legal, but only one will be used;   
@@ -73,6 +72,7 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
+* regex() no longers passes boolean subject, no matter what pattern provided.
 * enum/alternativeEnum now compares floats using PHP smallest representable
   float value as acceptable difference, instead of plain (===) equality.
 * ValidateAgainstRuleSet must use the rule-providers enum() for enum 

@@ -116,7 +116,7 @@ class BicycleTest extends TestCase
         if (!$valid) {
             error_log(__LINE__ . ': pre-converted:' . "\n" . $validate->getLastFailure());
         }
-        static::assertTrue($valid, __LINE__ . ': pre-converted');
+        static::assertFalse($valid, __LINE__ . ': pre-converted');
 
         $valid = $validate->challenge($bike, $source);
 //        $record = $validate->challengeRecording($bike, $source);

@@ -22,9 +22,6 @@ use SimpleComplex\Validate\Validator;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
-use SimpleComplex\Tests\Validate\Entity\Bicycle;
-use SimpleComplex\Tests\Validate\RuleSetPHP\BicycleRuleSets;
-
 /**
  * @code
  * // CLI, in document root:
@@ -172,6 +169,7 @@ class RecursionTest extends TestCase
                 $ruleSet_address
             )
         );
+        static::assertInstanceOf(ValidationRuleSet::class, $ruleSet_tampered);
         // Same as above, but simpler.
         $ruleSet_tampered = $ruleSet_person->replaceTableElementsKeyRuleSet('personAddress', $ruleSet_address);
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet_tampered)->log();

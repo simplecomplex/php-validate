@@ -17,6 +17,8 @@ use SimpleComplex\Validate\RuleSet\TableElements;
 use SimpleComplex\Validate\RuleSet\ListItems;
 
 use SimpleComplex\Validate\Exception\OutOfRangeException;
+use SimpleComplex\Validate\Exception\InvalidArgumentException;
+use SimpleComplex\Validate\Exception\LogicException;
 use SimpleComplex\Validate\Exception\InvalidRuleException;
 
 /**
@@ -208,6 +210,10 @@ class RuleSetGenerator
      *      ArrayAccess is not supported.
      * @param int $depth
      * @param string $keyPath
+     *
+     * @throws OutOfRangeException
+     *      Recursion limit exceeded.
+     * @throws InvalidArgumentException
      */
     public function __construct(RuleSetFactory $factory, $rules, int $depth = 0, string $keyPath = 'root')
     {
@@ -226,7 +232,7 @@ class RuleSetGenerator
 
         if (is_object($rules)) {
             if ($rules instanceof \ArrayAccess) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Arg rules type[' . Helper::getType($rules)
                     . '] \ArrayAccess is not supported' . ', at (' . $depth . ') ' . $keyPath . '.'
                 );
@@ -237,7 +243,7 @@ class RuleSetGenerator
             $this->rulesRaw = (object) $rules;
         }
         else {
-            throw new \TypeError(
+            throw new InvalidArgumentException(
                 'Arg rules type[' . Helper::getType($rules)
                 . '] is not object|array' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
@@ -339,6 +345,7 @@ class RuleSetGenerator
      * Also checks that the resulting ruleset isn't effectively empty.
      *
      * @throws InvalidRuleException
+     * @throws LogicException
      */
     protected function ensureTypeChecking() : void
     {
@@ -382,7 +389,7 @@ class RuleSetGenerator
             // those members are public, but doesn't implement \Traversable.
             $method = $this->factory->ruleProvider->patternRuleToTypeRule(Type::CONTAINER);
             if (!$method) {
-                throw new \LogicException(
+                throw new LogicException(
                     'Rule provider ' . get_class($this->factory->ruleProvider)
                     . ' has no type rule matching type CONTAINER.'
                 );
@@ -398,12 +405,12 @@ class RuleSetGenerator
 
         // Find first pattern rule, and find type rule matching that.
         if (!$this->patternRules) {
-            throw new \LogicException(__CLASS__ . '::$patternRules cannot be empty at this stage.');
+            throw new LogicException(__CLASS__ . '::$patternRules cannot be empty at this stage.');
         }
         $patternRule = reset($this->patternRules);
         $method = $this->factory->ruleProvider->patternRuleToTypeRule(null, $patternRule->name);
         if (!$method) {
-            throw new \LogicException(
+            throw new LogicException(
                 'Rule provider ' . get_class($this->factory->ruleProvider)
                 . ' has no type rule matching pattern rule[' . $patternRule->name . '].'
             );
@@ -886,13 +893,13 @@ class RuleSetGenerator
      *
      * @return string
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *      Arg $message empty.
      */
     protected function candidateErrorMsg(RuleSetRule $rule, string $message) : string
     {
         if ($message === '') {
-            throw new \InvalidArgumentException('Arg $message cannot be empty.');
+            throw new InvalidArgumentException('Arg $message cannot be empty.');
         }
         if ($rule->passedByValueAtIndex === null) {
             $msg = 'Validation rule-by-key[' . $rule->name . ']';
