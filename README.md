@@ -14,7 +14,7 @@ Test a variable against one of the validator's 70+ rule methods
 
 #### Type rules vs. pattern rules ####
 
-**> [Type rules](src/RuleTraits/TypeRulesTrait.php) check can if the variable**:
+**> [Type rules](src/RuleTraits/TypeRulesTrait.php) check if the variable**:
 - is of a type or class, or a pseudo type like 'digital' (stringed integer)
 - is directly (===) comparable, or stringable
 - is 'loopable' (array|stdClass|Traversable), or numerically indexed or keyed
@@ -56,7 +56,7 @@ memorizes all failures along the way.
 
 Any exception thrown by a constructor or method of this library is
 \SimpleComplex\Validate\Exception\ValidationException.  
-Despite being an interface it _is_ catchable, because it extends \Throwable.
+Despite being an interface it is catchable, because it extends \Throwable.
 
 
 
