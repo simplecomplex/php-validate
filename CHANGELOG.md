@@ -73,8 +73,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * Changelog in standard keepachangelog format; previous was idiosyncratic.
 
 ### Fixed
-* enum/alternativeEnum no longer allows float; must be bool|int|string|null.
-  That behaviour can be changed by overriding the enum rule.
+* enum/alternativeEnum now compares floats using PHP smallest representable
+  float value as acceptable difference, instead of plain (===) equality.
 * ValidateAgainstRuleSet must use the rule-providers enum() for enum 
   and alternativeEnum; not own custom method.
 * Ruleset without type-checking rule will now default to a rule fitting

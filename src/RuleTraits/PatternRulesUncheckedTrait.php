@@ -37,9 +37,6 @@ trait PatternRulesUncheckedTrait
     /**
      * enum rule is in other trait.
      * @see EnumScalarNullTrait
-     * @see EnumScalarTrait
-     * @see EnumEquatableUncheckedTrait
-     * @see EnumEquatableCheckedTrait
      */
 
     // Numeric secondaries.-----------------------------------------------------
@@ -1185,13 +1182,16 @@ trait PatternRulesUncheckedTrait
     // Helpers.-----------------------------------------------------------------
 
     /**
-     * @param float $allowed
+     * Compare floats using PHP smallest representable float value as acceptable
+     * difference.
+     *
+     * @param float $baseline
      * @param float $subject
      *
      * @return bool
      */
-    protected function helperCompareFloat(float $allowed, float $subject) : bool
+    protected function helperFloatApproximateEquality(float $baseline, float $subject) : bool
     {
-        return abs($allowed - $subject) < PHP_FLOAT_EPSILON;
+        return abs($baseline - $subject) < PHP_FLOAT_EPSILON;
     }
 }

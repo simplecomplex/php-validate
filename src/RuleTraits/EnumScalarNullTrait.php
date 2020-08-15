@@ -35,7 +35,7 @@ trait EnumScalarNullTrait
      *
      * scalar|null implementation.
      *
-     * @see PatternRulesUncheckedTrait::helperCompareFloat()
+     * @see PatternRulesUncheckedTrait::helperFloatApproximateEquality()
      *
      * @param mixed $subject
      * @param mixed[] $allowedValues
@@ -68,7 +68,7 @@ trait EnumScalarNullTrait
         }
 
         foreach ($allowedValues as $allowed) {
-            if (is_float($allowed) && $this->helperCompareFloat($allowed, $subject)) {
+            if (is_float($allowed) && $this->helperFloatApproximateEquality($allowed, $subject)) {
                 return true;
             }
         }

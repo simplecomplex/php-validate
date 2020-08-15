@@ -38,48 +38,10 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  */
 trait PatternRulesCheckedTrait
 {
-//    /**
-//     * Subject strictly equal to a bucket of an array.
-//     *
-//     * Checks whether all allowed values are bool|int|string.
-//     * @see TypeRulesTrait::equatable()
-//     *
-//     * @param mixed $subject
-//     * @param mixed[] $allowedValues
-//     *      [
-//     *          0: some scalar, not float (nor null)
-//     *      ]
-//     *
-//     * @return bool
-//     *
-//     * @throws InvalidArgumentException
-//     *      Arg $allowedValues is empty.
-//     *      A bucket of arg allowedValues is not bool|int|string.
-//     */
-//    public function enum($subject, array $allowedValues) : bool
-//    {
-//        if (!$allowedValues) {
-//            throw new InvalidArgumentException('Arg allowedValues is empty.');
-//        }
-//        if ($subject === null || is_float($subject) || !is_scalar($subject)) {
-//            return false;
-//        }
-//        $i = -1;
-//        foreach ($allowedValues as $allowed) {
-//            ++$i;
-//            if ($allowed === null || is_float($allowed) || !is_scalar($allowed)) {
-//                throw new InvalidArgumentException(
-//                    'Arg allowedValues bucket ' . $i . ' type[' . Helper::getType($allowed)
-//                    . '] is not bool|int|string.'
-//                );
-//            }
-//            if ($subject === $allowed) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
+    /**
+     * enum rule is in other trait.
+     * @see EnumScalarNullTrait
+     */
 
     // Numeric secondaries.-----------------------------------------------------
 
