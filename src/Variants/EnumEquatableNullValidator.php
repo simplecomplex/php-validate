@@ -9,27 +9,29 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\Variants;
 
-use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
-
 use SimpleComplex\Validate\Type;
 use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\RuleTraits\EnumDynamicTypeTrait;
+use SimpleComplex\Validate\RuleTraits\EnumEquatableNullCheckedTrait;
 
 /**
- * Checked validator with enum() supporting float and null.
+ * Checked validator with enum() accepting bool|int|string|null.
  *
  * @see Validator
  *
  * Unchecked counterpart:
- * @see EnumDynamicTypeUncheckedValidator
+ * @see EnumEquatableNullUncheckedValidator
  *
  * @package SimpleComplex\Validate
  */
-class EnumDynamicTypeValidator extends Validator implements CheckedRuleProviderInterface
+class EnumEquatableNullValidator extends Validator
 {
-    use EnumDynamicTypeTrait;
+    use EnumEquatableNullCheckedTrait;
 
     /**
+     * Tell ruleset generator (indirectly) that this validator only accepts
+     * bool|int|string values.
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::enum()
+     *
      * In an all type-checking validator all rules are type-rules.
      * @see Validator::TYPE_RULES
      * @see Validator::PATTERN_RULES
@@ -38,12 +40,7 @@ class EnumDynamicTypeValidator extends Validator implements CheckedRuleProviderI
      * PHP array union(+) ignores duplicate in righthand array.
      */
     protected const TYPE_RULES = [
-        /**
-         * enum() supports bool|int|float|string|null,
-         * but accommodates to this type setting.
-         * @see EnumDynamicTypeTrait::enum()
-         */
-        'enum' => Type::SCALAR_NULL,
+        'enum' => Type::EQUATABLE_NULL,
     ]
     + Validator::TYPE_RULES;
 }

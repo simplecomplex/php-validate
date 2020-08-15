@@ -15,8 +15,10 @@ use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
 use SimpleComplex\Validate\UncheckedValidator;
 use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumDynamicTypeUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumDynamicTypeValidator;
+use SimpleComplex\Validate\Variants\EnumScalarUncheckedValidator;
+use SimpleComplex\Validate\Variants\EnumScalarValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullUncheckedValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableUncheckedValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableValidator;
 
@@ -38,10 +40,12 @@ class RuleProviderIntegrityTest extends TestCase
     protected const RULE_PROVIDERS = [
         UncheckedValidator::class,
         Validator::class,
+        EnumScalarUncheckedValidator::class,
+        EnumScalarValidator::class,
+        EnumEquatableNullUncheckedValidator::class,
+        EnumEquatableNullValidator::class,
         EnumEquatableUncheckedValidator::class,
         EnumEquatableValidator::class,
-        EnumDynamicTypeUncheckedValidator::class,
-        EnumDynamicTypeValidator::class,
     ];
 
     /**
