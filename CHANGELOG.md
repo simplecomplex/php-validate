@@ -29,9 +29,9 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 * The 'bit' rule must _not_ allow string 0|1. To allow strings use ruleset
   [bit:true,alternativeEnum['0','1']].
   
-* ValidationFailureException no longer extends (SimpleComplex\Utils\Exception\)
-  UserMessageException; extends \RuntimeException directly.
-* All in-library exceptions now implement catchable interface
+* ValidationFailureException no longer extends
+  SimpleComplex\Utils\Exception\UserMessageException.
+* All in-library (error) exceptions now implement catchable interface
   ValidationException.
   
 * Pseudo-rule nullable renamed; from allowNull. Backwards compatible; ruleset

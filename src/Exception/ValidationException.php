@@ -9,8 +9,9 @@
 namespace SimpleComplex\Validate\Exception;
 
 /**
- * All exceptions of this library implements this interface.
+ * Error detected during a validation process.
  *
+ * All in-package exceptions of this library implements this interface.
  * Please do not use this in code of library that doesn't extend this library.
  *
  * Extends \Throwable to be catchable.

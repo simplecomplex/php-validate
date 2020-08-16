@@ -54,13 +54,10 @@ memorizes all failures along the way.
 
 ### All exceptions are ValidationException ###
 
-Any exception thrown by a constructor or method of this library is
-\SimpleComplex\Validate\Exception\ValidationException.  
-Despite being an interface it is catchable, because it extends \Throwable.
-
-
-
-
+Any exception thrown during validation (or ruleset generation) implements
+[ValidationException](src/Exception/ValidationException.php).  
+[Validation**Failure**Exception](src/Exception/ValidationFailureException.php) is unrelated,
+and usable for validation _failure_ only (not error). 
 
 ### Requirements ###
 

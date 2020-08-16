@@ -9,14 +9,20 @@
 namespace SimpleComplex\Validate\Exception;
 
 /**
- * Generic validation failure exception - free to use within other packages.
+ * Generic validation failure exception.
  *
  * Can accommodate a non-sensitive message to end user,
  * and a list of failures.
  *
+ * Usable within other packages than this.
+ *
+ * Does _not_ implement the in-package ValidationException interface.
+ * Because indicates validation _failure_, not error.
+ * @see ValidationException
+ *
  * @package SimpleComplex\Validate
  */
-class ValidationFailureException extends \RuntimeException implements ValidationException
+class ValidationFailureException extends \RuntimeException
 {
     /**
      * @var string
