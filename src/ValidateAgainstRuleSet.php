@@ -709,11 +709,17 @@ class ValidateAgainstRuleSet
                         . '`';
                 }
             }
-            elseif (is_array($subject) || $subject instanceof \Countable) {
+            elseif (is_array($subject)) {
                 $type .= ':' . count($subject);
             }
-            elseif ($subject instanceof \stdClass) {
-                $type .= ':' . count(get_object_vars($subject));
+            elseif (is_object($subject)) {
+                // Unextended \stdClass.
+                if (get_class($subject) == \stdClass::class) {
+                    $type .= ':' . count(get_object_vars($subject));
+                }
+                elseif ($subject instanceof \Countable) {
+                    $type .= ':' . count($subject);
+                }
             }
         }
         $type .= ')';

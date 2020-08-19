@@ -20,6 +20,10 @@ use SimpleComplex\Validate\Helper\AbstractRule;
  * optional, nullable, alternativeEnum, alternativeRuleSet, tableElements, listItems
  * @see ValidateAgainstRuleSet::NON_PROVIDER_RULES
  *
+ * Helper methods
+ * --------------
+ * Must be protected instance method, and method name must begin with 'helper'.
+ *
  * Rule methods invalid arg checks
  * -------------------------------
  * Rules that take more arguments than the $subject to validate

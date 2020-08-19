@@ -35,7 +35,7 @@ trait TypeRulesTrait
     /**
      * Subject is falsy, or array or 'sizeable' object is empty.
      *
-     * NB: Stringed zero - '0' - is _not_ empty.
+     * BEWARE: Stringed zero - '0' - is _not_ considered empty.
      *
      * @param mixed $subject
      *
@@ -50,7 +50,8 @@ trait TypeRulesTrait
             return $subject !== '0';
         }
         if (is_object($subject)) {
-            if ($subject instanceof \stdClass) {
+            // Unextended \stdClass.
+            if (get_class($subject) == \stdClass::class) {
                 return !get_object_vars($subject);
             }
             if ($subject instanceof \Countable) {
@@ -73,7 +74,7 @@ trait TypeRulesTrait
     /**
      * Subject is not falsy, or array or 'sizeable' object is not empty.
      *
-     * NB: Stringed zero - '0' - _is_ non-empty.
+     * BEWARE: Stringed zero - '0' - _is_ considered non-empty.
      *
      * @param mixed $subject
      *
@@ -88,7 +89,8 @@ trait TypeRulesTrait
             return $subject === '0';
         }
         if (is_object($subject)) {
-            if ($subject instanceof \stdClass) {
+            // Unextended \stdClass.
+            if (get_class($subject) == \stdClass::class) {
                 return !!get_object_vars($subject);
             }
             if ($subject instanceof \Countable) {
@@ -614,7 +616,7 @@ trait TypeRulesTrait
     }
 
     /**
-     * Is \stdClass.
+     * Is unextended \stdClass.
      *
      * @param mixed $subject
      *
@@ -622,7 +624,7 @@ trait TypeRulesTrait
      */
     public function stdClass($subject) : bool
     {
-        return $subject instanceof \stdClass;
+        return is_object($subject) && get_class($subject) == \stdClass::class;
     }
 
     /**
@@ -710,9 +712,9 @@ trait TypeRulesTrait
     }
 
     /**
-     * Array, \stdClass or \Traversable object.
+     * Array, unextended \stdClass or \Traversable object.
      *
-     * \stdClass is iterable for sure.
+     * Unextended \stdClass is iterable for sure.
      * Whereas a non-\Traversable extending class cannot be determined
      * as iterable or not.
      *
@@ -727,8 +729,13 @@ trait TypeRulesTrait
     public function loopable($subject) : bool
     {
         return is_array($subject)
-            || $subject instanceof \stdClass
-            || $subject instanceof \Traversable;
+            || (is_object($subject)
+                && (
+                    // Unextended \stdClass.
+                    get_class($subject) == \stdClass::class
+                    || $subject instanceof \Traversable
+                )
+            );
     }
 
     /**
@@ -767,9 +774,14 @@ trait TypeRulesTrait
     public function sizeable($subject) : bool
     {
         return is_array($subject)
-            || $subject instanceof \stdClass
-            || $subject instanceof \Countable
-            || $subject instanceof \Traversable;
+            || (is_object($subject)
+                && (
+                    // Unextended \stdClass.
+                    get_class($subject) == \stdClass::class
+                    || $subject instanceof \Countable
+                    || $subject instanceof \Traversable
+                )
+            );
     }
 
 
@@ -792,19 +804,25 @@ trait TypeRulesTrait
             throw new InvalidArgumentException('Arg $min[' . $min . '] is not non-negative.');
         }
 
-        if (is_array($subject) || $subject instanceof \Countable) {
+        if (is_array($subject)) {
             return count($subject) >= $min;
         }
-        if ($subject instanceof \stdClass) {
-            return count(get_object_vars($subject)) >= $min;
-        }
-        if ($subject instanceof \Traversable) {
-            $w = 0;
-            // Have to iterate; horrible.
-            foreach ($subject as $ignore) {
-                ++$w;
+        if (is_object($subject)) {
+            // Unextended \stdClass.
+            if (get_class($subject) == \stdClass::class) {
+                return count(get_object_vars($subject)) >= $min;
             }
-            return $w >= $min;
+            if ($subject instanceof \Countable) {
+                return count($subject) >= $min;
+            }
+            if ($subject instanceof \Traversable) {
+                $w = 0;
+                // Have to iterate; horrible.
+                foreach ($subject as $ignore) {
+                    ++$w;
+                }
+                return $w >= $min;
+            }
         }
 
         return false;
@@ -827,19 +845,25 @@ trait TypeRulesTrait
             throw new InvalidArgumentException('Arg $max[' . $max . '] is not non-negative.');
         }
 
-        if (is_array($subject) || $subject instanceof \Countable) {
+        if (is_array($subject)) {
             return count($subject) <= $max;
         }
-        if ($subject instanceof \stdClass) {
-            return count(get_object_vars($subject)) <= $max;
-        }
-        if ($subject instanceof \Traversable) {
-            $w = 0;
-            // Have to iterate; horrible.
-            foreach ($subject as $ignore) {
-                ++$w;
+        if (is_object($subject)) {
+            // Unextended \stdClass.
+            if (get_class($subject) == \stdClass::class) {
+                return count(get_object_vars($subject)) <= $max;
             }
-            return $w <= $max;
+            if ($subject instanceof \Countable) {
+                return count($subject) <= $max;
+            }
+            if ($subject instanceof \Traversable) {
+                $w = 0;
+                // Have to iterate; horrible.
+                foreach ($subject as $ignore) {
+                    ++$w;
+                }
+                return $w <= $max;
+            }
         }
 
         return false;
@@ -862,19 +886,25 @@ trait TypeRulesTrait
             throw new InvalidArgumentException('Arg $exact[' . $exact . '] is not non-negative.');
         }
 
-        if (is_array($subject) || $subject instanceof \Countable) {
+        if (is_array($subject)) {
             return count($subject) == $exact;
         }
-        if ($subject instanceof \stdClass) {
-            return count(get_object_vars($subject)) == $exact;
-        }
-        if ($subject instanceof \Traversable) {
-            $w = 0;
-            // Have to iterate; horrible.
-            foreach ($subject as $ignore) {
-                ++$w;
+        if (is_object($subject)) {
+            // Unextended \stdClass.
+            if (get_class($subject) == \stdClass::class) {
+                return count(get_object_vars($subject)) == $exact;
             }
-            return $w == $exact;
+            if ($subject instanceof \Countable) {
+                return count($subject) == $exact;
+            }
+            if ($subject instanceof \Traversable) {
+                $w = 0;
+                // Have to iterate; horrible.
+                foreach ($subject as $ignore) {
+                    ++$w;
+                }
+                return $w == $exact;
+            }
         }
 
         return false;
@@ -891,7 +921,7 @@ trait TypeRulesTrait
      */
     public function indexedIterable($subject) : bool
     {
-        return static::indexedOrKeyedIterable($subject);
+        return $this->helperIndexedOrKeyedIterable($subject);
     }
 
 
@@ -906,7 +936,7 @@ trait TypeRulesTrait
      */
     public function keyedIterable($subject) : bool
     {
-        return static::indexedOrKeyedIterable($subject, true);
+        return $this->helperIndexedOrKeyedIterable($subject, true);
     }
 
     /**
@@ -920,11 +950,12 @@ trait TypeRulesTrait
      */
     public function indexedLoopable($subject) : bool
     {
-        if ($subject instanceof \stdClass) {
+        // Unextended \stdClass.
+        if (is_object($subject) && get_class($subject) == \stdClass::class) {
             $keys = array_keys(get_object_vars($subject));
             return !$keys || ctype_digit(join('', $keys));
         }
-        return static::indexedOrKeyedIterable($subject);
+        return $this->helperIndexedOrKeyedIterable($subject);
     }
 
     /**
@@ -938,11 +969,12 @@ trait TypeRulesTrait
      */
     public function keyedLoopable($subject) : bool
     {
-        if ($subject instanceof \stdClass) {
+        // Unextended \stdClass.
+        if (is_object($subject) && get_class($subject) == \stdClass::class) {
             $keys = array_keys(get_object_vars($subject));
             return !$keys || !ctype_digit(join('', $keys));
         }
-        return static::indexedOrKeyedIterable($subject, true);
+        return $this->helperIndexedOrKeyedIterable($subject, true);
     }
 
     /**
@@ -1009,7 +1041,7 @@ trait TypeRulesTrait
      *
      * @return bool
      */
-    protected static function indexedOrKeyedIterable($subject, bool $keyed = false) : bool
+    protected function helperIndexedOrKeyedIterable($subject, bool $keyed = false) : bool
     {
         if (is_array($subject)) {
             if (!$subject) {

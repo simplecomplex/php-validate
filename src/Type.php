@@ -86,7 +86,17 @@ class Type
     public const ARRAY = 64;
 
     /**
-     * \stdClass.
+     * Unextended \stdClass.
+     *
+     * Known to be effectively traversable, countable and not stringable.
+     * Whereas a class which extends \stdClass (possible albeit rare)
+     * might have 'lost' it's traversability etc.
+     *
+     * Correct (exact) check:
+     *      get_class() == \stdClass::class
+     * Incorrect (ambiguous) check:
+     *      instanceof \stdClass::class
+     *
      * @see TypeRulesTrait::stdClass()
      */
     public const STDCLASS = 128;
@@ -331,7 +341,7 @@ class Type
             case static::ARRAY:
                 return 'array';
             case static::STDCLASS:
-                return '\stdClass';
+                return 'unextended-\stdClass';
             case static::EXTCLASS:
                 return 'object-not-\stdClass';
             case static::RESOURCE:
@@ -377,9 +387,9 @@ class Type
             case static::ITERABLE:
                 return 'array|\Traversable';
             case static::LOOPABLE:
-                return 'array|\Traversable|\stdClass';
+                return 'array|\Traversable|unextended-\stdClass';
             case static::SIZEABLE:
-                return 'array|\Countable|\Traversable|\stdClass';
+                return 'array|\Countable|\Traversable|unextended-\stdClass';
         }
         throw new InvalidArgumentException('Arg $type value[' . $type . '] is not a supported type.');
     }
