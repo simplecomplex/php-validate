@@ -12,6 +12,8 @@ namespace SimpleComplex\Validate\Interfaces;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
 /**
+ * @todo: RecursiveValidatorInterface
+ *
  * Validator checking against a ruleset.
  *
  * Supports recursive validation of object|array containers.

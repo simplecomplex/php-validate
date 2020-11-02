@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\Interfaces;
 
 /**
+ * @todo: CheckedValidatorInterface
+ *
  * Rule provider which promises that all it's rule methods
  * are type-checking.
  *
