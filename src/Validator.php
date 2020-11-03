@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
+use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
@@ -23,7 +23,7 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class Validator extends AbstractValidator implements CheckedRuleProviderInterface
+class Validator extends AbstractValidator implements CheckedValidatorInterface
 {
     // Pattern rules that are type-checking.
     use PatternRulesCheckedTrait;
@@ -39,8 +39,8 @@ class Validator extends AbstractValidator implements CheckedRuleProviderInterfac
      * IDE: _is_ used.
      */
     protected const TYPE_RULES =
-        UncheckedValidator::TYPE_RULES
-        + UncheckedValidator::PATTERN_RULES;
+        RecursiveValidator::TYPE_RULES
+        + RecursiveValidator::PATTERN_RULES;
 
     /**
      * No need for type inference at all.

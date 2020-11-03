@@ -47,7 +47,7 @@ and checks that the subject at any level/position accords with the rules at that
 
 #### Record reason(s) for validation failure ####
 
-```$validator->challenge($subject, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE)```
+```$validator->challenge($subject, $ruleSet, RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE)```
 memorizes all failures along the way.
 
 **> [More about ruleset validation](README-RULESET.md)**

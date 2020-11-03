@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
-use SimpleComplex\Validate\Interfaces\CheckedRuleProviderInterface;
+use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 
 use SimpleComplex\Validate\Helper\AbstractRule;
 use SimpleComplex\Validate\Helper\Rule;
@@ -249,16 +249,16 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a type-checking rule.
      *
-     * @see ValidateAgainstRuleSet::internalChallenge()
-     *
-     * @see Type
-     * @uses TYPE_RULES
-     * @uses AbstractValidator::TYPE_RULES
-     * @uses UncheckedValidator::TYPE_RULES
-     *
      * @param string $name
      *
      * @return int|null
+     *@uses TYPE_RULES
+     * @uses AbstractValidator::TYPE_RULES
+     * @uses RecursiveValidator::TYPE_RULES
+     *
+     * @see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @see Type
      */
     public function getTypeRuleType(string $name) : ?int
     {
@@ -268,17 +268,17 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * Get type affiliation of a pattern rule.
      *
-     * @see ValidateAgainstRuleSet::internalChallenge()
-     *
-     * @see Type
-     * @uses PATTERN_RULES
-     * @uses AbstractValidator::PATTERN_RULES
-     * @uses UncheckedValidator::PATTERN_RULES
-     *
      * @param string $name
      *
      * @return int|null
      *
+     * @uses PATTERN_RULES
+     * @uses AbstractValidator::PATTERN_RULES
+     * @uses RecursiveValidator::PATTERN_RULES
+     *
+     * @see ValidateAgainstRuleSet::internalChallenge()
+     *
+     * @see Type
      * @see AbstractRuleProvider::PATTERN_RULES
      * @see Type
      *
@@ -466,8 +466,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
         }
 
         // Non type-checking rules despite promising that all are type-checking?
-        if ($pattern_rules && $provider_class instanceof CheckedRuleProviderInterface) {
-            $msgs[] = 'Implements CheckedRuleProviderInterface but has some non type-checking (pattern) rules['
+        if ($pattern_rules && $provider_class instanceof CheckedValidatorInterface) {
+            $msgs[] = 'Implements CheckedValidatorInterface but has some non type-checking (pattern) rules['
                 . join(', ', $pattern_rules) . '].';
         }
 

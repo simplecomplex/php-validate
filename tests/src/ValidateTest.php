@@ -14,11 +14,11 @@ use PHPUnit\Framework\TestCase;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
 use SimpleComplex\Validate\AbstractValidator;
-use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableUncheckedValidator;
-use SimpleComplex\Validate\Variants\EnumScalarUncheckedValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
+use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -274,10 +274,10 @@ class ValidateTest extends TestCase
     public function testEnumUncheckedRuleProviders()
     {
         $ruleProviders = [
-            UncheckedValidator::class,
-            EnumScalarUncheckedValidator::class,
-            EnumEquatableNullUncheckedValidator::class,
-            EnumEquatableUncheckedValidator::class,
+            RecursiveValidator::class,
+            EnumScalarRecursiveValidator::class,
+            EnumEquatableNullRecursiveValidator::class,
+            EnumEquatableRecursiveValidator::class,
         ];
         foreach ($ruleProviders as $class) {
             /** @var AbstractValidator $validate */
@@ -311,7 +311,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumUncheckedValidator()
     {
-        $validate = new UncheckedValidator();
+        $validate = new RecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -323,8 +323,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * UncheckedValidator enum furthermore accepts float|null.
-                     * @see UncheckedValidator
+                     * RecursiveValidator enum furthermore accepts float|null.
+                     * @see RecursiveValidator
                      * @see Type::SCALAR_NULL
                      */
                     null,
@@ -358,7 +358,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumScalarUncheckedValidator()
     {
-        $validate = new EnumScalarUncheckedValidator();
+        $validate = new EnumScalarRecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -370,8 +370,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumScalarUncheckedValidator enum furthermore accepts float.
-                     * @see EnumScalarUncheckedValidator
+                     * EnumScalarRecursiveValidator enum furthermore accepts float.
+                     * @see EnumScalarRecursiveValidator
                      * @see Type::SCALAR
                      */
                     0.0,
@@ -403,7 +403,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumEquatableNullUncheckedValidator()
     {
-        $validate = new EnumEquatableNullUncheckedValidator();
+        $validate = new EnumEquatableNullRecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -415,8 +415,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumEquatableNullUncheckedValidator enum furthermore accepts null.
-                     * @see EnumEquatableNullUncheckedValidator
+                     * EnumEquatableNullRecursiveValidator enum furthermore accepts null.
+                     * @see EnumEquatableNullRecursiveValidator
                      * @see Type::EQUATABLE_NULL
                      */
                     null
@@ -444,7 +444,7 @@ class ValidateTest extends TestCase
 
     public function testEnumEquatableUncheckedValidator()
     {
-        $validate = new EnumEquatableUncheckedValidator();
+        $validate = new EnumEquatableRecursiveValidator();
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
             [

@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 
 /**
  * Unchecked validator with enum() accepting bool|int|float|string.
@@ -20,7 +20,7 @@ use SimpleComplex\Validate\UncheckedValidator;
  *
  * @package SimpleComplex\Validate
  */
-class EnumScalarUncheckedValidator extends UncheckedValidator
+class EnumScalarRecursiveValidator extends RecursiveValidator
 {
     /**
      * Tell ruleset generator (indirectly) that this validator only accepts
@@ -33,5 +33,5 @@ class EnumScalarUncheckedValidator extends UncheckedValidator
     protected const PATTERN_RULES = [
         'enum' => Type::SCALAR,
     ]
-    + UncheckedValidator::PATTERN_RULES;
+    + RecursiveValidator::PATTERN_RULES;
 }

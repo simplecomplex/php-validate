@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\ChallengerInterface;
+use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
@@ -18,19 +18,21 @@ use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
+ * @todo: make concrete, rename to RecursiveValidator, nick documentation from RecursiveValidator.
+ *
  * Intermediate class allowing Validator _not_ to extend
- * UncheckedValidator.
+ * RecursiveValidator.
  *
  * @see Validator
- * @see UncheckedValidator
+ * @see RecursiveValidator
  *
  * @package SimpleComplex\Validate
  */
 abstract class AbstractValidator
     extends AbstractRuleProvider
-    implements ChallengerInterface, TypeRulesInterface, PatternRulesInterface
+    implements RecursiveValidatorInterface, TypeRulesInterface, PatternRulesInterface
 {
-    // Become a ChallengerInterface.
+    // Become a RecursiveValidatorInterface.
     use ChallengerTrait;
 
     // Type-checking rules.
@@ -50,7 +52,7 @@ abstract class AbstractValidator
      */
     protected const NON_RULE_METHODS =
         AbstractRuleProvider::NON_RULE_METHODS
-        + ChallengerInterface::CHALLENGER_NON_RULE_METHODS
+        + RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS
         + [
             // Deprecated.
             'challengeRecording' => null,

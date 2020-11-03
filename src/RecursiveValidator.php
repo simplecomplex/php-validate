@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 /**
+ * @todo: obsolete, make AbstractValidator concrete and rename that to RecursiveValidator.
+ *
  * High performance validator targeted ruleset validation.
  *
  * Also usable 'manually', but then user _must_ secure that the subject
@@ -28,7 +30,7 @@ namespace SimpleComplex\Validate;
  *
  * @package SimpleComplex\Validate
  */
-class UncheckedValidator extends AbstractValidator
+class RecursiveValidator extends AbstractValidator
 {
     /**
      * Extends AbstractValidate to allow the all type-checking Validator

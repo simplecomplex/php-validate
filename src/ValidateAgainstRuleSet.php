@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
-use SimpleComplex\Validate\Interfaces\ChallengerInterface;
+use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -154,20 +154,20 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use UncheckedValidator::challenge() instead of this.
+     * Use RecursiveValidator::challenge() instead of this.
      *
      * @param RuleProviderInterface $ruleProvider
      * @param int $options
-     *      Bitmask, see ChallengerInterface bitmask flag constants.
+     *      Bitmask, see RecursiveValidatorInterface bitmask flag constants.
      */
     public function __construct(RuleProviderInterface $ruleProvider, int $options = 0) {
         $this->ruleProvider = $ruleProvider;
 
         if ($options) {
-            if (($options & ChallengerInterface::RECORD)) {
+            if (($options & RecursiveValidatorInterface::RECORD)) {
                 $this->recordFailure = true;
                 // Ignore unless recording.
-                if (($options & ChallengerInterface::CONTINUE)) {
+                if (($options & RecursiveValidatorInterface::CONTINUE)) {
                     $this->continueOnFailure = true;
                 }
             }
@@ -184,21 +184,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use UncheckedValidator::challenge() instead of this.
-     *
-     * @see UncheckedValidator::challenge()
-     * @see UncheckedValidator::challengeRecording()
-     *
-     * @code
-     * // Validator a value which should be an integer zero thru two.
-     * $validate->challenge($some_input, [
-     *     'integer',
-     *     'range' => [
-     *         0,
-     *         2
-     *     ]
-     * ]);
-     * @endcode
+     * Use RecursiveValidator::challenge() instead of this.
      *
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
@@ -214,6 +200,20 @@ class ValidateAgainstRuleSet
      *
      * @throws InvalidArgumentException
      *      Arg rules not array|object.
+     *@see RecursiveValidator::challengeRecording()
+     *
+     * @code
+     * // Validator a value which should be an integer zero thru two.
+     * $validate->challenge($some_input, [
+     *     'integer',
+     *     'range' => [
+     *         0,
+     *         2
+     *     ]
+     * ]);
+     * @endcode
+     *
+     * @see RecursiveValidator::challenge()
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {

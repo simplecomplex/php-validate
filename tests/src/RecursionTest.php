@@ -15,8 +15,8 @@ use SimpleComplex\Validate\Exception\ValidationException;
 use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\AbstractValidator;
-use SimpleComplex\Validate\Interfaces\ChallengerInterface;
-use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
+use SimpleComplex\Validate\RecursiveValidator;
 use SimpleComplex\Validate\Validator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -34,15 +34,15 @@ class RecursionTest extends TestCase
 {
     protected const RULESET_JSON_PATH = '/RuleSetJSON';
 
-    protected const CHALLENGE_MODE = ChallengerInterface::RECORD | ChallengerInterface::CONTINUE;
+    protected const CHALLENGE_MODE = RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE;
 
     /**
      * @return AbstractValidator
      */
     public function testInstantiateUncheckedValidator()
     {
-        $validator = UncheckedValidator::getInstance();
-        static::assertInstanceOf(UncheckedValidator::class, $validator);
+        $validator = RecursiveValidator::getInstance();
+        static::assertInstanceOf(RecursiveValidator::class, $validator);
         return $validator;
     }
 

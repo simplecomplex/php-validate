@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\ChallengerInterface;
+use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
@@ -45,19 +45,19 @@ trait ChallengerTrait
      * Validate against a ruleset.
      *
      * Arg $options example:
-     * ChallengerInterface::RECORD | ChallengerInterface::CONTINUE
-     * @see ChallengerInterface::RECORD
-     * @see ChallengerInterface::CONTINUE
-     *
+     * RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
      * @param int $options
-     *      Bitmask, see ChallengerInterface bitmask flag constants.
+     *      Bitmask, see RecursiveValidatorInterface bitmask flag constants.
      *
      * @return bool
      *
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
+     *@see RecursiveValidatorInterface::CONTINUE
+     *
+     * @see RecursiveValidatorInterface::RECORD
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool
     {
@@ -128,7 +128,7 @@ trait ChallengerTrait
      */
     public function challengeRecording($subject, $ruleSet) : array
     {
-        $passed = $this->challenge($subject, $ruleSet, ChallengerInterface::RECORD | ChallengerInterface::CONTINUE);
+        $passed = $this->challenge($subject, $ruleSet, RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE);
         return [
             'passed' => $passed,
             'record' => $passed ? [] : ($this->lastChallengeFailure ?? []),

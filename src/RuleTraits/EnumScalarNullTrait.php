@@ -35,6 +35,17 @@ trait EnumScalarNullTrait
      *
      * scalar|null implementation.
      *
+     * During recursive validation this method won't be called at all if the
+     * subject's type is invalid, because the ruleset generator injects a type
+     * check before this method.
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
+     * @see \SimpleComplex\Validate\Interfaces\RuleProviderInterface::ensureTypeChecking()
+     * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::patternRuleToTypeRule()
+     *
+     * Therefore this method doesn't need to check if the subject matches
+     * current validator's enum type - except for non-recursive validation where
+     * checking against the widest enum type (scalar|null).
+     *
      * @see PatternRulesUncheckedTrait::helperFloatApproximateEquality()
      *
      * @param mixed $subject
