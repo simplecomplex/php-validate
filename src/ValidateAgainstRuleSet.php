@@ -23,13 +23,12 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
- * Validator checking against a ruleset.
- * Supports recursive validation of object|array containers.
+ * Recursive validation engine.
  *
  * @internal
- * Don't use this class directly, use challenge|challengeRecording() method.
- * @see AbstractRuleProvider::challenge()
- * @see AbstractRuleProvider::challengeRecording()
+ *      Don't use this class directly, use challenge|challengeRecording() method.
+ * @see ChallengerTrait::challenge()
+ * @see UncheckedValidator::challenge()
  *
  * @package SimpleComplex\Validate
  */
@@ -154,7 +153,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use RecursiveValidator::challenge() instead of this.
+     * Use ChallengerTrait::challenge() instead of this.
      *
      * @param RuleProviderInterface $ruleProvider
      * @param int $options
@@ -184,7 +183,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use RecursiveValidator::challenge() instead of this.
+     * Use ChallengerTrait::challenge() instead of this.
      *
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
@@ -200,10 +199,9 @@ class ValidateAgainstRuleSet
      *
      * @throws InvalidArgumentException
      *      Arg rules not array|object.
-     *@see RecursiveValidator::challengeRecording()
      *
      * @code
-     * // Validator a value which should be an integer zero thru two.
+     * // CheckedValidator a value which should be an integer zero thru two.
      * $validate->challenge($some_input, [
      *     'integer',
      *     'range' => [
@@ -213,7 +211,7 @@ class ValidateAgainstRuleSet
      * ]);
      * @endcode
      *
-     * @see RecursiveValidator::challenge()
+     * @see ChallengerTrait::challenge()
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {
@@ -254,7 +252,7 @@ class ValidateAgainstRuleSet
      * @throws InvalidRuleException
      * @throws OutOfRangeException
      */
-    protected function internalChallenge($subject, ValidationRuleSet $ruleSet, $depth, $keyPath) : bool
+    protected function internalChallenge($subject, ValidationRuleSet $ruleSet, int $depth, string $keyPath) : bool
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
@@ -335,7 +333,7 @@ class ValidateAgainstRuleSet
             // Do ordinary rules.-----------------------------------------------
             foreach ($rule_methods as $method => $args) {
                 // We expect more boolean trues than arrays;
-                // few Validator methods take secondary args.
+                // few rule methods take secondary args.
                 if ($args === true) {
                     if (!$this->ruleProvider->{$method}($subject)) {
                         $passed = false;

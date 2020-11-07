@@ -14,10 +14,9 @@ use PHPUnit\Framework\TestCase;
 use SimpleComplex\Validate\Exception\ValidationException;
 use SimpleComplex\Validate\Helper\Helper;
 
-use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\RecursiveValidator;
-use SimpleComplex\Validate\Validator;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\CheckedValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -37,22 +36,22 @@ class RecursionTest extends TestCase
     protected const CHALLENGE_MODE = RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE;
 
     /**
-     * @return AbstractValidator
+     * @return UncheckedValidator
      */
     public function testInstantiateUncheckedValidator()
     {
-        $validator = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validator);
+        $validator = UncheckedValidator::getInstance();
+        static::assertInstanceOf(UncheckedValidator::class, $validator);
         return $validator;
     }
 
     /**
-     * @return AbstractValidator
+     * @return UncheckedValidator
      */
     public function testInstantiateValidator()
     {
-        $validator = Validator::getInstance();
-        static::assertInstanceOf(Validator::class, $validator);
+        $validator = CheckedValidator::getInstance();
+        static::assertInstanceOf(CheckedValidator::class, $validator);
         return $validator;
     }
 

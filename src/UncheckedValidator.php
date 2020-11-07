@@ -18,17 +18,25 @@ use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * @todo: make concrete, rename to RecursiveValidator, nick documentation from RecursiveValidator.
+ * High performance validator targeted ruleset validation.
  *
- * Intermediate class allowing Validator _not_ to extend
- * RecursiveValidator.
+ * Also usable 'manually', but then user _must_ secure that the subject
+ * gets checked by a type-checking rule before a pattern rule.
  *
- * @see Validator
- * @see RecursiveValidator
+ * BEWARE: Pattern rules of this validator do _not_ check subject's type.
+ *      Without a preceding type-check (failing on unexpected subject type)
+ *      these pattern rules are unreliable, and may produce fatal error
+ *      (attempt to stringify object without __toString() method).
+ *
+ * Type checking rules:
+ * @see TypeRulesTrait
+ * Pattern rules:
+ * @see EnumScalarNullTrait
+ * @see PatternRulesUncheckedTrait
  *
  * @package SimpleComplex\Validate
  */
-abstract class AbstractValidator
+class UncheckedValidator
     extends AbstractRuleProvider
     implements RecursiveValidatorInterface, TypeRulesInterface, PatternRulesInterface
 {

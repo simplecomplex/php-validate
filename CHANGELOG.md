@@ -12,8 +12,8 @@ using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
   by all in-package exceptions.
 
 ### Changed
-* Validator class renamed; from Validate. New deprecated class Validate, which
-  extends Validator.
+* CheckedValidator class renamed; from Validate. New deprecated class Validate, which
+  extends CheckedValidator.
   
 * All rule methods now return boolean. Thus these methods no longer return
   string on pass:  

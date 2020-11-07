@@ -36,7 +36,7 @@ class Type
 {
     /**
      * All integer constants must be unique.
-     * @see AbstractValidator::getIntegrity()
+     * @see AbstractRuleProvider::getIntegrity()
      * @see \SimpleComplex\Tests\Validate\RuleProviderIntegrityTest
      */
 

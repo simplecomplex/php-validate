@@ -148,7 +148,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @see challenge()
      *
      * @param mixed ...$constructorParams
-     *      Validator child class constructor may have parameters.
+     *      Child class constructor may have parameters.
      *
      * @return AbstractRuleProvider|static
      */
@@ -252,12 +252,9 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @param string $name
      *
      * @return int|null
-     *@uses TYPE_RULES
-     * @uses AbstractValidator::TYPE_RULES
-     * @uses RecursiveValidator::TYPE_RULES
      *
+     * @see AbstractRuleProvider::TYPE_RULES
      * @see ValidateAgainstRuleSet::internalChallenge()
-     *
      * @see Type
      */
     public function getTypeRuleType(string $name) : ?int
@@ -272,14 +269,8 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * @return int|null
      *
-     * @uses PATTERN_RULES
-     * @uses AbstractValidator::PATTERN_RULES
-     * @uses RecursiveValidator::PATTERN_RULES
-     *
-     * @see ValidateAgainstRuleSet::internalChallenge()
-     *
-     * @see Type
      * @see AbstractRuleProvider::PATTERN_RULES
+     * @see ValidateAgainstRuleSet::internalChallenge()
      * @see Type
      *
      * For ValidateAgainstRuleSet.
@@ -352,7 +343,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     /**
      * By design, ValidateAgainstRuleSet::challenge() should not be able to call
      * a non-existent method of this class.
-     * But external call to Validator::noSuchRule() is somewhat expectable.
+     * Whereas external call to CheckedValidator::noSuchRule() is expectable.
      *
      * @see ValidateAgainstRuleSet::challenge()
      *
@@ -362,7 +353,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      * @throws BadMethodCallException
      *      Undefined rule method by arg name.
      */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
         throw new BadMethodCallException('Undefined validation rule[' . $name . '].');
     }
@@ -486,7 +477,6 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
 
         return $msgs;
     }
-
 
     // Rule methods speficified by RuleProviderInterface
     // must be implemented by extending class.

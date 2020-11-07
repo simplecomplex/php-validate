@@ -13,12 +13,11 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\AbstractValidator;
-use SimpleComplex\Validate\RecursiveValidator;
-use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\CheckedValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableValidator;
+use SimpleComplex\Validate\Variants\EnumScalarValidator;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -40,17 +39,18 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ValidateTest extends TestCase
 {
     /**
-     * @return AbstractValidator
+     * @return UncheckedValidator
      */
     public function testInstantiation()
     {
-        $validate = new Validator();
-        static::assertInstanceOf(AbstractValidator::class, $validate);
+        $validate = new CheckedValidator();
+        static::assertInstanceOf(UncheckedValidator::class, $validate);
+        static::assertInstanceOf(CheckedValidator::class, $validate);
         return $validate;
     }
 
     /**
-     * @see Validator::empty()
+     * @see CheckedValidator::empty()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -93,7 +93,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::nonEmpty()
+     * @see CheckedValidator::nonEmpty()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -236,7 +236,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::enum()
+     * @see CheckedValidator::enum()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -274,13 +274,13 @@ class ValidateTest extends TestCase
     public function testEnumUncheckedRuleProviders()
     {
         $ruleProviders = [
-            RecursiveValidator::class,
-            EnumScalarRecursiveValidator::class,
-            EnumEquatableNullRecursiveValidator::class,
-            EnumEquatableRecursiveValidator::class,
+            UncheckedValidator::class,
+            EnumScalarValidator::class,
+            EnumEquatableNullValidator::class,
+            EnumEquatableValidator::class,
         ];
         foreach ($ruleProviders as $class) {
-            /** @var AbstractValidator $validate */
+            /** @var UncheckedValidator $validate */
             $validate = new $class();
             $ruleset = (new RuleSetFactory($validate))->make(
                 [
@@ -311,7 +311,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumUncheckedValidator()
     {
-        $validate = new RecursiveValidator();
+        $validate = new UncheckedValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -323,8 +323,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * RecursiveValidator enum furthermore accepts float|null.
-                     * @see RecursiveValidator
+                     * UncheckedValidator enum furthermore accepts float|null.
+                     * @see UncheckedValidator
                      * @see Type::SCALAR_NULL
                      */
                     null,
@@ -358,7 +358,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumScalarUncheckedValidator()
     {
-        $validate = new EnumScalarRecursiveValidator();
+        $validate = new EnumScalarValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -370,8 +370,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumScalarRecursiveValidator enum furthermore accepts float.
-                     * @see EnumScalarRecursiveValidator
+                     * EnumScalarValidator enum furthermore accepts float.
+                     * @see EnumScalarValidator
                      * @see Type::SCALAR
                      */
                     0.0,
@@ -403,7 +403,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumEquatableNullUncheckedValidator()
     {
-        $validate = new EnumEquatableNullRecursiveValidator();
+        $validate = new EnumEquatableNullValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -415,8 +415,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumEquatableNullRecursiveValidator enum furthermore accepts null.
-                     * @see EnumEquatableNullRecursiveValidator
+                     * EnumEquatableNullValidator enum furthermore accepts null.
+                     * @see EnumEquatableNullValidator
                      * @see Type::EQUATABLE_NULL
                      */
                     null
@@ -444,7 +444,7 @@ class ValidateTest extends TestCase
 
     public function testEnumEquatableUncheckedValidator()
     {
-        $validate = new EnumEquatableRecursiveValidator();
+        $validate = new EnumEquatableValidator();
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
             [
@@ -461,7 +461,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::regex()
+     * @see CheckedValidator::regex()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -480,7 +480,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::boolean()
+     * @see CheckedValidator::boolean()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -498,7 +498,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::number()
+     * @see CheckedValidator::number()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -527,7 +527,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::integer()
+     * @see CheckedValidator::integer()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -556,7 +556,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::float()
+     * @see CheckedValidator::float()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -693,7 +693,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::string()
+     * @see CheckedValidator::string()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -722,7 +722,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateDateTimeISO()
+     * @see CheckedValidator::dateDateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -872,7 +872,7 @@ class ValidateTest extends TestCase
     ];
 
     /**
-     * @see Validator::dateDateTimeISO()
+     * @see CheckedValidator::dateDateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -897,7 +897,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateISOLocal()
+     * @see CheckedValidator::dateISOLocal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -920,7 +920,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateTimeISO()
+     * @see CheckedValidator::dateTimeISO()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -959,7 +959,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateTimeISOLocal()
+     * @see CheckedValidator::dateTimeISOLocal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -984,7 +984,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateTimeISOZonal()
+     * @see CheckedValidator::dateTimeISOZonal()
      *
      * @see ValidateTest::testInstantiation()
      */
@@ -1023,7 +1023,7 @@ class ValidateTest extends TestCase
     }
 
     /**
-     * @see Validator::dateTimeISOUTC()
+     * @see CheckedValidator::dateTimeISOUTC()
      *
      * @see ValidateTest::testInstantiation()
      */

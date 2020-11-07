@@ -224,7 +224,7 @@ class TableElements
      * @param int $depth
      * @param string $keyPath
      */
-    protected function defineModifiers($tableElements, $depth, $keyPath) : void
+    protected function defineModifiers(object $tableElements, int $depth, string $keyPath) : void
     {
         $modifiers = [];
         if (!empty($tableElements->exclusive)) {

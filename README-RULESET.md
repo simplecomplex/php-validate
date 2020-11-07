@@ -5,7 +5,7 @@ Validate almost any kind of PHP data structure.
 
 ### Simple shallow validation ###
 
-Test a variable against one of ```Validator```s 70+ rule methods
+Test a variable against one of ```CheckedValidator```s 70+ rule methods
 - is it of a particular type or class?
 - is it emptyish?
 - does it's value match a pattern?
@@ -24,7 +24,7 @@ Test a variable against one of ```Validator```s 70+ rule methods
 
 #### Test against a set of rules ####
 
-A validation ruleset is a list of rules (```Validator``` methods)  
+A validation ruleset is a list of rules (```UnCheckedValidator``` methods)  
 – in effect you can combine all the above questions into a single question.
 
 You can also declare that "well if it _isn't_ an [object|string|whatever], then null|false|0 will do just fine".

@@ -14,7 +14,7 @@ use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
- * Validator targeted 'manual' (non-ruleset) use.
+ * CheckedValidator targeted 'manual' (non-ruleset) use.
  *
  * All rules of this class are type-checking.
  *
@@ -23,7 +23,7 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class Validator extends AbstractValidator implements CheckedValidatorInterface
+class CheckedValidator extends UncheckedValidator implements CheckedValidatorInterface
 {
     // Pattern rules that are type-checking.
     use PatternRulesCheckedTrait;
@@ -39,11 +39,11 @@ class Validator extends AbstractValidator implements CheckedValidatorInterface
      * IDE: _is_ used.
      */
     protected const TYPE_RULES =
-        RecursiveValidator::TYPE_RULES
-        + RecursiveValidator::PATTERN_RULES;
+        UncheckedValidator::TYPE_RULES
+        + UncheckedValidator::PATTERN_RULES;
 
     /**
-     * No need for type inference at all.
+     * No methods are not type-checking.
      *
      * @see AbstractRuleProvider::getRuleNames()
      * @see AbstractRuleProvider::getRule()

@@ -20,9 +20,9 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  * @see Type::SCALAR_NULL
  * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface::MINIMAL_PATTERN_RULES
  * Unchecked validator:
- * @see \SimpleComplex\Validate\AbstractValidator::PATTERN_RULES
+ * @see \SimpleComplex\Validate\UncheckedValidator::PATTERN_RULES
  * Checked validator:
- * @see \SimpleComplex\Validate\Validator::TYPE_RULES
+ * @see \SimpleComplex\Validate\CheckedValidator::TYPE_RULES
  *
  * @mixin PatternRulesUncheckedTrait
  *

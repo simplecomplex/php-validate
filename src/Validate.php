@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate;
 
 /**
- * @deprecated  Use Validator instead.
+ * @deprecated  Use CheckedValidator instead.
  *
  * @package SimpleComplex\Validate
  */
-class Validate extends Validator
+class Validate extends CheckedValidator
 {
 }

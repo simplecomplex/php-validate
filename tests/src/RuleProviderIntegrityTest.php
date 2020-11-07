@@ -13,11 +13,11 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 
-use SimpleComplex\Validate\RecursiveValidator;
-use SimpleComplex\Validate\Validator;
-use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\CheckedValidator;
+use SimpleComplex\Validate\Variants\EnumScalarValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableValidator;
 
 /**
  * @code
@@ -35,11 +35,11 @@ class RuleProviderIntegrityTest extends TestCase
      * @var string[]
      */
     protected const RULE_PROVIDERS = [
-        RecursiveValidator::class,
-        Validator::class,
-        EnumScalarRecursiveValidator::class,
-        EnumEquatableNullRecursiveValidator::class,
-        EnumEquatableRecursiveValidator::class,
+        UncheckedValidator::class,
+        CheckedValidator::class,
+        EnumScalarValidator::class,
+        EnumEquatableNullValidator::class,
+        EnumEquatableValidator::class,
     ];
 
     /**

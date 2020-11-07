@@ -30,7 +30,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  * @see ValidateAgainstRuleSet::getInstance()
  *
  *
- * @mixin AbstractValidator
+ * @mixin UncheckedValidator
  *
  * @package SimpleComplex\Validate
  */
@@ -55,8 +55,8 @@ trait ChallengerTrait
      *
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
-     *@see RecursiveValidatorInterface::CONTINUE
      *
+     * @see RecursiveValidatorInterface::CONTINUE
      * @see RecursiveValidatorInterface::RECORD
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool
@@ -128,7 +128,11 @@ trait ChallengerTrait
      */
     public function challengeRecording($subject, $ruleSet) : array
     {
-        $passed = $this->challenge($subject, $ruleSet, RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE);
+        $passed = $this->challenge(
+            $subject,
+            $ruleSet,
+            RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE
+        );
         return [
             'passed' => $passed,
             'record' => $passed ? [] : ($this->lastChallengeFailure ?? []),

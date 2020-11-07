@@ -11,10 +11,9 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
-use SimpleComplex\Validate\AbstractValidator;
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\RecursiveValidator;
-use SimpleComplex\Validate\Validator;
+use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\CheckedValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -33,21 +32,15 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class BicycleTest extends TestCase
 {
     /**
-     * @return AbstractValidator
+     * @return UncheckedValidator
      */
     public function testInstantiation()
     {
-        $validate = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validate);
-        $validate = Validator::getInstance();
-        static::assertInstanceOf(Validator::class, $validate);
-        static::assertNotInstanceOf(RecursiveValidator::class, $validate);
-        $validate = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validate);
-        static::assertNotInstanceOf(Validator::class, $validate);
+        $validate = UncheckedValidator::getInstance();
+        static::assertInstanceOf(UncheckedValidator::class, $validate);
+        $validate = CheckedValidator::getInstance();
+        static::assertInstanceOf(CheckedValidator::class, $validate);
 
-//        $validate = new RecursiveValidator();
-//        static::assertInstanceOf(RecursiveValidator::class, $validate);
         return $validate;
     }
 
