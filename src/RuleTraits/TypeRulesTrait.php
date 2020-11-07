@@ -642,7 +642,8 @@ trait TypeRulesTrait
     /**
      * Anonymous class.
      *
-     * Is in effect extending class (object not \stdClass) with bad class name.
+     * Is in effect extending class (object not \stdClass)
+     * with random class name.
      *
      * @param mixed $subject
      *
