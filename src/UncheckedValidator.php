@@ -13,6 +13,7 @@ use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
+use SimpleComplex\Validate\RuleSet\ChallengerTrait;
 use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
 use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;

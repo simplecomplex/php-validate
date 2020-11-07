@@ -7,11 +7,9 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\RuleSet;
 
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-
-use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
 /**
  * Validator checking against a ruleset.
@@ -30,7 +28,7 @@ use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
  * @see ValidateAgainstRuleSet::getInstance()
  *
  *
- * @mixin UncheckedValidator
+ * @mixin \SimpleComplex\Validate\UncheckedValidator
  *
  * @package SimpleComplex\Validate
  */
@@ -116,7 +114,7 @@ trait ChallengerTrait
      * @see getLastFailure()
      *
      * @param mixed $subject
-     * @param RuleSet\ValidationRuleSet|array|object $ruleSet
+     * @param ValidationRuleSet|array|object $ruleSet
      *
      * @return array {
      *      @var bool passed

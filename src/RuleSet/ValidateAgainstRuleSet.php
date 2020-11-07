@@ -7,15 +7,13 @@
  */
 declare(strict_types=1);
 
-namespace SimpleComplex\Validate;
+namespace SimpleComplex\Validate\RuleSet;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
-use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
-use SimpleComplex\Validate\RuleSet\TableElements;
-use SimpleComplex\Validate\RuleSet\ListItems;
+use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 use SimpleComplex\Validate\Exception\InvalidArgumentException;
@@ -223,13 +221,13 @@ class ValidateAgainstRuleSet
                 'Arg rules type[' . Helper::getType($ruleSet) . '] is not ValidationRuleSet|array|object.'
             );
         }
-        // Convert non-ValidationRuleSet arg $ruleSet to ValidationRuleSet,
+        // Create and use ValidationRuleSet reflection of arg $ruleSet,
         // to secure checks.
         return $this->internalChallenge(
             $subject,
             // Not great performance-wise, but referring RuleSetFactory
             // would lock RuleSetFactory and rule-provider together too tightly.
-            (new RuleSetFactory\RuleSetFactory($this->ruleProvider))
+            (new RuleSetFactory($this->ruleProvider))
                 ->make($ruleSet, 0, $keyPath),
             0,
             $keyPath
@@ -346,7 +344,7 @@ class ValidateAgainstRuleSet
                 /**
                  * RuleSetGenerator also checks for falsy nor non-array $args,
                  * but we play safe in case the ruleset has been tampered with.
-                 * @see RuleSetFactory\RuleSetGenerator::resolveCandidates()
+                 * @see RuleSetGenerator::resolveCandidates()
                  */
                 elseif (is_array($args)) {
                     if (!$this->ruleProvider->{$method}($subject, ...$args)) {
