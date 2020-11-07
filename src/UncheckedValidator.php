@@ -19,15 +19,15 @@ use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * High performance validator targeted ruleset validation.
+ * High performance validator suited ruleset validation.
  *
- * Also usable 'manually', but then user _must_ secure that the subject
- * gets checked by a type-checking rule before a pattern rule.
+ * Also usable for direct non-ruleset use, but then user _must_ secure that the
+ * subject gets checked by a type-checking rule before a pattern rule.
  *
  * BEWARE: Pattern rules of this validator do _not_ check subject's type.
  *      Without a preceding type-check (failing on unexpected subject type)
  *      these pattern rules are unreliable, and may produce fatal error
- *      (attempt to stringify object without __toString() method).
+ *      (like attempt to stringify object without __toString() method).
  *
  * Type checking rules:
  * @see TypeRulesTrait

@@ -20,7 +20,7 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
 /**
- * Scaffold of a validator usable for shallow direct validation
+ * Scaffold of a validator usable for shallow non-ruleset validation
  * and/or recursive validation by ruleset.
  *
  * @package SimpleComplex\Validate

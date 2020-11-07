@@ -14,12 +14,12 @@ use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
- * CheckedValidator targeted 'manual' (non-ruleset) use.
+ * Validator suitable for non-ruleset use.
  *
  * All rules of this class are type-checking.
  *
- * The safe but slow choice.
- * Slow because subject's type will be checked repeatedly, by every rule used.
+ * The safe choice. But slow if checking a subject against more rules (methods)
+ * because then subject's type will be checked repeatedly, by every rule used.
  *
  * @package SimpleComplex\Validate
  */
