@@ -17,9 +17,10 @@ use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * Unchecked validator providing all the rules/methods defined in this library.
+ * Abstract unchecked validator providing all the rules/methods
+ * defined in this library.
  *
- * Extend to define a checked and/or a recursive validator.
+ * Extend to define a checked or a recursive validator.
  *
  * Type checking rules:
  * @see TypeRulesTrait

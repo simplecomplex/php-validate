@@ -18,6 +18,7 @@ use SimpleComplex\Validate\CheckedValidator;
 use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
 use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
+use SimpleComplex\Validate\Validate;
 
 /**
  * @code
@@ -40,6 +41,7 @@ class RuleProviderIntegrityTest extends TestCase
         EnumScalarRecursiveValidator::class,
         EnumEquatableNullRecursiveValidator::class,
         EnumEquatableRecursiveValidator::class,
+        Validate::class,
     ];
 
     /**

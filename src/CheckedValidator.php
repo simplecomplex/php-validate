@@ -16,7 +16,15 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 /**
  * Validator suited non-ruleset use.
  *
- * All rules of this class are type-checking.
+ * All rules of this validator are type-checking.
+ *
+ * @see RecursiveValidator
+ *      Unchecked ruleset counterpart of this validator.
+ *
+ * @see TypeRulesTrait
+ * @see EnumScalarNullTrait
+ * @see PatternRulesCheckedTrait
+ *      All rules type-checking, even the pattern rules.
  *
  * @package SimpleComplex\Validate
  */
