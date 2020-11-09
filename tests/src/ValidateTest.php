@@ -13,11 +13,12 @@ use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\AbstractValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 use SimpleComplex\Validate\CheckedValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableValidator;
-use SimpleComplex\Validate\Variants\EnumScalarValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
+use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -39,12 +40,21 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ValidateTest extends TestCase
 {
     /**
-     * @return UncheckedValidator
+     * @return RecursiveValidator
      */
-    public function testInstantiation()
+    public function testInstantiateRecursiveValidator()
+    {
+        $validator = RecursiveValidator::getInstance();
+        static::assertInstanceOf(RecursiveValidator::class, $validator);
+        return $validator;
+    }
+
+    /**
+     * @return CheckedValidator
+     */
+    public function testInstantiateCheckedValidator()
     {
         $validate = new CheckedValidator();
-        static::assertInstanceOf(UncheckedValidator::class, $validate);
         static::assertInstanceOf(CheckedValidator::class, $validate);
         return $validate;
     }
@@ -52,11 +62,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::empty()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testEmpty()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertTrue($validate->empty(null));
 
@@ -95,11 +105,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::nonEmpty()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testNonEmpty()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->nonEmpty(null));
 
@@ -137,7 +147,7 @@ class ValidateTest extends TestCase
 
     public function testNull()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         // Rules that don't require argument(s).
         $rule_methods = $validate->getRuleNames();
@@ -222,7 +232,7 @@ class ValidateTest extends TestCase
      */
     public function testAllowNull()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateRecursiveValidator();
 
         $ruleSet = [
             'nonNegative' => true,
@@ -238,11 +248,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::enum()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testEnum()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->enum([], [[]]));
         $o = new \stdClass();
@@ -274,13 +284,13 @@ class ValidateTest extends TestCase
     public function testEnumUncheckedRuleProviders()
     {
         $ruleProviders = [
-            UncheckedValidator::class,
-            EnumScalarValidator::class,
-            EnumEquatableNullValidator::class,
-            EnumEquatableValidator::class,
+            RecursiveValidator::class,
+            EnumScalarRecursiveValidator::class,
+            EnumEquatableNullRecursiveValidator::class,
+            EnumEquatableRecursiveValidator::class,
         ];
         foreach ($ruleProviders as $class) {
-            /** @var UncheckedValidator $validate */
+            /** @var RecursiveValidator $validate */
             $validate = new $class();
             $ruleset = (new RuleSetFactory($validate))->make(
                 [
@@ -311,7 +321,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumUncheckedValidator()
     {
-        $validate = new UncheckedValidator();
+        $validate = new RecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -323,8 +333,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * UncheckedValidator enum furthermore accepts float|null.
-                     * @see UncheckedValidator
+                     * RecursiveValidator enum furthermore accepts float|null.
+                     * @see RecursiveValidator
                      * @see Type::SCALAR_NULL
                      */
                     null,
@@ -358,7 +368,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumScalarUncheckedValidator()
     {
-        $validate = new EnumScalarValidator();
+        $validate = new EnumScalarRecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -370,8 +380,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumScalarValidator enum furthermore accepts float.
-                     * @see EnumScalarValidator
+                     * EnumScalarRecursiveValidator enum furthermore accepts float.
+                     * @see EnumScalarRecursiveValidator
                      * @see Type::SCALAR
                      */
                     0.0,
@@ -403,7 +413,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumEquatableNullUncheckedValidator()
     {
-        $validate = new EnumEquatableNullValidator();
+        $validate = new EnumEquatableNullRecursiveValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -415,8 +425,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumEquatableNullValidator enum furthermore accepts null.
-                     * @see EnumEquatableNullValidator
+                     * EnumEquatableNullRecursiveValidator enum furthermore accepts null.
+                     * @see EnumEquatableNullRecursiveValidator
                      * @see Type::EQUATABLE_NULL
                      */
                     null
@@ -444,7 +454,7 @@ class ValidateTest extends TestCase
 
     public function testEnumEquatableUncheckedValidator()
     {
-        $validate = new EnumEquatableValidator();
+        $validate = new EnumEquatableRecursiveValidator();
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
             [
@@ -463,11 +473,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::regex()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testRegex()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->regex(null, '/0/'));
 
@@ -482,11 +492,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::boolean()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testBoolean()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->boolean(null));
         static::assertTrue($validate->boolean(false));
@@ -500,11 +510,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::number()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testNumber()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->number(null));
         static::assertFalse($validate->number(false));
@@ -529,11 +539,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::integer()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testInteger()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->integer(null));
         static::assertFalse($validate->integer(false));
@@ -558,11 +568,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::float()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testFloat()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->float(null));
         static::assertFalse($validate->float(false));
@@ -586,7 +596,7 @@ class ValidateTest extends TestCase
 
     public function testNumerics()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->integerString(''));
         static::assertFalse($validate->integerString(0));
@@ -695,11 +705,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::string()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testString()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         static::assertFalse($validate->string(null));
         static::assertFalse($validate->string(false));
@@ -724,11 +734,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateDateTimeISO()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testSubjectStringCoercion()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $subject = new \stdClass();
 
@@ -874,11 +884,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateDateTimeISO()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateISO()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateDateTimeISO';
 
@@ -899,11 +909,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateISOLocal()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateISOLocal()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateISOLocal';
 
@@ -922,11 +932,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateTimeISO()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateTimeISO()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateTimeISO';
 
@@ -961,11 +971,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateTimeISOLocal()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateTimeISOLocal()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateTimeISOLocal';
 
@@ -986,11 +996,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateTimeISOZonal()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateTimeISOZonal()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateTimeISOZonal';
 
@@ -1025,11 +1035,11 @@ class ValidateTest extends TestCase
     /**
      * @see CheckedValidator::dateTimeISOUTC()
      *
-     * @see ValidateTest::testInstantiation()
+     * @see ValidateTest::testInstantiateCheckedValidator()
      */
     public function testDateTimeISOUTC()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $method = 'dateTimeISOUTC';
 
@@ -1053,7 +1063,7 @@ class ValidateTest extends TestCase
 
     public function testContainer()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $null = null;
         $bool = false;
@@ -1107,7 +1117,7 @@ class ValidateTest extends TestCase
 
     public function testContainerIndexedKeyed()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $array = [];
         $stdClass = new \stdClass();
@@ -1209,7 +1219,7 @@ class ValidateTest extends TestCase
 
     public function testContainerSize()
     {
-        $validate = $this->testInstantiation();
+        $validate = $this->testInstantiateCheckedValidator();
 
         $array = [];
         $stdClass = new \stdClass();

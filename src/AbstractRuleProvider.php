@@ -20,8 +20,8 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
 use SimpleComplex\Validate\Exception\BadMethodCallException;
 
 /**
- * Scaffold of a validator usable for shallow non-ruleset validation
- * and/or recursive validation by ruleset.
+ * Base class of validators providing means of describing an interrogating
+ * a validator, but containing no actual validation rules/methods.
  *
  * @package SimpleComplex\Validate
  */

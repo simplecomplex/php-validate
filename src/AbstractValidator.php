@@ -9,25 +9,17 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
 use SimpleComplex\Validate\Interfaces\TypeRulesInterface;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
-use SimpleComplex\Validate\RuleSet\ChallengerTrait;
 use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
 use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * High performance validator suited ruleset validation.
+ * Unchecked validator providing all the rules/methods defined in this library.
  *
- * Also usable for direct non-ruleset use, but then user _must_ secure that the
- * subject gets checked by a type-checking rule before a pattern rule.
- *
- * BEWARE: Pattern rules of this validator do _not_ check subject's type.
- *      Without a preceding type-check (failing on unexpected subject type)
- *      these pattern rules are unreliable, and may produce fatal error
- *      (like attempt to stringify object without __toString() method).
+ * Extend to define a checked and/or a recursive validator.
  *
  * Type checking rules:
  * @see TypeRulesTrait
@@ -37,13 +29,10 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class UncheckedValidator
+abstract class AbstractValidator
     extends AbstractRuleProvider
-    implements RecursiveValidatorInterface, TypeRulesInterface, PatternRulesInterface
+    implements TypeRulesInterface, PatternRulesInterface
 {
-    // Become a RecursiveValidatorInterface.
-    use ChallengerTrait;
-
     // Type-checking rules.
     use TypeRulesTrait;
 
@@ -51,21 +40,6 @@ class UncheckedValidator
     use EnumScalarNullTrait;
     use PatternRulesUncheckedTrait;
 
-
-    /**
-     * Public non-rule instance methods.
-     *
-     * @see RuleProviderIntegrity
-     *
-     * @var mixed[]
-     */
-    protected const NON_RULE_METHODS =
-        AbstractRuleProvider::NON_RULE_METHODS
-        + RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS
-        + [
-            // Deprecated.
-            'challengeRecording' => null,
-        ];
 
     /**
      * Types of rules that explicitly promise to check the subject's type.

@@ -10,29 +10,28 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\UncheckedValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 
 /**
- * Unchecked validator with enum() accepting bool|int|string.
+ * Unchecked validator with enum() accepting bool|int|string|null.
  *
- * Ruleset generator will deny float|null bucket in allowed-values argument
- * for enum.
- * @see Type::EQUATABLE
+ * Ruleset generator will deny float bucket in allowed-values argument for enum.
+ * @see Type::EQUATABLE_NULL
  *
  * @package SimpleComplex\Validate
  */
-class EnumEquatableValidator extends UncheckedValidator
+class EnumEquatableNullRecursiveValidator extends RecursiveValidator
 {
     /**
      * Tell ruleset generator (indirectly) that this validator only accepts
-     * bool|int|string as allowed values.
+     * bool|int|string|null as allowed values.
      * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::enum()
      *
      * Overrides by prepending overriding bucket(s);
      * PHP array union(+) ignores duplicate in righthand array.
      */
     protected const PATTERN_RULES = [
-        'enum' => Type::EQUATABLE,
+        'enum' => Type::EQUATABLE_NULL,
     ]
-    + UncheckedValidator::PATTERN_RULES;
+    + RecursiveValidator::PATTERN_RULES;
 }

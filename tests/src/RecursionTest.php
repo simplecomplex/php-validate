@@ -15,8 +15,7 @@ use SimpleComplex\Validate\Exception\ValidationException;
 use SimpleComplex\Validate\Helper\Helper;
 
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\UncheckedValidator;
-use SimpleComplex\Validate\CheckedValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -36,24 +35,24 @@ class RecursionTest extends TestCase
     protected const CHALLENGE_MODE = RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE;
 
     /**
-     * @return UncheckedValidator
+     * @return RecursiveValidator
      */
-    public function testInstantiateUncheckedValidator()
+    public function testInstantiateRecursiveValidator()
     {
-        $validator = UncheckedValidator::getInstance();
-        static::assertInstanceOf(UncheckedValidator::class, $validator);
+        $validator = RecursiveValidator::getInstance();
+        static::assertInstanceOf(RecursiveValidator::class, $validator);
         return $validator;
     }
 
-    /**
-     * @return UncheckedValidator
-     */
-    public function testInstantiateValidator()
-    {
-        $validator = CheckedValidator::getInstance();
-        static::assertInstanceOf(CheckedValidator::class, $validator);
-        return $validator;
-    }
+//    /**
+//     * @return CheckedValidator
+//     */
+//    public function testInstantiateCheckedValidator()
+//    {
+//        $validator = CheckedValidator::getInstance();
+//        static::assertInstanceOf(CheckedValidator::class, $validator);
+//        return $validator;
+//    }
 
     protected static function getRuleSetJSON(string $name)
     {
@@ -110,7 +109,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetAddress() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateUncheckedValidator();
+        $validator = $this->testInstantiateRecursiveValidator();
         $factory = new RuleSetFactory($validator);
 
         $source = Helper::parseJsonString(static::getRuleSetJSON('Address'));
@@ -139,7 +138,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetPerson() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateUncheckedValidator();
+        $validator = $this->testInstantiateRecursiveValidator();
         $factory = new RuleSetFactory($validator);
 
         $ruleSet_address = $this->testRuleSetAddress();
@@ -193,7 +192,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetBusiness() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateUncheckedValidator();
+        $validator = $this->testInstantiateRecursiveValidator();
         $factory = new RuleSetFactory($validator);
 
         $ruleSet_person = $this->testRuleSetPerson();

@@ -14,16 +14,13 @@ use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
- * Validator suitable for non-ruleset use.
+ * Validator suited non-ruleset use.
  *
  * All rules of this class are type-checking.
  *
- * The safe choice. But slow if checking a subject against more rules (methods)
- * because then subject's type will be checked repeatedly, by every rule used.
- *
  * @package SimpleComplex\Validate
  */
-class CheckedValidator extends UncheckedValidator implements CheckedValidatorInterface
+class CheckedValidator extends AbstractValidator implements CheckedValidatorInterface
 {
     // Pattern rules that are type-checking.
     use PatternRulesCheckedTrait;
@@ -39,8 +36,8 @@ class CheckedValidator extends UncheckedValidator implements CheckedValidatorInt
      * IDE: _is_ used.
      */
     protected const TYPE_RULES =
-        UncheckedValidator::TYPE_RULES
-        + UncheckedValidator::PATTERN_RULES;
+        AbstractValidator::TYPE_RULES
+        + AbstractValidator::PATTERN_RULES;
 
     /**
      * No methods are not type-checking.

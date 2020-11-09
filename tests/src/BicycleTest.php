@@ -12,8 +12,7 @@ namespace SimpleComplex\Tests\Validate;
 use PHPUnit\Framework\TestCase;
 
 use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\UncheckedValidator;
-use SimpleComplex\Validate\CheckedValidator;
+use SimpleComplex\Validate\RecursiveValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -32,14 +31,12 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class BicycleTest extends TestCase
 {
     /**
-     * @return UncheckedValidator
+     * @return RecursiveValidator
      */
     public function testInstantiation()
     {
-        $validate = UncheckedValidator::getInstance();
-        static::assertInstanceOf(UncheckedValidator::class, $validate);
-        $validate = CheckedValidator::getInstance();
-        static::assertInstanceOf(CheckedValidator::class, $validate);
+        $validate = RecursiveValidator::getInstance();
+        static::assertInstanceOf(RecursiveValidator::class, $validate);
 
         return $validate;
     }

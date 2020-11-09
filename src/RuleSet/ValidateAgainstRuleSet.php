@@ -26,7 +26,7 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * @internal
  *      Don't use this class directly, use challenge|challengeRecording() method.
  * @see ChallengerTrait::challenge()
- * @see UncheckedValidator::challenge()
+ * @see RecursiveValidator::challenge()
  *
  * @package SimpleComplex\Validate
  */

@@ -28,7 +28,7 @@ use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
  * @see ValidateAgainstRuleSet::getInstance()
  *
  *
- * @mixin \SimpleComplex\Validate\UncheckedValidator
+ * @mixin \SimpleComplex\Validate\RecursiveValidator
  *
  * @package SimpleComplex\Validate
  */

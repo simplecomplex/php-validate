@@ -19,9 +19,10 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  * The rule-provider's type declaration of the 'enum' rule must be scalar|null.
  * @see Type::SCALAR_NULL
  * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface::MINIMAL_PATTERN_RULES
- * Unchecked validator:
- * @see \SimpleComplex\Validate\UncheckedValidator::PATTERN_RULES
- * Checked validator:
+ *
+ * To extend recursive validator:
+ * @see \SimpleComplex\Validate\RecursiveValidator::PATTERN_RULES
+ * To extend checked validator:
  * @see \SimpleComplex\Validate\CheckedValidator::TYPE_RULES
  *
  * @mixin PatternRulesUncheckedTrait
