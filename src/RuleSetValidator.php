@@ -54,6 +54,7 @@ class RuleSetValidator extends AbstractValidator implements RuleSetValidatorInte
         + RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS
         + [
             // Deprecated.
+            'challenge' => null,
             'challengeRecording' => null,
         ];
 }

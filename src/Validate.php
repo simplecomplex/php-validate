@@ -14,7 +14,7 @@ use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 use SimpleComplex\Validate\RuleSet\RuleSetValidatorTrait;
 
 /**
- * Checked validator supporting validation by ruleset.
+ * Validator supporting validation by ruleset as well as by rule method.
  *
  * Deprecated due to inferior performance when used for ruleset validation
  * and because infringes principle that checked and ruleset validators
@@ -46,6 +46,7 @@ class Validate extends CheckedValidator implements RuleSetValidatorInterface
         + RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS
         + [
             // Deprecated.
+            'challenge' => null,
             'challengeRecording' => null,
         ];
 }
