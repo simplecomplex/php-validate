@@ -24,7 +24,7 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * Validation-by-ruleset engine.
  *
  * @internal
- *      Don't use this class directly, use validate|challengeRecording() method.
+ *      Don't use this class directly, use the validate() method.
  * @see RuleSetValidatorTrait::validate()
  * @see RuleSetValidator::validate()
  *
@@ -172,7 +172,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * @see RuleSetValidatorTrait::validate()
+     * @see RuleSetValidatorTrait::getLastFailure()
      *
      * @return string[]
      */

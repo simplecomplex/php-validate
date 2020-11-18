@@ -125,7 +125,8 @@ trait RuleSetValidatorTrait
      *
      * Doesn't stop on failure, continues until the end of the ruleset.
      *
-     * @deprecated Use validate() and then getLastFailure()
+     * @deprecated
+     *      Use validate() and then getLastFailure().
      *
      * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
