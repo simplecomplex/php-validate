@@ -14,11 +14,11 @@ use SimpleComplex\Validate\Interfaces\CheckedValidatorInterface;
 use SimpleComplex\Validate\RuleTraits\PatternRulesCheckedTrait;
 
 /**
- * Validator suited non-ruleset use.
+ * Validator suited validation by method.
  *
- * All rules of this validator are type-checking.
+ * All rule methods of this validator are in themselves type-checking.
  *
- * @see RecursiveValidator
+ * @see RuleSetValidator
  *      Unchecked ruleset counterpart of this validator.
  *
  * @see TypeRulesTrait

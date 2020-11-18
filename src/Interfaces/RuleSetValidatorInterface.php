@@ -12,13 +12,13 @@ namespace SimpleComplex\Validate\Interfaces;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 
 /**
- * Validator checking against a ruleset.
+ * Validator using rulesets instead of plain rule methods.
  *
  * Supports recursive validation of object|array containers.
  *
  * @package SimpleComplex\Validate
  */
-interface RecursiveValidatorInterface extends RuleProviderInterface
+interface RuleSetValidatorInterface extends RuleProviderInterface
 {
     /**
      * Bitmask flag: produce and record failure message(s).
@@ -41,11 +41,11 @@ interface RecursiveValidatorInterface extends RuleProviderInterface
      * Public non-rule instance methods.
      *
      * Implementing class may do:
-     * const NON_RULE_METHODS = RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS;
+     * const NON_RULE_METHODS = RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS;
      * Or use use PHP array union(+), like:
      * const NON_RULE_METHODS = [
      *   'someRule' => null,
-     * ] + RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS;
+     * ] + RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS;
      *
      * @var mixed[]
      */
@@ -60,7 +60,7 @@ interface RecursiveValidatorInterface extends RuleProviderInterface
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
      * @param int $options
-     *      Bitmask, see RecursiveValidatorInterface bitmask flag constants.
+     *      Bitmask, see RuleSetValidatorInterface bitmask flag constants.
      *
      * @return bool
      *

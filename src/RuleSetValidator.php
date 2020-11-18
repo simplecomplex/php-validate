@@ -9,15 +9,15 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 
-use SimpleComplex\Validate\RuleSet\ChallengerTrait;
+use SimpleComplex\Validate\RuleSet\RuleSetValidatorTrait;
 use SimpleComplex\Validate\RuleTraits\TypeRulesTrait;
 use SimpleComplex\Validate\RuleTraits\EnumScalarNullTrait;
 use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
 
 /**
- * Validator suited ruleset validation.
+ * Validator suited validation by rulet.
  *
  * Pattern rules of this validator are not type-checking by themselves;
  * however, the ruleset generator secures that a fitting type-checking rule
@@ -36,10 +36,10 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
  *
  * @package SimpleComplex\Validate
  */
-class RecursiveValidator extends AbstractValidator implements RecursiveValidatorInterface
+class RuleSetValidator extends AbstractValidator implements RuleSetValidatorInterface
 {
-    // Become a RecursiveValidatorInterface.
-    use ChallengerTrait;
+    // Become a RuleSetValidatorInterface.
+    use RuleSetValidatorTrait;
 
 
     /**
@@ -51,7 +51,7 @@ class RecursiveValidator extends AbstractValidator implements RecursiveValidator
      */
     protected const NON_RULE_METHODS =
         AbstractValidator::NON_RULE_METHODS
-        + RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS
+        + RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS
         + [
             // Deprecated.
             'challengeRecording' => null,

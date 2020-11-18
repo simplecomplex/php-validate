@@ -9,29 +9,29 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 
-use SimpleComplex\Validate\RuleSet\ChallengerTrait;
+use SimpleComplex\Validate\RuleSet\RuleSetValidatorTrait;
 
 /**
- * Checked validator supporting recursive ruleset validation.
+ * Checked validator supporting validation by ruleset.
  *
  * Deprecated due to inferior performance when used for ruleset validation
- * and because infringes principle that checked and recursive validators
+ * and because infringes principle that checked and ruleset validators
  * shan't be the same species.
  *
  * @deprecated
- *      Use CheckedValidator and/or RecursiveValidator instead.
+ *      Use CheckedValidator and/or RuleSetValidator instead.
  * @see CheckedValidator
- * @see RecursiveValidator
+ * @see RuleSetValidator
  *      Better alternatives.
  *
  * @package SimpleComplex\Validate
  */
-class Validate extends CheckedValidator implements RecursiveValidatorInterface
+class Validate extends CheckedValidator implements RuleSetValidatorInterface
 {
-    // Become a RecursiveValidatorInterface.
-    use ChallengerTrait;
+    // Become a RuleSetValidatorInterface.
+    use RuleSetValidatorTrait;
 
 
     /**
@@ -43,7 +43,7 @@ class Validate extends CheckedValidator implements RecursiveValidatorInterface
      */
     protected const NON_RULE_METHODS =
         AbstractValidator::NON_RULE_METHODS
-        + RecursiveValidatorInterface::CHALLENGER_NON_RULE_METHODS
+        + RuleSetValidatorInterface::CHALLENGER_NON_RULE_METHODS
         + [
             // Deprecated.
             'challengeRecording' => null,

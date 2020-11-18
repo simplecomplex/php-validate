@@ -11,8 +11,8 @@ namespace SimpleComplex\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\RecursiveValidator;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
+use SimpleComplex\Validate\RuleSetValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -31,12 +31,12 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class BicycleTest extends TestCase
 {
     /**
-     * @return RecursiveValidator
+     * @return RuleSetValidator
      */
     public function testInstantiation()
     {
-        $validate = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validate);
+        $validate = RuleSetValidator::getInstance();
+        static::assertInstanceOf(RuleSetValidator::class, $validate);
 
         return $validate;
     }
@@ -97,12 +97,12 @@ class BicycleTest extends TestCase
         // Wrong, not array listItems string|bool.
         $bike->various = [8];
 
-        $valid = $validate->challenge($bike, $ruleSet, RecursiveValidatorInterface::RECORD);
+        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD);
         if (!$valid) {
             error_log(__LINE__ . ': pre-converted, no continue:' . "\n" . $validate->getLastFailure());
         }
 
-        $valid = $validate->challenge($bike, $ruleSet, RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE);
+        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
         if (!$valid) {
             error_log(__LINE__ . ': pre-converted:' . "\n" . $validate->getLastFailure());
         }
@@ -174,7 +174,7 @@ class BicycleTest extends TestCase
         ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
-        $valid = $validate->challenge($bike, $ruleSet, RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE);
+        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
         if (!$valid) {
             //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
             error_log(__LINE__ . ': pre-converted:' . "\n" . $validate->getLastFailure());

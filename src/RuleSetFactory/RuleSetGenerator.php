@@ -223,7 +223,7 @@ class RuleSetGenerator
 
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
-                'Stopped recursive validation rule set definition at limit['
+                'Stopped recursive validation ruleset definition at limit['
                 . static::RECURSION_LIMIT . ']' . ', at (' . $depth . ') ' . $keyPath . '.'
             );
         }

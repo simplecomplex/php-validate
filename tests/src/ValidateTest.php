@@ -14,11 +14,11 @@ use PHPUnit\Framework\TestCase;
 use SimpleComplex\Validate\Interfaces\PatternRulesInterface;
 
 use SimpleComplex\Validate\AbstractValidator;
-use SimpleComplex\Validate\RecursiveValidator;
+use SimpleComplex\Validate\RuleSetValidator;
 use SimpleComplex\Validate\CheckedValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableNullRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumEquatableRecursiveValidator;
-use SimpleComplex\Validate\Variants\EnumScalarRecursiveValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableNullRuleSetValidator;
+use SimpleComplex\Validate\Variants\EnumEquatableRuleSetValidator;
+use SimpleComplex\Validate\Variants\EnumScalarRuleSetValidator;
 
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
@@ -40,12 +40,12 @@ backend/vendor/bin/phpunit --do-not-cache-result backend/vendor/simplecomplex/va
 class ValidateTest extends TestCase
 {
     /**
-     * @return RecursiveValidator
+     * @return RuleSetValidator
      */
     public function testInstantiateRecursiveValidator()
     {
-        $validator = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validator);
+        $validator = RuleSetValidator::getInstance();
+        static::assertInstanceOf(RuleSetValidator::class, $validator);
         return $validator;
     }
 
@@ -284,13 +284,13 @@ class ValidateTest extends TestCase
     public function testEnumUncheckedRuleProviders()
     {
         $ruleProviders = [
-            RecursiveValidator::class,
-            EnumScalarRecursiveValidator::class,
-            EnumEquatableNullRecursiveValidator::class,
-            EnumEquatableRecursiveValidator::class,
+            RuleSetValidator::class,
+            EnumScalarRuleSetValidator::class,
+            EnumEquatableNullRuleSetValidator::class,
+            EnumEquatableRuleSetValidator::class,
         ];
         foreach ($ruleProviders as $class) {
-            /** @var RecursiveValidator $validate */
+            /** @var RuleSetValidator $validate */
             $validate = new $class();
             $ruleset = (new RuleSetFactory($validate))->make(
                 [
@@ -321,7 +321,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumUncheckedValidator()
     {
-        $validate = new RecursiveValidator();
+        $validate = new RuleSetValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -333,8 +333,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * RecursiveValidator enum furthermore accepts float|null.
-                     * @see RecursiveValidator
+                     * RuleSetValidator enum furthermore accepts float|null.
+                     * @see RuleSetValidator
                      * @see Type::SCALAR_NULL
                      */
                     null,
@@ -368,7 +368,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumScalarUncheckedValidator()
     {
-        $validate = new EnumScalarRecursiveValidator();
+        $validate = new EnumScalarRuleSetValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -380,8 +380,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumScalarRecursiveValidator enum furthermore accepts float.
-                     * @see EnumScalarRecursiveValidator
+                     * EnumScalarRuleSetValidator enum furthermore accepts float.
+                     * @see EnumScalarRuleSetValidator
                      * @see Type::SCALAR
                      */
                     0.0,
@@ -413,7 +413,7 @@ class ValidateTest extends TestCase
      */
     public function testEnumEquatableNullUncheckedValidator()
     {
-        $validate = new EnumEquatableNullRecursiveValidator();
+        $validate = new EnumEquatableNullRuleSetValidator();
         $ruleset = (new RuleSetFactory($validate))->make(
             [
                 'enum' => [
@@ -425,8 +425,8 @@ class ValidateTest extends TestCase
                     0,
                     '',
                     /**
-                     * EnumEquatableNullRecursiveValidator enum furthermore accepts null.
-                     * @see EnumEquatableNullRecursiveValidator
+                     * EnumEquatableNullRuleSetValidator enum furthermore accepts null.
+                     * @see EnumEquatableNullRuleSetValidator
                      * @see Type::EQUATABLE_NULL
                      */
                     null
@@ -454,7 +454,7 @@ class ValidateTest extends TestCase
 
     public function testEnumEquatableUncheckedValidator()
     {
-        $validate = new EnumEquatableRecursiveValidator();
+        $validate = new EnumEquatableRuleSetValidator();
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
             [

@@ -11,7 +11,7 @@ namespace SimpleComplex\Validate\Interfaces;
 
 /**
  * Rule provider which promises that all it's rule methods
- * are type-checking.
+ * are type-checking in themselves.
  *
  * @package SimpleComplex\Validate
  */

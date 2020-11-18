@@ -9,13 +9,10 @@ declare(strict_types=1);
 
 namespace SimpleComplex\Validate\RuleSet;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 
 /**
- * Validator checking against a ruleset.
- *
- * Supports recursive validation of object|array containers.
- *
+ * Trait to turn a rule method provider into a ruleset validator.
  *
  * Design technicalities
  * ---------------------
@@ -24,15 +21,14 @@ use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
  * Because this trait's challenge() method uses a secondary class's
  * getInstance() method, effectively locking the rule provider and the secondary
  * object together.
- * @see ChallengerTrait::challenge()
+ * @see RuleSetValidatorTrait::challenge()
  * @see ValidateAgainstRuleSet::getInstance()
  *
- *
- * @mixin \SimpleComplex\Validate\RecursiveValidator
+ * @mixin \SimpleComplex\Validate\RuleSetValidator
  *
  * @package SimpleComplex\Validate
  */
-trait ChallengerTrait
+trait RuleSetValidatorTrait
 {
     /**
      * @var string[]|null
@@ -43,19 +39,19 @@ trait ChallengerTrait
      * Validate against a ruleset.
      *
      * Arg $options example:
-     * RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE
+     * RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
      * @param int $options
-     *      Bitmask, see RecursiveValidatorInterface bitmask flag constants.
+     *      Bitmask, see RuleSetValidatorInterface bitmask flag constants.
      *
      * @return bool
      *
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
      *
-     * @see RecursiveValidatorInterface::CONTINUE
-     * @see RecursiveValidatorInterface::RECORD
+     * @see RuleSetValidatorInterface::CONTINUE
+     * @see RuleSetValidatorInterface::RECORD
      */
     public function challenge($subject, $ruleSet, int $options = 0) : bool
     {
@@ -129,7 +125,7 @@ trait ChallengerTrait
         $passed = $this->challenge(
             $subject,
             $ruleSet,
-            RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE
+            RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE
         );
         return [
             'passed' => $passed,

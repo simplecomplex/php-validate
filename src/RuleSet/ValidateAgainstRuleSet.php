@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\RuleSet;
 
 use SimpleComplex\Validate\Interfaces\RuleProviderInterface;
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 
 use SimpleComplex\Validate\Helper\Helper;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -21,12 +21,12 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 use SimpleComplex\Validate\Exception\OutOfRangeException;
 
 /**
- * Recursive validation engine.
+ * Validation-by-ruleset engine.
  *
  * @internal
  *      Don't use this class directly, use challenge|challengeRecording() method.
- * @see ChallengerTrait::challenge()
- * @see RecursiveValidator::challenge()
+ * @see RuleSetValidatorTrait::challenge()
+ * @see RuleSetValidator::challenge()
  *
  * @package SimpleComplex\Validate
  */
@@ -151,20 +151,20 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use ChallengerTrait::challenge() instead of this.
+     * Use RuleSetValidatorTrait::challenge() instead of this.
      *
      * @param RuleProviderInterface $ruleProvider
      * @param int $options
-     *      Bitmask, see RecursiveValidatorInterface bitmask flag constants.
+     *      Bitmask, see RuleSetValidatorInterface bitmask flag constants.
      */
     public function __construct(RuleProviderInterface $ruleProvider, int $options = 0) {
         $this->ruleProvider = $ruleProvider;
 
         if ($options) {
-            if (($options & RecursiveValidatorInterface::RECORD)) {
+            if (($options & RuleSetValidatorInterface::RECORD)) {
                 $this->recordFailure = true;
                 // Ignore unless recording.
-                if (($options & RecursiveValidatorInterface::CONTINUE)) {
+                if (($options & RuleSetValidatorInterface::CONTINUE)) {
                     $this->continueOnFailure = true;
                 }
             }
@@ -181,7 +181,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use ChallengerTrait::challenge() instead of this.
+     * Use RuleSetValidatorTrait::challenge() instead of this.
      *
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
@@ -209,7 +209,7 @@ class ValidateAgainstRuleSet
      * ]);
      * @endcode
      *
-     * @see ChallengerTrait::challenge()
+     * @see RuleSetValidatorTrait::challenge()
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {
@@ -254,7 +254,7 @@ class ValidateAgainstRuleSet
     {
         if ($depth >= static::RECURSION_LIMIT) {
             throw new OutOfRangeException(
-                'Stopped recursive validation by rule-set at limit['
+                'Stopped recursive validation by ruleset at limit['
                 . static::RECURSION_LIMIT . '], at (' . $depth . ') ' . $keyPath . '.'
             );
         }

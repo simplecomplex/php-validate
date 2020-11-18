@@ -14,8 +14,8 @@ use PHPUnit\Framework\TestCase;
 use SimpleComplex\Validate\Exception\ValidationException;
 use SimpleComplex\Validate\Helper\Helper;
 
-use SimpleComplex\Validate\Interfaces\RecursiveValidatorInterface;
-use SimpleComplex\Validate\RecursiveValidator;
+use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
+use SimpleComplex\Validate\RuleSetValidator;
 
 use SimpleComplex\Validate\RuleSet\ValidationRuleSet;
 use SimpleComplex\Validate\RuleSetFactory\RuleSetFactory;
@@ -32,15 +32,15 @@ class RecursionTest extends TestCase
 {
     protected const RULESET_JSON_PATH = '/RuleSetJSON';
 
-    protected const CHALLENGE_MODE = RecursiveValidatorInterface::RECORD | RecursiveValidatorInterface::CONTINUE;
+    protected const CHALLENGE_MODE = RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE;
 
     /**
-     * @return RecursiveValidator
+     * @return RuleSetValidator
      */
     public function testInstantiateRecursiveValidator()
     {
-        $validator = RecursiveValidator::getInstance();
-        static::assertInstanceOf(RecursiveValidator::class, $validator);
+        $validator = RuleSetValidator::getInstance();
+        static::assertInstanceOf(RuleSetValidator::class, $validator);
         return $validator;
     }
 

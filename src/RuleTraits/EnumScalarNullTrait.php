@@ -20,8 +20,8 @@ use SimpleComplex\Validate\Exception\InvalidArgumentException;
  * @see Type::SCALAR_NULL
  * @see \SimpleComplex\Validate\Interfaces\PatternRulesInterface::MINIMAL_PATTERN_RULES
  *
- * To extend recursive validator:
- * @see \SimpleComplex\Validate\RecursiveValidator::PATTERN_RULES
+ * To extend ruleset validator:
+ * @see \SimpleComplex\Validate\RuleSetValidator::PATTERN_RULES
  * To extend checked validator:
  * @see \SimpleComplex\Validate\CheckedValidator::TYPE_RULES
  *
@@ -36,7 +36,7 @@ trait EnumScalarNullTrait
      *
      * scalar|null implementation.
      *
-     * During recursive validation this method won't be called at all if the
+     * During ruleset validation this method won't be called at all if the
      * subject's type is invalid, because the ruleset generator injects a type
      * check before this method.
      * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::ensureTypeChecking()
@@ -44,7 +44,7 @@ trait EnumScalarNullTrait
      * @see \SimpleComplex\Validate\RuleSetFactory\RuleSetGenerator::patternRuleToTypeRule()
      *
      * Therefore this method doesn't need to check if the subject matches
-     * current validator's enum type - except for non-recursive validation where
+     * current validator's enum type - except for non-ruleset validation where
      * checking against the widest enum type (scalar|null).
      *
      * @see PatternRulesUncheckedTrait::helperFloatApproximateEquality()

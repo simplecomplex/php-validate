@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace SimpleComplex\Validate\Variants;
 
 use SimpleComplex\Validate\Type;
-use SimpleComplex\Validate\RecursiveValidator;
+use SimpleComplex\Validate\RuleSetValidator;
 
 /**
- * Unchecked validator with enum() accepting bool|int|string.
+ * Ruleset validator with enum() accepting bool|int|string.
  *
  * Ruleset generator will deny float|null bucket in allowed-values argument
  * for enum.
@@ -21,7 +21,7 @@ use SimpleComplex\Validate\RecursiveValidator;
  *
  * @package SimpleComplex\Validate
  */
-class EnumEquatableRecursiveValidator extends RecursiveValidator
+class EnumEquatableRuleSetValidator extends RuleSetValidator
 {
     /**
      * Tell ruleset generator (indirectly) that this validator only accepts
@@ -34,5 +34,5 @@ class EnumEquatableRecursiveValidator extends RecursiveValidator
     protected const PATTERN_RULES = [
         'enum' => Type::EQUATABLE,
     ]
-    + RecursiveValidator::PATTERN_RULES;
+    + RuleSetValidator::PATTERN_RULES;
 }

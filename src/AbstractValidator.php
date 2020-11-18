@@ -20,7 +20,7 @@ use SimpleComplex\Validate\RuleTraits\PatternRulesUncheckedTrait;
  * Abstract unchecked validator providing all the rules/methods
  * defined in this library.
  *
- * Extend to define a checked or a recursive validator.
+ * Extend to define a validator by-method or by-ruleset.
  *
  * Type checking rules:
  * @see TypeRulesTrait

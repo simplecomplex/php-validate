@@ -176,7 +176,7 @@ interface RuleProviderInterface
     /**
      * Is null.
      *
-     * Method expected by recursive validator.
+     * Method expected by a ruleset validator.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param mixed $subject
@@ -192,7 +192,7 @@ interface RuleProviderInterface
      *
      * Implementation is free to forbid (fail on) float and/or null.
      *
-     * Method expected by recursive validator, for alternativeEnum.
+     * Method expected by a ruleset validator, for alternativeEnum.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
      * @param mixed $subject
@@ -212,7 +212,7 @@ interface RuleProviderInterface
     /**
      * Empty or indexed array|\Traversable.
      *
-     * Method expected by recursive validator, when a ruleset contains
+     * Method expected by a ruleset validator, when a ruleset contains
      * both tableElements and listItems.
      * @see ValidateAgainstRuleSet::internalChallenge()
      *
