@@ -16,7 +16,7 @@ use SimpleComplex\Validate\Exception\InvalidRuleException;
 /**
  * Validation rule set.
  *
- * @see AbstractRuleProvider::challenge()
+ * @see AbstractRuleProvider::validate()
  *
  * Immutable. All properties are read-only to prevent tampering.
  * Meant to be created by a generator, itself issued by a factory.

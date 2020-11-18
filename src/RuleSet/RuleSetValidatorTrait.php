@@ -18,10 +18,10 @@ use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
  * ---------------------
  * BEWARE: This trait is not suitable for a rule provider which may have state
  * (instance vars) that can affect validation.
- * Because this trait's challenge() method uses a secondary class's
+ * Because this trait's validate() method uses a secondary class's
  * getInstance() method, effectively locking the rule provider and the secondary
  * object together.
- * @see RuleSetValidatorTrait::challenge()
+ * @see RuleSetValidatorTrait::validate()
  * @see ValidateAgainstRuleSet::getInstance()
  *
  * @mixin \SimpleComplex\Validate\RuleSetValidator
@@ -31,6 +31,8 @@ use SimpleComplex\Validate\Interfaces\RuleSetValidatorInterface;
 trait RuleSetValidatorTrait
 {
     /**
+     * Record of last validate by ruleset failure(s).
+     *
      * @var string[]|null
      */
     protected $lastChallengeFailure;
@@ -40,6 +42,7 @@ trait RuleSetValidatorTrait
      *
      * Arg $options example:
      * RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE
+     *
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
      * @param int $options
@@ -53,7 +56,7 @@ trait RuleSetValidatorTrait
      * @see RuleSetValidatorInterface::CONTINUE
      * @see RuleSetValidatorInterface::RECORD
      */
-    public function challenge($subject, $ruleSet, int $options = 0) : bool
+    public function validate($subject, $ruleSet, int $options = 0) : bool
     {
         $this->lastChallengeFailure = null;
 
@@ -86,7 +89,7 @@ trait RuleSetValidatorTrait
     }
 
     /**
-     * Get failure(s) recorded by last recording challenge.
+     * Get failure(s) recorded by last recording validate().
      *
      * @param string $delimiter
      *
@@ -101,13 +104,28 @@ trait RuleSetValidatorTrait
     }
 
     /**
+     * @deprecated
+     *      Use validate() instead.
+     *
+     * @param $subject
+     * @param $ruleSet
+     * @param int $options
+     * @return bool
+     * @throws \SimpleComplex\Validate\Exception\ValidationException
+     *
+     * @see RuleSetValidatorTrait::validate()
+     */
+    public function challenge($subject, $ruleSet, int $options = 0) : bool
+    {
+        return $this->validate($subject, $ruleSet, $options);
+    }
+
+    /**
      * Validate against a ruleset, recording validation failures.
      *
      * Doesn't stop on failure, continues until the end of the ruleset.
      *
-     * @deprecated Use challenge() and then getLastFailure()
-     * @see challenge()
-     * @see getLastFailure()
+     * @deprecated Use validate() and then getLastFailure()
      *
      * @param mixed $subject
      * @param ValidationRuleSet|array|object $ruleSet
@@ -119,10 +137,13 @@ trait RuleSetValidatorTrait
      *
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated; bad validation ruleset.
+     *
+     * @see validate()
+     * @see getLastFailure()
      */
     public function challengeRecording($subject, $ruleSet) : array
     {
-        $passed = $this->challenge(
+        $passed = $this->validate(
             $subject,
             $ruleSet,
             RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE

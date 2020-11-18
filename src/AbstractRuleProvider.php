@@ -145,7 +145,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
      *
      * First object instantiated via this method, being class of class called on.
      *
-     * @see challenge()
+     * @see validate()
      *
      * @param mixed ...$constructorParams
      *      Child class constructor may have parameters.
@@ -341,7 +341,7 @@ abstract class AbstractRuleProvider implements RuleProviderInterface
     }
 
     /**
-     * By design, ValidateAgainstRuleSet::challenge() should not be able to call
+     * By design, ValidateAgainstRuleSet::validate() should not be able to call
      * a non-existent method of this class.
      * Whereas external call to CheckedValidator::noSuchRule() is expectable.
      *

@@ -67,7 +67,7 @@ class BicycleTest extends TestCase
         $bike->unspecified_2 = 'stealthy';
 
 //        // Fail, because 'class' rule missing namespace.
-//        $valid = $validate->challenge($bike, $ruleSet);
+//        $valid = $validate->validate($bike, $ruleSet);
 //        if (!$valid) {
 //            $record = $validate->challengeRecording($bike, $ruleSet);
 //            if (!$record['passed']) {
@@ -80,7 +80,7 @@ class BicycleTest extends TestCase
 //            // unqualified class name.
 //            $ruleSet->class[] = true;
 //        }
-//        $valid = $validate->challenge($bike, $ruleSet);
+//        $valid = $validate->validate($bike, $ruleSet);
 //        static::assertTrue($valid);
 
         $bike->accessories = [
@@ -97,18 +97,18 @@ class BicycleTest extends TestCase
         // Wrong, not array listItems string|bool.
         $bike->various = [8];
 
-        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD);
+        $valid = $validate->validate($bike, $ruleSet, RuleSetValidatorInterface::RECORD);
         if (!$valid) {
             error_log(__LINE__ . ': pre-converted, no continue:' . "\n" . $validate->getLastFailure());
         }
 
-        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
+        $valid = $validate->validate($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
         if (!$valid) {
             error_log(__LINE__ . ': pre-converted:' . "\n" . $validate->getLastFailure());
         }
         static::assertFalse($valid, __LINE__ . ': pre-converted');
 
-        $valid = $validate->challenge($bike, $source);
+        $valid = $validate->validate($bike, $source);
 //        $record = $validate->challengeRecording($bike, $source);
 //        if (!$record['passed']) {
 //            error_log('runtime converted:' . "\n" . join("\n", $record['record']));
@@ -174,7 +174,7 @@ class BicycleTest extends TestCase
         ];
         //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
 
-        $valid = $validate->challenge($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
+        $valid = $validate->validate($bike, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE);
         if (!$valid) {
             //\SimpleComplex\Inspect\Inspect::getInstance()->variable($ruleSet)->log();
             error_log(__LINE__ . ': pre-converted:' . "\n" . $validate->getLastFailure());

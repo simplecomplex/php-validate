@@ -50,7 +50,7 @@ interface RuleSetValidatorInterface extends RuleProviderInterface
      * @var mixed[]
      */
     public const CHALLENGER_NON_RULE_METHODS = [
-        'challenge' => null,
+        'validate' => null,
         'getLastFailure' => null,
     ];
 
@@ -67,10 +67,10 @@ interface RuleSetValidatorInterface extends RuleProviderInterface
      * @throws \SimpleComplex\Validate\Exception\ValidationException
      *      Propagated.
      */
-    public function challenge($subject, $ruleSet, int $options = 0) : bool;
+    public function validate($subject, $ruleSet, int $options = 0) : bool;
 
     /**
-     * Get failure(s) recorded by last recording challenge.
+     * Get failure(s) recorded by last recording validate().
      *
      * @param string $delimiter
      *

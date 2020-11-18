@@ -237,12 +237,12 @@ class ValidateTest extends TestCase
         $ruleSet = [
             'nonNegative' => true,
         ];
-        static::assertFalse($validate->challenge(null, $ruleSet), 'Rule method (false): ' . 'nonNegative');
+        static::assertFalse($validate->validate(null, $ruleSet), 'Rule method (false): ' . 'nonNegative');
         $ruleSet = [
             'nonNegative' => true,
             'allowNull' => true,
         ];
-        static::assertTrue($validate->challenge(null, $ruleSet), 'Rule method (true): ' . 'nonNegative');
+        static::assertTrue($validate->validate(null, $ruleSet), 'Rule method (true): ' . 'nonNegative');
     }
 
     /**
@@ -305,14 +305,14 @@ class ValidateTest extends TestCase
                     ]
                 ]
             );
-            static::assertTrue($validate->challenge(false, $ruleset));
-            static::assertTrue($validate->challenge(0, $ruleset));
-            static::assertTrue($validate->challenge('', $ruleset));
-            static::assertFalse($validate->challenge(true, $ruleset));
-            static::assertFalse($validate->challenge(1, $ruleset));
-            static::assertFalse($validate->challenge(' ', $ruleset));
-            static::assertFalse($validate->challenge([], $ruleset));
-            static::assertFalse($validate->challenge(new \stdClass(), $ruleset));
+            static::assertTrue($validate->validate(false, $ruleset));
+            static::assertTrue($validate->validate(0, $ruleset));
+            static::assertTrue($validate->validate('', $ruleset));
+            static::assertFalse($validate->validate(true, $ruleset));
+            static::assertFalse($validate->validate(1, $ruleset));
+            static::assertFalse($validate->validate(' ', $ruleset));
+            static::assertFalse($validate->validate([], $ruleset));
+            static::assertFalse($validate->validate(new \stdClass(), $ruleset));
         }
     }
 
@@ -343,8 +343,8 @@ class ValidateTest extends TestCase
             ]
         );
         static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
-        static::assertTrue($validate->challenge(null, $ruleset));
-        static::assertTrue($validate->challenge(0.0, $ruleset));
+        static::assertTrue($validate->validate(null, $ruleset));
+        static::assertTrue($validate->validate(0.0, $ruleset));
 
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
@@ -389,8 +389,8 @@ class ValidateTest extends TestCase
             ]
         );
         static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
-        static::assertFalse($validate->challenge(null, $ruleset));
-        static::assertTrue($validate->challenge(0.0, $ruleset));
+        static::assertFalse($validate->validate(null, $ruleset));
+        static::assertTrue($validate->validate(0.0, $ruleset));
 
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(
@@ -434,8 +434,8 @@ class ValidateTest extends TestCase
             ]
         );
         static::assertInstanceOf(ValidationRuleSet::class, $ruleset);
-        static::assertTrue($validate->challenge(null, $ruleset));
-        static::assertFalse($validate->challenge(0.0, $ruleset));
+        static::assertTrue($validate->validate(null, $ruleset));
+        static::assertFalse($validate->validate(0.0, $ruleset));
 
         static::expectException(ValidationException::class);
         $ruleset = (new RuleSetFactory($validate))->make(

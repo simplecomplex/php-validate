@@ -122,7 +122,7 @@ class RecursionTest extends TestCase
             return null;
         }
 
-        $valid = $validator->challenge($this->sampleAddress(), $ruleSet_address, static::CHALLENGE_MODE);
+        $valid = $validator->validate($this->sampleAddress(), $ruleSet_address, static::CHALLENGE_MODE);
         if (!$valid && static::CHALLENGE_MODE) {
             error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
         }
@@ -176,7 +176,7 @@ class RecursionTest extends TestCase
             return null;
         }
 
-        $valid = $validator->challenge($this->samplePerson(), $ruleSet_tampered, static::CHALLENGE_MODE);
+        $valid = $validator->validate($this->samplePerson(), $ruleSet_tampered, static::CHALLENGE_MODE);
         if (!$valid && static::CHALLENGE_MODE) {
             error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
         }
@@ -212,21 +212,21 @@ class RecursionTest extends TestCase
         }
 
         // No ownership bucket.
-        $valid = $validator->challenge($this->sampleBusiness(), $ruleSet_business, static::CHALLENGE_MODE);
+        $valid = $validator->validate($this->sampleBusiness(), $ruleSet_business, static::CHALLENGE_MODE);
         if (!$valid && static::CHALLENGE_MODE) {
             error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
         }
         static::assertTrue($valid, 'Challenge Business - no owner');
 
         // Single ownership - an object.
-        $valid = $validator->challenge($this->sampleBusiness(1), $ruleSet_business, static::CHALLENGE_MODE);
+        $valid = $validator->validate($this->sampleBusiness(1), $ruleSet_business, static::CHALLENGE_MODE);
         if (!$valid && static::CHALLENGE_MODE) {
             error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
         }
         static::assertTrue($valid, 'Challenge Business - single owner');
 
         // Multiple ownerships - a list of objects.
-        $valid = $validator->challenge($this->sampleBusiness(2), $ruleSet_business, static::CHALLENGE_MODE);
+        $valid = $validator->validate($this->sampleBusiness(2), $ruleSet_business, static::CHALLENGE_MODE);
         if (!$valid && static::CHALLENGE_MODE) {
             error_log(Helper::removeNamespace(__METHOD__) . ':' . __LINE__ . ":\n" . $validator->getLastFailure());
         }

@@ -24,9 +24,9 @@ use SimpleComplex\Validate\Exception\OutOfRangeException;
  * Validation-by-ruleset engine.
  *
  * @internal
- *      Don't use this class directly, use challenge|challengeRecording() method.
- * @see RuleSetValidatorTrait::challenge()
- * @see RuleSetValidator::challenge()
+ *      Don't use this class directly, use validate|challengeRecording() method.
+ * @see RuleSetValidatorTrait::validate()
+ * @see RuleSetValidator::validate()
  *
  * @package SimpleComplex\Validate
  */
@@ -126,7 +126,7 @@ class ValidateAgainstRuleSet
      * instance state, voiding the warranty that the requested and referred
      * returned instances are effectively identical.
      *
-     * @see AbstractRuleProvider::challenge()
+     * @see AbstractRuleProvider::validate()
      *
      * @param RuleProviderInterface $ruleProvider
      *
@@ -151,7 +151,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use RuleSetValidatorTrait::challenge() instead of this.
+     * Use RuleSetValidatorTrait::validate() instead of this.
      *
      * @param RuleProviderInterface $ruleProvider
      * @param int $options
@@ -172,7 +172,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * @see AbstractRuleProvider::challengeRecording()
+     * @see RuleSetValidatorTrait::validate()
      *
      * @return string[]
      */
@@ -181,7 +181,7 @@ class ValidateAgainstRuleSet
     }
 
     /**
-     * Use RuleSetValidatorTrait::challenge() instead of this.
+     * Use RuleSetValidatorTrait::validate() instead of this.
      *
      * @param mixed $subject
      * @param ValidationRuleSet|object|array $ruleSet
@@ -200,7 +200,7 @@ class ValidateAgainstRuleSet
      *
      * @code
      * // CheckedValidator a value which should be an integer zero thru two.
-     * $validate->challenge($some_input, [
+     * $validate->validate($some_input, [
      *     'integer',
      *     'range' => [
      *         0,
@@ -209,7 +209,7 @@ class ValidateAgainstRuleSet
      * ]);
      * @endcode
      *
-     * @see RuleSetValidatorTrait::challenge()
+     * @see RuleSetValidatorTrait::validate()
      */
     public function challenge($subject, $ruleSet, string $keyPath = '@') : bool
     {

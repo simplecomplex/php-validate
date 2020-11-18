@@ -176,9 +176,9 @@ The 'bit' rule must allow string 0|1.
 
 ### Added
 * Validation rule set class.
-* All type et al checks moved from internal challenge method
+* All type et al checks moved from internal validate method
   to ValidationRuleSet (constructor).
-* ValidateByRules::challenge() now converts non-ValidationRuleSet
+* ValidateByRules::validate() now converts non-ValidationRuleSet
   arg ruleSet to ValidationRuleSet.
 * Implemented tableElements subsidary rules exclusive, whitelist, blacklist.
 * 'loopable' is 'iterable' that allows non-Traversable object
@@ -204,7 +204,7 @@ The 'bit' rule must allow string 0|1.
 * ValidateAgainstRuleSet::getInstance() must refer and return by rule provider
   class name, because otherwise there's no guarantee that requested and returned
   instance are effectively identical.
-* Validate is not allowed to have state, because challenge() calls otherwise
+* Validate is not allowed to have state, because validate() calls otherwise
   could leak state to eachother.
 * ValidateAgainstRuleSet is not allowed to have state (except when recording),
   because that would void ::getInstance() warranty.

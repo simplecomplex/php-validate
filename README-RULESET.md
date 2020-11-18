@@ -32,12 +32,12 @@ You can also declare that "well if it _isn't_ an [object|string|whatever], then 
 #### Validate objects/arrays recursively ####
 
 Validation rulesets can be nested.  
-```$validator->challenge($subject, $ruleSet)``` traverses the subject according to the ruleset (+ descendant rulesets),  
+```$validator->validate($subject, $ruleSet)``` traverses the subject according to the ruleset (+ descendant rulesets),  
 and checks that the subject at any level/position accords with the rules at that level/position.
 
 #### Record reason(s) for validation failure ####
 
-```$validator->challenge($subject, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE)```
+```$validator->validate($subject, $ruleSet, RuleSetValidatorInterface::RECORD | RuleSetValidatorInterface::CONTINUE)```
 memorizes all failures along the way.
 
 #### Example of use ####
