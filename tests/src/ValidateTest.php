@@ -42,7 +42,7 @@ class ValidateTest extends TestCase
     /**
      * @return RuleSetValidator
      */
-    public function testInstantiateRecursiveValidator()
+    public function testInstantiateRuleSetValidator()
     {
         $validator = RuleSetValidator::getInstance();
         static::assertInstanceOf(RuleSetValidator::class, $validator);
@@ -232,7 +232,7 @@ class ValidateTest extends TestCase
      */
     public function testAllowNull()
     {
-        $validate = $this->testInstantiateRecursiveValidator();
+        $validate = $this->testInstantiateRuleSetValidator();
 
         $ruleSet = [
             'nonNegative' => true,

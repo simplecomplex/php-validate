@@ -37,7 +37,7 @@ class RecursionTest extends TestCase
     /**
      * @return RuleSetValidator
      */
-    public function testInstantiateRecursiveValidator()
+    public function testInstantiateRuleSetValidator()
     {
         $validator = RuleSetValidator::getInstance();
         static::assertInstanceOf(RuleSetValidator::class, $validator);
@@ -109,7 +109,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetAddress() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateRecursiveValidator();
+        $validator = $this->testInstantiateRuleSetValidator();
         $factory = new RuleSetFactory($validator);
 
         $source = Helper::parseJsonString(static::getRuleSetJSON('Address'));
@@ -138,7 +138,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetPerson() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateRecursiveValidator();
+        $validator = $this->testInstantiateRuleSetValidator();
         $factory = new RuleSetFactory($validator);
 
         $ruleSet_address = $this->testRuleSetAddress();
@@ -192,7 +192,7 @@ class RecursionTest extends TestCase
      */
     public function testRuleSetBusiness() : ?ValidationRuleSet
     {
-        $validator = $this->testInstantiateRecursiveValidator();
+        $validator = $this->testInstantiateRuleSetValidator();
         $factory = new RuleSetFactory($validator);
 
         $ruleSet_person = $this->testRuleSetPerson();
