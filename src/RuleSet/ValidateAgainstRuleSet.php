@@ -126,7 +126,7 @@ class ValidateAgainstRuleSet
      * instance state, voiding the warranty that the requested and referred
      * returned instances are effectively identical.
      *
-     * @see AbstractRuleProvider::validate()
+     * @see RuleSetValidatorTrait::validate()
      *
      * @param RuleProviderInterface $ruleProvider
      *
@@ -200,7 +200,7 @@ class ValidateAgainstRuleSet
      *
      * @code
      * // CheckedValidator a value which should be an integer zero thru two.
-     * $validate->validate($some_input, [
+     * $validator->validate($some_input, [
      *     'integer',
      *     'range' => [
      *         0,
